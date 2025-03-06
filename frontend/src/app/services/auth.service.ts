@@ -21,8 +21,16 @@ export class AuthService {
     return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers})
   }
 
-  logout(){
+  logout(): Observable<any>{
     return this.http.get(`${this.baseUrl}/logout.php`, {withCredentials: true})
     
+  }
+
+  validateToken(){
+    return this.http.get(`${this.baseUrl}/validate_token.php`, {withCredentials: true})
+  }
+
+  refreshToken(){
+    return this.http.get(`${this.baseUrl}/refresh_token.php`, {withCredentials: true})
   }
 }
