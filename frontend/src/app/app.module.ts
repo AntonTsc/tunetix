@@ -16,6 +16,8 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
+import { FormsModule } from '@angular/forms';
+import { AlertComponent } from './components/alert/alert.component';
 
 @NgModule({
   declarations: [
@@ -32,12 +34,14 @@ import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.com
     LoginComponent,
     RegisterComponent,
     DatosPersonalesComponent,
-    MetodosPagoComponent
+    MetodosPagoComponent,
+    AlertComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
