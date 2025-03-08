@@ -1,6 +1,7 @@
 <?php
 include_once '../db.php';
 include_once 'token.php';
+include_once '../utils/formValidations.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
@@ -13,13 +14,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $data['email'];
     $password = $data['password'];
 
-    $stmt = $conn->prepare("SELECT id, correo, contrasena FROM usuario WHERE correo = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $prep = $conn->prepare("SELECT id, nombre, apellido, correo, contrasena FROM usuario WHERE correo = ?");
+    $prep->bind_param("s", $email);
+    $prep->execute();
+    $result = $prep->get_result();
     $user = $result->fetch_assoc();
 
     header('Content-Type: application/json');
+
+    validateEmail($user['correo']);
 
     if ($user && password_verify($password, $user['contrasena'])) {
         // Generar tokens
@@ -30,11 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie("access_token", $access_token, time() + 1800, "/", "", true, true);
         setcookie("refresh_token", $refresh_token, time() + 259200, "/", "", true, true);
 
-        echo json_encode(["status" => "OK", "message" => "Login exitoso"]);
+        unset($user['contrasena'], $user['id']);
+
+        echo json_encode(["status" => "OK", "message" => "Login exitoso", "data" => $user]);
     } else {
         echo json_encode(["status" => "ERROR", "message" => "Credenciales incorrectas"]);
     }
 
-    $stmt->close();
+    $prep->close();
 }
 ?>

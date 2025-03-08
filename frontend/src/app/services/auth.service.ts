@@ -17,7 +17,7 @@ export class AuthService {
       return this.http.post(`${this.baseUrl}/register.php`, data, {headers: this.headers})
   }
 
-  login(data: FormData): Observable<any>{
+  login(data: any): Observable<any>{
     return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers})
   }
 
