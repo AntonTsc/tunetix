@@ -18,8 +18,6 @@ import { RegisterComponent } from './components/register/register.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
-import { FormsModule } from '@angular/forms';
-import { AlertComponent } from './components/alert/alert.component';
 
 @NgModule({
   declarations: [
@@ -37,15 +35,13 @@ import { AlertComponent } from './components/alert/alert.component';
     RegisterComponent,
     DatosPersonalesComponent,
     MetodosPagoComponent,
-    ClickOutsideDirective,
-    AlertComponent
+    ClickOutsideDirective
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    BrowserAnimationsModule,
-    FormsModule
+    BrowserAnimationsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
