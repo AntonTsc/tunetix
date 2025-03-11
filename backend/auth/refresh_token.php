@@ -1,5 +1,6 @@
 <?php
 include_once '../vendor/autoload.php';
+include_once 'global_headers.php';
 include_once 'token.php';
 include_once '../dotenv.php';
 

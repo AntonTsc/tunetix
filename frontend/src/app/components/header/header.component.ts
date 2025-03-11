@@ -1,5 +1,8 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { Router } from '@angular/router';
+import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -64,6 +67,24 @@ import { Component } from '@angular/core';
   ]
 })
 export class HeaderComponent {
+
+  constructor(private _auth: AuthService, private router: Router){}
+
+  serverResponse!: ServerResponse;
+
+  logout(){
+    this._auth.logout().subscribe({
+      next: (response: ServerResponse) => {
+        this.serverResponse = response;
+        localStorage.removeItem('user_data');
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.serverResponse = {"status": "ERROR", "message": err}
+      }
+    });
+  }
+
   // Variables para el menú de usuario
   isUserMenuOpen = false;
   menuVisible = false;

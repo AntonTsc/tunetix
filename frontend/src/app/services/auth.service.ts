@@ -14,11 +14,11 @@ export class AuthService {
 
 
   register(data: any): Observable<any>{
-      return this.http.post(`${this.baseUrl}/register.php`, data, {headers: this.headers})
+      return this.http.post(`${this.baseUrl}/register.php`, data, {headers: this.headers, withCredentials: true})
   }
 
   login(data: any): Observable<any>{
-    return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers})
+    return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers, withCredentials: true})
   }
 
   logout(): Observable<any>{
@@ -26,7 +26,7 @@ export class AuthService {
     
   }
 
-  validateToken(){
+  validateToken(): Observable<any>{
     return this.http.get(`${this.baseUrl}/validate_token.php`, {withCredentials: true})
   }
 

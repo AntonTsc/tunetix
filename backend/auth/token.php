@@ -1,6 +1,7 @@
 <?php
 include_once '../vendor/autoload.php';
 include_once '../dotenv.php';
+include_once 'global_headers.php';
 
 use Firebase\JWT\JWT;
 
