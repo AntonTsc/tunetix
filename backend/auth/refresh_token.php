@@ -1,5 +1,6 @@
 <?php
 include_once '../vendor/autoload.php';
+include_once 'global_headers.php';
 include_once 'token.php';
 include_once '../dotenv.php';
 
@@ -34,7 +35,7 @@ try {
     $new_access_token = generateToken($decoded->id, $decoded->email, 1800); // 30 min
 
     // Configurar la cookie de access_token con Secure y HttpOnly
-    setcookie("access_token", $new_access_token, time() + 1800, "/", "", true, true);  // Expira en 30 min
+    setcookie("access_token", $new_access_token, time() + 1800, "/", "", false, false);  // Expira en 30 min
 
     echo json_encode(["status" => "OK", "message" => "Token renovado", "access_token" => $new_access_token]);
 

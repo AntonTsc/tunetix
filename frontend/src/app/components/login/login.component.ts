@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
@@ -8,10 +8,8 @@ import { AuthService } from 'src/app/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent{
   serverResponse!: ServerResponse;
-
- 
 
   @ViewChild('form') form!: ElementRef<HTMLFormElement>;
  

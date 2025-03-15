@@ -9,7 +9,7 @@ $secret_key = $_ENV['SECRET'];
 header('Content-Type: application/json');
 
 if (!isset($_COOKIE['access_token'])) {
-    echo json_encode(["message" => "Token no proporcionado"]);
+    echo json_encode(["status" => "ERROR", "message" => "Token no proporcionado"]);
     exit;
 }
 
@@ -19,6 +19,6 @@ try {
     $decoded = JWT::decode($jwt, new Key($secret_key, 'HS256'));
     echo json_encode(["status" => "OK", "message" => "Token valido"]);
 } catch (Exception $e) {
-    echo json_encode(["status" => "ERROR", "error" => $e->getMessage()]);
+    echo json_encode(["status" => "ERROR", "message" => $e->getMessage()]);
 }
 ?>
