@@ -4,15 +4,15 @@ import { RouterModule, Routes } from '@angular/router';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
 import { CancionesComponent } from './components/canciones/canciones.component';
+import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
 import { EventoComponent } from './components/evento/evento.component';
 import { EventosComponent } from './components/eventos/eventos.component';
+import { HistorialComprasComponent } from './components/historial-compras/historial-compras.component';
 import { InicioComponent } from './components/inicio/inicio.component';
 import { LoginComponent } from './components/login/login.component';
+import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
-import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
-import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
-import { HistorialComprasComponent } from './historial-compras/historial-compras.component';
 
 const routes: Routes = [
   {path: 'inicio', component: InicioComponent},

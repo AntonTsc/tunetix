@@ -1,26 +1,26 @@
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HeaderComponent } from './components/header/header.component';
-import { FooterComponent } from './components/footer/footer.component';
-import { ArtistasComponent } from './components/artistas/artistas.component';
-import { ArtistaComponent } from './components/artista/artista.component';
-import { EventosComponent } from './components/eventos/eventos.component';
-import { EventoComponent } from './components/evento/evento.component';
-import { CancionesComponent } from './components/canciones/canciones.component';
-import { InicioComponent } from './components/inicio/inicio.component';
-import { PerfilComponent } from './components/perfil/perfil.component';
-import { LoginComponent } from './components/login/login.component';
-import { RegisterComponent } from './components/register/register.component';
-import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
-import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
-import { ClickOutsideDirective } from './directives/click-outside.directive';
-import { FormsModule } from '@angular/forms';
 import { AlertComponent } from './components/alert/alert.component';
-import { HistorialComprasComponent } from './historial-compras/historial-compras.component';
+import { ArtistaComponent } from './components/artista/artista.component';
+import { ArtistasComponent } from './components/artistas/artistas.component';
+import { CancionesComponent } from './components/canciones/canciones.component';
+import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
+import { EventoComponent } from './components/evento/evento.component';
+import { EventosComponent } from './components/eventos/eventos.component';
+import { FooterComponent } from './components/footer/footer.component';
+import { HeaderComponent } from './components/header/header.component';
+import { HistorialComprasComponent } from './components/historial-compras/historial-compras.component';
+import { InicioComponent } from './components/inicio/inicio.component';
+import { LoginComponent } from './components/login/login.component';
+import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
+import { PerfilComponent } from './components/perfil/perfil.component';
+import { RegisterComponent } from './components/register/register.component';
+import { ClickOutsideDirective } from './directives/click-outside.directive';
 
 @NgModule({
   declarations: [
@@ -47,7 +47,8 @@ import { HistorialComprasComponent } from './historial-compras/historial-compras
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
