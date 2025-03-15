@@ -16,8 +16,9 @@ export class AppComponent{
   routes: string[] = ['/login', '/register'];
 
   constructor(private _auth: AuthService, private router: Router){
-    this,router.events.subscribe(() => {
+    this.router.events.subscribe(() => {
       this.isRouteAllowed = !this.routes.some(route => this.router.url.includes(route))
+      console.log(this.isRouteAllowed)
     })
   }
   // Para paginas que requirean tener una sesion activa //

@@ -4,6 +4,8 @@ include_once '../auth/global_headers.php';
 include_once 'token.php';
 include_once '../utils/formValidations.php';
 
+header('Content-Type: application/json');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
 
@@ -21,8 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $prep->get_result();
     $user = $result->fetch_assoc();
 
-    header('Content-Type: application/json');
-
     validateEmail($user['correo']);
 
     if ($user && password_verify($password, $user['contrasena'])) {
@@ -31,10 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $refresh_token = generateToken($user['id'], $user['correo'], 259200); // 3 días
 
         // Configurar cookies seguras
-        setcookie("access_token", $access_token, time() + 1800, "/", "", true, true);
-        setcookie("refresh_token", $refresh_token, time() + 259200, "/", "", true, true);
+        setcookie("access_token", $access_token, time() + 1800, "/", "localhost", false, false);
+        setcookie("refresh_token", $refresh_token, time() + 259200, "/", "localhost", false, false);
 
-        unset($user['contrasena'], $user['id']);
+        $user['first_name'] = $user['nombre'];
+        $user['last_name'] = $user['apellido'];
+        $user['email'] = $user['correo'];
+
+        unset($user['nombre'], $user['apellido'], $user['correo'], $user['contrasena'], $user['id']);
 
         echo json_encode(["status" => "OK", "message" => "Login exitoso", "data" => $user]);
     } else {

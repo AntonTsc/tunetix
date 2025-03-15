@@ -1,5 +1,5 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, Input } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
@@ -68,21 +68,34 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class HeaderComponent {
 
-  constructor(private _auth: AuthService, private router: Router){}
-
+  constructor(private _auth: AuthService, private router: Router){
+    this.checkIfLoggedIn();
+  }
+  user_data: { first_name: string, last_name: string, email: string } | null = null;
+  isLoggedOut: boolean = false;
   serverResponse!: ServerResponse;
-
+  // TODO reemplazar apartado perfil por boton de login cuando no este logueado
   logout(){
     this._auth.logout().subscribe({
       next: (response: ServerResponse) => {
         this.serverResponse = response;
         localStorage.removeItem('user_data');
-        this.router.navigate(['/login']);
+        this.isLoggedOut = true
+        this.checkIfLoggedIn();
       },
       error: (err) => {
         this.serverResponse = {"status": "ERROR", "message": err}
       }
     });
+  }
+
+  checkIfLoggedIn() {
+    this.isLoggedOut = !this._auth.isAuthenticated();
+  }
+
+  userDataInint(){
+    const data = localStorage.getItem('user_data');
+    this.user_data = data ? JSON.parse(data) : null;
   }
 
   // Variables para el menú de usuario

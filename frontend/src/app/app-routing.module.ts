@@ -12,6 +12,7 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
+import { authGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   {path: 'inicio', component: InicioComponent},
@@ -22,7 +23,7 @@ const routes: Routes = [
   {path: 'eventos', component: EventosComponent},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: RegisterComponent},
-  {path: 'perfil', component: PerfilComponent, children:[
+  {path: 'perfil', component: PerfilComponent, canActivate:[authGuard], children:[
     {path: 'datos-personales', component: DatosPersonalesComponent},
     {path: 'metodos-de-pago', component: MetodosPagoComponent}
   ]},
