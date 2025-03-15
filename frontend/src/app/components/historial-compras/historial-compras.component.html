@@ -1,1 +1,294 @@
-<p>historial-compras works!</p>
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Historial de Compras</h1>
+
+    <!-- Filter options -->
+    <div class="flex items-center space-x-2">
+      <label for="filter" class="text-sm font-medium text-gray-700"
+        >Filtrar por:</label
+      >
+      <select
+        id="filter"
+        [(ngModel)]="filterOption"
+        (change)="applyFilter()"
+        class="text-sm border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 px-3 py-2"
+      >
+        <option value="all">Todo</option>
+        <option value="recent">Últimos 30 días</option>
+        <option value="year">Este año</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div
+    *ngIf="purchases.length === 0"
+    class="bg-white rounded-lg border border-gray-200 p-8 text-center"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="mx-auto h-12 w-12 text-gray-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
+    </svg>
+    <h3 class="mt-2 text-lg font-medium text-gray-900">No hay compras</h3>
+    <p class="mt-1 text-sm text-gray-500">
+      Todavía no has realizado ninguna compra
+    </p>
+    <div class="mt-6">
+      <a
+        routerLink="/eventos"
+        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+      >
+        Explorar eventos
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="ml-2 -mr-1 h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 8l4 4m0 0l-4 4m4-4H3"
+          />
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Purchase history table -->
+  <div
+    *ngIf="purchases.length > 0"
+    class="bg-white rounded-lg border border-gray-200 overflow-hidden"
+  >
+    <!-- Table header -->
+    <div class="bg-gray-50 border-b border-gray-200 px-6 py-3">
+      <h2 class="text-lg font-medium text-gray-800">Compras realizadas</h2>
+    </div>
+
+    <!-- Table content -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              #
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Evento
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Fecha
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Cantidad
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Precio total
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Estado
+            </th>
+            <th scope="col" class="relative px-6 py-3">
+              <span class="sr-only">Acciones</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr
+            *ngFor="let purchase of getCurrentPageItems(); let i = index"
+            class="hover:bg-gray-50"
+          >
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+            >
+              {{ (currentPage - 1) * itemsPerPage + i + 1 }}
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center">
+                <div class="h-10 w-10 flex-shrink-0">
+                  <img
+                    class="h-10 w-10 rounded-md object-cover"
+                    [src]="purchase.eventImage"
+                    alt="Event image"
+                  />
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ purchase.eventName }}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {{ purchase.location }}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">
+                {{ purchase.purchaseDate | date : "dd/MM/yyyy" }}
+              </div>
+              <div class="text-sm text-gray-500">
+                {{ purchase.purchaseDate | date : "HH:mm" }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ purchase.quantity }}
+              {{ purchase.quantity === 1 ? "entrada" : "entradas" }}
+            </td>
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+            >
+              {{ purchase.totalPrice | currency : "EUR" : "symbol" : "1.2-2" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span
+                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-green-100 text-green-800':
+                    purchase.status === 'completed',
+                  'bg-yellow-100 text-yellow-800':
+                    purchase.status === 'pending',
+                  'bg-red-100 text-red-800': purchase.status === 'canceled'
+                }"
+              >
+                {{ getStatusText(purchase.status) }}
+              </span>
+            </td>
+            <td
+              class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+            >
+              <button
+                class="text-purple-600 hover:text-purple-900"
+                (click)="viewDetails(purchase.id)"
+              >
+                Ver detalles
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination controls -->
+    <div
+      *ngIf="filteredPurchases.length > itemsPerPage"
+      class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
+    >
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Mostrando
+            <span class="font-medium">{{
+              (currentPage - 1) * itemsPerPage + 1
+            }}</span>
+            a
+            <span class="font-medium">{{
+              Math.min(currentPage * itemsPerPage, filteredPurchases.length)
+            }}</span>
+            de
+            <span class="font-medium">{{ filteredPurchases.length }}</span>
+            resultados
+          </p>
+        </div>
+        <div>
+          <nav
+            class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            aria-label="Pagination"
+          >
+            <button
+              (click)="changePage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              [class.cursor-not-allowed]="currentPage === 1"
+            >
+              <span class="sr-only">Anterior</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+
+            <button
+              *ngFor="let page of pageNumbers()"
+              (click)="changePage(page)"
+              [class.bg-purple-50]="page === currentPage"
+              [class.text-purple-600]="page === currentPage"
+              [class.border-purple-500]="page === currentPage"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              (click)="changePage(currentPage + 1)"
+              [disabled]="
+                currentPage ===
+                Math.ceil(filteredPurchases.length / itemsPerPage)
+              "
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              [class.cursor-not-allowed]="
+                currentPage ===
+                Math.ceil(filteredPurchases.length / itemsPerPage)
+              "
+            >
+              <span class="sr-only">Siguiente</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
