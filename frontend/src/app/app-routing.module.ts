@@ -12,6 +12,7 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
+import { HistorialComprasComponent } from './historial-compras/historial-compras.component';
 
 const routes: Routes = [
   {path: 'inicio', component: InicioComponent},
@@ -24,7 +25,8 @@ const routes: Routes = [
   {path: 'register', component: RegisterComponent},
   {path: 'perfil', component: PerfilComponent, children:[
     {path: 'datos-personales', component: DatosPersonalesComponent},
-    {path: 'metodos-de-pago', component: MetodosPagoComponent}
+    {path: 'metodos-de-pago', component: MetodosPagoComponent},
+    {path: 'historial-de-compras', component: HistorialComprasComponent}
   ]},
   {path: '**', pathMatch: 'full', redirectTo: 'inicio'}
 ];

@@ -20,6 +20,7 @@ import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.com
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { FormsModule } from '@angular/forms';
 import { AlertComponent } from './components/alert/alert.component';
+import { HistorialComprasComponent } from './historial-compras/historial-compras.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { AlertComponent } from './components/alert/alert.component';
     DatosPersonalesComponent,
     MetodosPagoComponent,
     ClickOutsideDirective,
-    AlertComponent
+    AlertComponent,
+    HistorialComprasComponent
   ],
   imports: [
     BrowserModule,
