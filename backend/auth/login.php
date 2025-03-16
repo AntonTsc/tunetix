@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
 
     if (!isset($data['email'], $data['password'])) {
-        echo json_encode(["message" => "Datos incompletos"]);
+        echo json_encode(["status" => "ERROR", "message" => "Datos incompletos"]);
         exit;
     }
 
@@ -20,11 +20,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $prep->get_result();
     $user = $result->fetch_assoc();
 
-    header('Content-Type: application/json');
+    // Verificar si el usuario existe
+    if (!$user) {
+        echo json_encode(["status" => "ERROR", "message" => "Correo electrónico o contraseña incorrectos"]);
+        exit;
+    }
 
-    validateEmail($user['correo']);
+    // Validar formato de email
+    try {
+        validateEmail($user['correo']);
+    } catch (Exception $e) {
+        echo json_encode(["status" => "ERROR", "message" => $e->getMessage()]);
+        exit;
+    }
 
-    if ($user && password_verify($password, $user['contrasena'])) {
+    // Verificar contraseña
+    if (password_verify($password, $user['contrasena'])) {
         // Generar tokens
         $access_token = generateToken($user['id'], $user['correo'], 1800); // 30 min
         $refresh_token = generateToken($user['id'], $user['correo'], 259200); // 3 días
@@ -33,13 +44,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie("access_token", $access_token, time() + 1800, "/", "", true, true);
         setcookie("refresh_token", $refresh_token, time() + 259200, "/", "", true, true);
 
+<<<<<<< HEAD
         unset($user['contrasena'], $user['id']);
 
         echo json_encode(["status" => "OK", "message" => "Login exitoso", "data" => $user]);
+=======
+        // Preparar respuesta
+        $userData = [
+            "id" => $user['id'],
+            "first_name" => $user['nombre'],
+            "last_name" => $user['apellido'],
+            "email" => $user['correo']
+        ];
+
+        echo json_encode([
+            "status" => "OK",
+            "message" => "Login exitoso",
+            "data" => $userData
+        ]);
+>>>>>>> b1a403c (fix: corregir redirección al inicio tras fallo de contraseña)
     } else {
-        echo json_encode(["status" => "ERROR", "message" => "Credenciales incorrectas"]);
+        // Contraseña incorrecta
+        echo json_encode(["status" => "ERROR", "message" => "Correo electrónico o contraseña incorrectos"]);
+        exit;
     }
 
     $prep->close();
+} else {
+    echo json_encode(["status" => "ERROR", "message" => "Método no permitido"]);
 }
-?>

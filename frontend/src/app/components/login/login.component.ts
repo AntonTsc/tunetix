@@ -24,17 +24,28 @@ export class LoginComponent {
 
     if(!fd.get('email') || !fd.get('password')){
       this.serverResponse = {status: 'ERROR', message: 'Todos los campos deben ser rellenados'};
-      return; 
+      return;
     }
 
     this._auth.login(json).subscribe({
       next: (response: ServerResponse) => {
-        localStorage.setItem('user_data', JSON.stringify(response.data));
-        this.router.navigate(['/home']);
+        // Verificar si la respuesta es exitosa antes de redirigir
+        if (response.status === 'OK') {
+          localStorage.setItem('user_data', JSON.stringify(response.data));
+          this.router.navigate(['/inicio']);
+        } else {
+          // Si hay un error en la respuesta, mostrar el mensaje
+          this.serverResponse = response;
+        }
       },
       error: (err) => {
-        this.serverResponse = {status: 'ERROR', message: 'Error en el servidor'};
-        console.log(err)
+        // Si es un error HTTP, intentamos extraer el mensaje del servidor
+        if (err.error && err.error.message) {
+          this.serverResponse = {status: 'ERROR', message: err.error.message};
+        } else {
+          this.serverResponse = {status: 'ERROR', message: 'Error en el servidor'};
+        }
+        console.error('Error en el login:', err);
       }
     })
   }
