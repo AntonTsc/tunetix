@@ -41,7 +41,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     MetodosPagoComponent,
     ClickOutsideDirective,
     AlertComponent,
-    HistorialComprasComponent
+    HistorialComprasComponent,
   ],
   imports: [
     BrowserModule,

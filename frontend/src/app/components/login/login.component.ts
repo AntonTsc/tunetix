@@ -34,7 +34,6 @@ export class LoginComponent{
         this.router.navigate(['/inicio']);
       },
       error: (err) => {
-        this.serverResponse = {status: 'ERROR', message: 'Error en el servidor'};
         console.log(err)
       }
     })

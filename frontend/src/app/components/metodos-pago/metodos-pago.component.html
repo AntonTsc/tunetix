@@ -1,4 +1,7 @@
 <div class="space-y-8">
+  <ng-container *ngIf="serverResponse != undefined">
+    <app-alert class="fixed top-0 w-fit mt-6" [serverResponse]="serverResponse" />
+  </ng-container>
   <!-- Payment methods section -->
   <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
     <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
@@ -111,7 +114,40 @@
     </div>
 
     <div class="p-6">
-      <form [formGroup]="cardForm" (ngSubmit)="addCard()" class="space-y-6">
+      <form [formGroup]="cardForm" (ngSubmit)="addCard()" class="space-y-6" #form>
+        <div>
+          <label
+            for="cardOwner"
+            class="block text-sm font-medium text-gray-700"
+            >Titular</label
+          >
+          <div class="mt-1">
+            <input
+              type="text"
+              id="cardOwner"
+              formControlName="cardOwner"
+              name="owner"
+              placeholder="John Doe"
+              class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+            />
+            <div
+              *ngIf="
+                cardForm.get('cardOwner')?.invalid &&
+                cardForm.get('cardOwner')?.touched
+              "
+              class="text-red-500 text-sm mt-1"
+            >
+              <span *ngIf="cardForm.get('cardOwner')?.errors?.['required']">
+                El nombre del titular es obligatorio
+              </span>
+              <!-- <span
+                *ngIf="cardForm.get('cardOwner')?.errors?.['pattern'] || cardForm.get('cardOwner')?.errors?.['invalidCardNumber']"
+              >
+                Introduce un número de tarjeta válido (16 dígitos)
+              </span> -->
+            </div>
+          </div>
+        </div>
         <!-- Card number -->
         <div>
           <label
@@ -123,6 +159,7 @@
             <input
               type="text"
               id="cardNumber"
+              name="pan"
               formControlName="cardNumber"
               placeholder="1234 5678 9012 3456"
               class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
@@ -159,6 +196,7 @@
               <select
                 id="expMonth"
                 formControlName="expMonth"
+                name="expMonth"
                 class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
               >
                 <option value="" disabled selected>MM</option>
@@ -187,6 +225,7 @@
               <select
                 id="expYear"
                 formControlName="expYear"
+                name="expYear"
                 class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
               >
                 <option value="" disabled selected>AA</option>
@@ -216,6 +255,7 @@
                 type="text"
                 id="cvc"
                 formControlName="cvc"
+                name="cvc"
                 placeholder="123"
                 class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
               />
@@ -244,11 +284,12 @@
               <select
                 id="cardType"
                 formControlName="cardType"
+                name="type"
                 class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
               >
                 <option value="" disabled selected>Selecciona tipo</option>
-                <option value="visa">Visa</option>
-                <option value="mastercard">Mastercard</option>
+                <option value="VISA">Visa</option>
+                <option value="MASTERCARD">Mastercard</option>
               </select>
               <div
                 *ngIf="
@@ -297,6 +338,7 @@
         <div>
           <button
             type="submit"
+            (click)="$event.preventDefault();create()"
             [disabled]="cardForm.invalid"
             [ngClass]="{
               'bg-purple-600 hover:bg-purple-700': !cardForm.invalid,

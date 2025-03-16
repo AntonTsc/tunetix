@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { CardService } from 'src/app/services/card.service';
 
 // Custom validator function
 function cardNumberValidator(control: AbstractControl): ValidationErrors | null {
@@ -35,6 +37,8 @@ interface Card {
   styleUrls: ['./metodos-pago.component.css']
 })
 export class MetodosPagoComponent implements OnInit {
+  serverResponse?: ServerResponse
+  @ViewChild('form') form!: ElementRef<HTMLFormElement>;
   // Array of saved cards
   savedCards: Card[] = [];
 
@@ -45,12 +49,13 @@ export class MetodosPagoComponent implements OnInit {
   months: string[] = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
   years: string[] = [];
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private _card: CardService) {
     this.cardForm = this.fb.group({
       cardNumber: ['', [
         Validators.required,
         cardNumberValidator  // Apply the custom validator
       ]],
+      cardOwner: ['', Validators.required],
       expMonth: ['', Validators.required],
       expYear: ['', Validators.required],
       cvc: ['', [Validators.required, Validators.pattern('^[0-9]{3,4}$')]],
@@ -63,6 +68,30 @@ export class MetodosPagoComponent implements OnInit {
     for (let i = 0; i < 10; i++) {
       this.years.push((currentYear + i).toString().substr(2));
     }
+  }
+
+  getAll(){
+    
+  }
+
+  create(){
+    const fd = new FormData(this.form.nativeElement);
+
+    const json = {
+      type: fd.get('type'),
+      email: JSON.parse(localStorage.getItem('user_data') ?? '').email,
+      owner: fd.get('owner'),
+      pan: fd.get('pan'),
+      cvc: fd.get('cvc'),
+      expiration_date: `${fd.get('expMonth')}/${fd.get('expYear')}`
+    };
+
+    this._card.create(json).subscribe({
+      next: (response: ServerResponse) => {
+        this.serverResponse = response;
+        console.log(response)
+      }
+    })
   }
 
   ngOnInit(): void {
