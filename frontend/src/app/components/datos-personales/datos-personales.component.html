@@ -68,8 +68,13 @@
 
     <!-- Rest of your profile content -->
     <div class="text-center sm:text-left">
-      <h1 class="text-3xl font-bold text-gray-800">{{ userData.name }}</h1>
-      <p class="text-gray-500">Miembro desde 12 marzo 2023</p>
+      <!-- Modificado para mostrar nombre y apellido -->
+      <h1 class="text-3xl font-bold text-gray-800">
+        {{ userData.name }} {{ userData.lastName }}
+      </h1>
+      <p class="text-gray-500">
+        Miembro desde {{ userData.createdAt | date : "dd MMMM yyyy" }}
+      </p>
     </div>
   </div>
 
@@ -101,26 +106,42 @@
           </svg>
         </button>
       </div>
+      <!-- Modificado para mostrar nombre y apellido juntos -->
       <div *ngIf="!editingField.name" class="text-gray-800 text-lg">
-        {{ userData.name }}
+        {{ userData.name }} {{ userData.lastName }}
       </div>
-      <div *ngIf="editingField.name" class="flex space-x-2">
+      <div
+        *ngIf="editingField.name"
+        class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2"
+      >
         <input
           type="text"
           class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
-          value="{{ userData.name }}"
+          placeholder="Nombre"
+          [(ngModel)]="userData.name"
         />
-        <button
-          class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-        >
-          Guardar
-        </button>
-        <button
-          class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-          (click)="toggleEdit('name')"
-        >
-          Cancelar
-        </button>
+        <input
+          type="text"
+          class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+          placeholder="Apellido"
+          [(ngModel)]="userData.lastName"
+        />
+        <div class="flex space-x-2 mt-2 sm:mt-0">
+          <button
+            class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+            [disabled]="updateLoading"
+            (click)="saveProfile('name')"
+          >
+            {{ updateLoading ? "Guardando..." : "Guardar" }}
+          </button>
+          <button
+            class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+            [disabled]="updateLoading"
+            (click)="toggleEdit('name')"
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
     </div>
 
@@ -151,15 +172,18 @@
         <input
           type="email"
           class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
-          value="{{ userData.email }}"
+          [(ngModel)]="userData.email"
         />
         <button
           class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+          [disabled]="updateLoading"
+          (click)="saveProfile('email')"
         >
-          Guardar
+          {{ updateLoading ? "Guardando..." : "Guardar" }}
         </button>
         <button
           class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+          [disabled]="updateLoading"
           (click)="toggleEdit('email')"
         >
           Cancelar
@@ -196,6 +220,7 @@
             type="password"
             class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Contraseña actual"
+            [(ngModel)]="passwordData.currentPassword"
           />
         </div>
         <div class="flex space-x-2">
@@ -203,6 +228,7 @@
             type="password"
             class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Nueva contraseña"
+            [(ngModel)]="passwordData.newPassword"
           />
         </div>
         <div class="flex space-x-2">
@@ -210,16 +236,20 @@
             type="password"
             class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Confirmar nueva contraseña"
+            [(ngModel)]="passwordData.confirmPassword"
           />
         </div>
         <div class="flex space-x-2">
           <button
             class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+            [disabled]="updateLoading"
+            (click)="updatePassword()"
           >
-            Actualizar contraseña
+            {{ updateLoading ? "Actualizando..." : "Actualizar contraseña" }}
           </button>
           <button
             class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+            [disabled]="updateLoading"
             (click)="toggleEdit('password')"
           >
             Cancelar
@@ -227,5 +257,15 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Mensaje de actualización -->
+  <div *ngIf="updateMessage" class="mt-4 text-green-600 font-medium">
+    {{ updateMessage }}
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="error" class="mt-4 text-red-600 font-medium">
+    {{ error }}
   </div>
 </div>
