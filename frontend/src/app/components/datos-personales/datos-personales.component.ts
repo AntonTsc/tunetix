@@ -58,11 +58,11 @@ export class DatosPersonalesComponent implements OnInit {
       next: (response) => {
         if (response.status === 'OK') {
           this.userData = {
+            id: response.data.id,
             name: response.data.first_name,
             lastName: response.data.last_name,
             email: response.data.email,
-            profileImage: response.data.image_path || null,
-            id: response.data.id,
+            profileImage: response.data.image_path,
             createdAt: response.data.created_at,
             updatedAt: response.data.updated_at
           };
