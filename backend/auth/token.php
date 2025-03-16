@@ -16,4 +16,3 @@ function generateToken($user_id, $email, $exp) {
     ];
     return JWT::encode($payload, $secret_key, 'HS256');
 }
-?>
