@@ -36,6 +36,25 @@ export class AuthService {
       );
   }
 
+  logout(): Observable<any> {
+    // Hacer la solicitud HTTP para cerrar sesión en el servidor
+    return this.http.get(`${this.baseUrl}/logout.php`, { headers: this.headers, withCredentials: true })
+      .pipe(
+        tap((response: any) => {
+          // Solo hacemos algo si el login fue exitoso
+          // Si hay un error, el componente que llamó a este método debería encargarse
+          if (response.status === 'OK') {
+            // Podrías guardar alguna información de usuario en localStorage o sessionStorage
+            // O dejarlo solo con las cookies que ya están siendo configuradas por el backend
+          }
+        }),
+        catchError(error => {
+          console.error('Error en la petición de login:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
   logout(): Observable<any>{
     return this.http.get(`${this.baseUrl}/logout.php`, {withCredentials: true})
 

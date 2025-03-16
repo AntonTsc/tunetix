@@ -44,11 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie("access_token", $access_token, time() + 1800, "/", "", true, true);
         setcookie("refresh_token", $refresh_token, time() + 259200, "/", "", true, true);
 
-<<<<<<< HEAD
-        unset($user['contrasena'], $user['id']);
-
-        echo json_encode(["status" => "OK", "message" => "Login exitoso", "data" => $user]);
-=======
         // Preparar respuesta
         $userData = [
             "id" => $user['id'],
@@ -62,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "message" => "Login exitoso",
             "data" => $userData
         ]);
->>>>>>> b1a403c (fix: corregir redirección al inicio tras fallo de contraseña)
     } else {
         // Contraseña incorrecta
         echo json_encode(["status" => "ERROR", "message" => "Correo electrónico o contraseña incorrectos"]);
