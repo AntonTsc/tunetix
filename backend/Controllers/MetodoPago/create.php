@@ -16,6 +16,7 @@
             $pan = $data['pan'];
             $cvc = $data['cvc'];
             $expiration_date = $data['expiration_date'];
+            $currency = $data['currency'];
 
             if(!isset($type, $user_id, $owner, $pan, $cvc, $expiration_date)){
                 echo json_encode(["status" => "ERROR", "message" => "Campos incompo"]);
@@ -42,8 +43,8 @@
                 exit;
             }
 
-            $prep = $conn->prepare("INSERT INTO metodo_pago VALUES(null,?,?,?,?,?,?,null)");
-            $prep->bind_param("sisiis", $type, $user_id, $owner, $pan, $cvc, $expiration_date);
+            $prep = $conn->prepare("INSERT INTO metodo_pago VALUES(null,?,?,?,?,?,?,?,null)");
+            $prep->bind_param("sisiiss", $type, $user_id, $owner, $pan, $cvc, $expiration_date, $currency);
             $prep->execute();
 
             echo json_encode(['status' => 'OK', 'message' => 'Se ha añadido un nuevo metodo de pago']);

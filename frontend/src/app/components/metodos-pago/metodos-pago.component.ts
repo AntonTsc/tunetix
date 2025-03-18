@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
+import Card from 'src/app/interfaces/Card';
 import { CardService } from 'src/app/services/card.service';
 
 // Custom validator function
@@ -23,14 +24,6 @@ function cardNumberValidator(control: AbstractControl): ValidationErrors | null 
   return null; // Valid
 }
 
-interface Card {
-  lastFour: string;
-  expMonth: string;
-  expYear: string;
-  type: string;
-  currency: string;
-}
-
 @Component({
   selector: 'app-metodos-pago',
   templateUrl: './metodos-pago.component.html',
@@ -39,6 +32,7 @@ interface Card {
 export class MetodosPagoComponent implements OnInit {
   serverResponse?: ServerResponse
   @ViewChild('form') form!: ElementRef<HTMLFormElement>;
+  
   // Array of saved cards
   savedCards: Card[] = [];
 
@@ -58,7 +52,7 @@ export class MetodosPagoComponent implements OnInit {
       cardOwner: ['', Validators.required],
       expMonth: ['', Validators.required],
       expYear: ['', Validators.required],
-      cvc: ['', [Validators.required, Validators.pattern('^[0-9]{3,4}$')]],
+      cvc: ['', [Validators.required, Validators.pattern('^[0-9]{3}$')]],
       cardType: ['', Validators.required],
       currency: ['', Validators.required]
     });
@@ -71,40 +65,55 @@ export class MetodosPagoComponent implements OnInit {
   }
 
   getAll(){
-    
+    this._card.getAll().subscribe({
+      next: (response: ServerResponse) => {
+        this.savedCards = response.data as Card[]
+        console.log(this.savedCards)
+      },
+      error: (err: any) => {
+        console.error(err)
+      }
+    })
+  }
+
+  getServerResponse(event: ServerResponse){
+    this.serverResponse = event;
   }
 
   create(){
-    const fd = new FormData(this.form.nativeElement);
+    const formValue = this.cardForm.value;
 
     const json = {
-      type: fd.get('type'),
+      type: formValue.cardType,
       email: JSON.parse(localStorage.getItem('user_data') ?? '').email,
-      owner: fd.get('owner'),
-      pan: fd.get('pan'),
-      cvc: fd.get('cvc'),
-      expiration_date: `${fd.get('expMonth')}/${fd.get('expYear')}`
+      owner: formValue.cardOwner,
+      pan: formValue.cardNumber,
+      cvc: formValue.cvc,
+      expiration_date: `${formValue.expMonth}/${formValue.expYear}`,
+      currency: formValue.currency
     };
 
     this._card.create(json).subscribe({
       next: (response: ServerResponse) => {
         this.serverResponse = response;
         console.log(response)
+        this.getAll();
       }
     })
   }
 
   ngOnInit(): void {
+    this.getAll();
     // Sample saved card for demonstration
-    this.savedCards = [
-      {
-        lastFour: '4242',
-        expMonth: '12',
-        expYear: '25',
-        type: 'visa',
-        currency: 'EUR'
-      }
-    ];
+    // this.savedCards = [
+    //   {
+    //     lastFour: '4242',
+    //     expMonth: '12',
+    //     expYear: '25',
+    //     type: 'visa',
+    //     currency: 'EUR'
+    //   }
+    // ];
   }
 
   // Add a new card
@@ -117,11 +126,11 @@ export class MetodosPagoComponent implements OnInit {
 
       // Create new card object with last 4 digits
       const newCard: Card = {
-        lastFour: cardNumberWithoutSpaces.slice(-4),
-        expMonth: formValue.expMonth,
-        expYear: formValue.expYear,
-        type: formValue.cardType,
-        currency: formValue.currency
+
+        pan: cardNumberWithoutSpaces.slice(-4),
+        fecha_expiracion: `${formValue.expMonth}/${formValue.expYear}`,
+        tipo: formValue.cardType,
+        divisa: formValue.currency
       };
 
       // Add to saved cards
@@ -133,19 +142,8 @@ export class MetodosPagoComponent implements OnInit {
   }
 
   // Delete a card
-  deleteCard(index: number): void {
-    this.savedCards.splice(index, 1);
+  deleteCard(event: number): void {
+    this.savedCards.splice(event, 1);
   }
 
-  // Get CSS class for card type icon background
-  getCardTypeClass(type: string): string {
-    switch (type) {
-      case 'visa':
-        return 'bg-blue-600';
-      case 'mastercard':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  }
 }

@@ -17,6 +17,10 @@ export class CardService {
   }
 
   getAll(): Observable<any>{
-    return this.http.get(`${this.baseUrl}/create.php`, {headers: this.headers, withCredentials: true});
+    return this.http.get(`${this.baseUrl}/getAll.php`, {headers: this.headers, withCredentials: true});
+  }
+
+  delete(id: number): Observable<any>{
+    return this.http.get(`${this.baseUrl}/delete.php?id=${id}`, {headers: this.headers, withCredentials: true})
   }
 }
