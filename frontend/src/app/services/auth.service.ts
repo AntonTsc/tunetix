@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, tap } from 'rxjs';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, Observable, of, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -42,11 +42,27 @@ export class AuthService {
   }
 
   register(data: any): Observable<any>{
-      return this.http.post(`${this.baseUrl}/register.php`, data, {headers: this.headers, withCredentials: true})
+    return this.http.post(`${this.baseUrl}/register.php`, data, {headers: this.headers, withCredentials: true})
   }
 
   login(data: any): Observable<any>{
     return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers, withCredentials: true})
+      .pipe(
+        tap((response: any) => {
+          // Solo hacemos algo si el login fue exitoso
+          if (response.status === 'OK') {
+            // Asegurarse de que se guarda toda la información del usuario, incluyendo image_path si existe
+            if (response.data && response.data.image_path) {
+              const userData = { ...response.data };
+              localStorage.setItem('user_data', JSON.stringify(userData));
+            }
+          }
+        }),
+        catchError(error => {
+          console.error('Error en la petición de login:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   logout(): Observable<any> {
