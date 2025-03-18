@@ -87,7 +87,7 @@ export class MetodosPagoComponent implements OnInit {
       type: formValue.cardType,
       email: JSON.parse(localStorage.getItem('user_data') ?? '').email,
       owner: formValue.cardOwner,
-      pan: formValue.cardNumber,
+      pan: formValue.cardNumber.replace(/\s/g, ""), // Quita todos los espacios del codigo PAN
       cvc: formValue.cvc,
       expiration_date: `${formValue.expMonth}/${formValue.expYear}`,
       currency: formValue.currency
