@@ -10,7 +10,7 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) { }
 
-  baseUrl = 'http://localhost/backend/auth';
+  baseUrl = 'http://localhost/tunetix/backend/auth';
   headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
   cookies: any = null;
 
@@ -45,10 +45,6 @@ export class AuthService {
     return this.http.post(`${this.baseUrl}/register.php`, data, {headers: this.headers, withCredentials: true})
   }
 
-<<<<<<< HEAD
-  login(data: FormData): Observable<any>{
-    return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers})
-=======
   login(data: any): Observable<any>{
     return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers, withCredentials: true})
       .pipe(
@@ -67,7 +63,6 @@ export class AuthService {
           return throwError(() => error);
         })
       );
->>>>>>> 1146de4923edd74e91bd9f73d69b5ab024695083
   }
 
   logout(): Observable<any> {

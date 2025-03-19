@@ -9,7 +9,7 @@ export class CardService {
 
   constructor(private http: HttpClient) { }
 
-  baseUrl: string = 'http://localhost/backend/Controllers/MetodoPago';
+  baseUrl: string = 'http://localhost/tunetix/backend/Controllers/MetodoPago';
   headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
 
   create(data: any): Observable<any>{
