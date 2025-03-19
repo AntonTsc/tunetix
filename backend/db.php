@@ -1,7 +1,7 @@
 <?php
 include_once 'dotenv.php';
 
-$host =$_ENV['DB_HOST'];
+$host = $_ENV['DB_HOST'];
 $db_name = $_ENV['DB_NAME'];
 $username = $_ENV['DB_USER'];
 $password = $_ENV['DB_PASS'];

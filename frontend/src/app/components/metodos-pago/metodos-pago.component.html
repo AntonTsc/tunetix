@@ -1,1 +1,284 @@
-<p>metodos-pago works!</p>
+<div class="space-y-8">
+  <ng-container *ngIf="serverResponse != undefined">
+    <app-alert class="alert-container" [serverResponse]="serverResponse" />
+  </ng-container>
+  <!-- Payment methods section -->
+  <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Tarjetas guardadas</h2>
+    </div>
+
+    <!-- No saved cards message -->
+    <div *ngIf="savedCards.length === 0" class="p-6 text-center text-gray-500">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="mx-auto h-12 w-12 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+        />
+      </svg>
+      <p class="mt-2">No tienes tarjetas guardadas</p>
+    </div>
+
+    <!-- Saved cards list -->
+    <div
+      *ngFor="let card of savedCards; let i = index"
+      class="border-b border-gray-200 last:border-b-0"
+    >
+    <app-credit-card [card]="card" [index]="i" (delete)="deleteCard($event)" (serverResponseEmitter)="getServerResponse($event)"/>
+    </div>
+  </div>
+
+  <!-- Add new card section -->
+  <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Añadir nueva tarjeta</h2>
+    </div>
+
+    <div class="p-6">
+      <form [formGroup]="cardForm" (ngSubmit)="addCard()" class="space-y-6" #form>
+        <div>
+          <label
+            for="cardOwner"
+            class="block text-sm font-medium text-gray-700"
+            >Titular</label
+          >
+          <div class="mt-1">
+            <input
+              type="text"
+              id="cardOwner"
+              formControlName="cardOwner"
+              name="owner"
+              placeholder="John Doe"
+              class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+            />
+            <div
+              *ngIf="
+                cardForm.get('cardOwner')?.invalid &&
+                cardForm.get('cardOwner')?.touched
+              "
+              class="text-red-500 text-sm mt-1"
+            >
+              <span *ngIf="cardForm.get('cardOwner')?.errors?.['required']">
+                El nombre del titular es obligatorio
+              </span>
+              <!-- <span
+                *ngIf="cardForm.get('cardOwner')?.errors?.['pattern'] || cardForm.get('cardOwner')?.errors?.['invalidCardNumber']"
+              >
+                Introduce un número de tarjeta válido (16 dígitos)
+              </span> -->
+            </div>
+          </div>
+        </div>
+        <!-- Card number -->
+        <div>
+          <label
+            for="cardNumber"
+            class="block text-sm font-medium text-gray-700"
+            >Número de tarjeta</label
+          >
+          <div class="mt-1">
+            <input
+              type="text"
+              id="cardNumber"
+              name="pan"
+              formControlName="cardNumber"
+              placeholder="1234 5678 9012 3456"
+              class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+            />
+            <div
+              *ngIf="
+                cardForm.get('cardNumber')?.invalid &&
+                cardForm.get('cardNumber')?.touched
+              "
+              class="text-red-500 text-sm mt-1"
+            >
+              <span *ngIf="cardForm.get('cardNumber')?.errors?.['required']">
+                El número de tarjeta es obligatorio
+              </span>
+              <span
+                *ngIf="cardForm.get('cardNumber')?.errors?.['pattern'] || cardForm.get('cardNumber')?.errors?.['invalidCardNumber']"
+              >
+                Introduce un número de tarjeta válido (16 dígitos)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card details in a row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Expiry month -->
+          <div>
+            <label
+              for="expMonth"
+              class="block text-sm font-medium text-gray-700"
+              >Mes</label
+            >
+            <div class="mt-1">
+              <select
+                id="expMonth"
+                formControlName="expMonth"
+                name="expMonth"
+                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+              >
+                <option value="" disabled selected>MM</option>
+                <option *ngFor="let month of months" [value]="month">
+                  {{ month }}
+                </option>
+              </select>
+              <div
+                *ngIf="
+                  cardForm.get('expMonth')?.invalid &&
+                  cardForm.get('expMonth')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Selecciona el mes
+              </div>
+            </div>
+          </div>
+
+          <!-- Expiry year -->
+          <div>
+            <label for="expYear" class="block text-sm font-medium text-gray-700"
+              >Año</label
+            >
+            <div class="mt-1">
+              <select
+                id="expYear"
+                formControlName="expYear"
+                name="expYear"
+                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+              >
+                <option value="" disabled selected>AA</option>
+                <option *ngFor="let year of years" [value]="year">
+                  {{ year }}
+                </option>
+              </select>
+              <div
+                *ngIf="
+                  cardForm.get('expYear')?.invalid &&
+                  cardForm.get('expYear')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Selecciona el año
+              </div>
+            </div>
+          </div>
+
+          <!-- CVC -->
+          <div>
+            <label for="cvc" class="block text-sm font-medium text-gray-700"
+              >CVC</label
+            >
+            <div class="mt-1">
+              <input
+                type="text"
+                id="cvc"
+                formControlName="cvc"
+                name="cvc"
+                placeholder="123"
+                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+              />
+              <div
+                *ngIf="
+                  cardForm.get('cvc')?.invalid && cardForm.get('cvc')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Introduce un CVC válido (3 dígitos)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card type and currency -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Card type -->
+          <div>
+            <label
+              for="cardType"
+              class="block text-sm font-medium text-gray-700"
+              >Tipo de tarjeta</label
+            >
+            <div class="mt-1">
+              <select
+                id="cardType"
+                formControlName="cardType"
+                name="type"
+                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+              >
+                <option value="" disabled selected>Selecciona tipo</option>
+                <option value="VISA">Visa</option>
+                <option value="MASTERCARD">Mastercard</option>
+              </select>
+              <div
+                *ngIf="
+                  cardForm.get('cardType')?.invalid &&
+                  cardForm.get('cardType')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Selecciona el tipo de tarjeta
+              </div>
+            </div>
+          </div>
+
+          <!-- Currency -->
+          <div>
+            <label
+              for="currency"
+              class="block text-sm font-medium text-gray-700"
+              >Moneda</label
+            >
+            <div class="mt-1">
+              <select
+                id="cardCurrency"
+                formControlName="currency"
+                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md px-4 py-3"
+              >
+                <option value="" disabled selected>Selecciona moneda</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="USD">USD - Dólar estadounidense</option>
+                <option value="GBP">GBP - Libra esterlina</option>
+              </select>
+              <div
+                *ngIf="
+                  cardForm.get('currency')?.invalid &&
+                  cardForm.get('currency')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Selecciona la moneda
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save button -->
+        <div>
+          <button
+            type="submit"
+            (click)="$event.preventDefault();create()"
+            [disabled]="cardForm.invalid"
+            [ngClass]="{
+              'bg-purple-600 hover:bg-purple-700': !cardForm.invalid,
+              'bg-purple-400 cursor-not-allowed': cardForm.invalid
+            }"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            Guardar tarjeta
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

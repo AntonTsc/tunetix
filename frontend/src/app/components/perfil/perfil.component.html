@@ -1,1 +1,40 @@
-<p>perfil works!</p>
+<div class="flex justify-center py-12 px-4 bg-gray-100">
+  <div
+    class="bg-white rounded-lg shadow-lg w-full max-w-6xl min-h-[600px] overflow-hidden"
+  >
+    <div class="flex flex-col md:flex-row h-full">
+      <!-- Sidebar Navigation (20% width) -->
+      <div class="w-full md:w-1/5 bg-gray-50 p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Mi Perfil</h2>
+        <nav class="flex flex-col space-y-2">
+          <a
+            routerLink="/perfil/datos-personales"
+            routerLinkActive="bg-purple-600 text-white hover:bg-purple-700"
+            class="px-4 py-3 rounded-lg font-semibold hover:bg-purple-100 transition-colors duration-200"
+          >
+            Datos personales
+          </a>
+          <a
+            routerLink="/perfil/metodos-de-pago"
+            routerLinkActive="bg-purple-600 text-white hover:bg-purple-700"
+            class="px-4 py-3 rounded-lg font-semibold hover:bg-purple-100 transition-colors duration-200"
+          >
+            Métodos de pago
+          </a>
+          <a
+            routerLink="/perfil/historial-de-compras"
+            routerLinkActive="bg-purple-600 text-white hover:bg-purple-700"
+            class="px-4 py-3 rounded-lg font-semibold hover:bg-purple-100 transition-colors duration-200"
+          >
+            Historial de compras
+          </a>
+        </nav>
+      </div>
+
+      <!-- Content Area (80% width) -->
+      <div class="w-full md:w-4/5 p-8 border-l border-gray-200">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</div>

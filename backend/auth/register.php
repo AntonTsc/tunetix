@@ -1,5 +1,9 @@
 <?php
 include_once '../db.php';
+<<<<<<< HEAD
+=======
+include_once '../auth/global_headers.php';
+>>>>>>> 1146de4923edd74e91bd9f73d69b5ab024695083
 include_once '../utils/formValidations.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
