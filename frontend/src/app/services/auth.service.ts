@@ -1,18 +1,31 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, Observable, of, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) {
+    // Initialize authentication state based on existing cookies
+    this.authStateChanged.next(this.isAuthenticated());
+  }
 
   baseUrl = 'http://localhost/tunetix/backend/auth';
   headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
   cookies: any = null;
+
+  // Add a BehaviorSubject to track authentication state
+  private authStateChanged = new BehaviorSubject<boolean>(false);
+  // Observable that components can subscribe to
+  authState$ = this.authStateChanged.asObservable();
+
+  // Method to update auth state and notify subscribers
+  private updateAuthState(isAuthenticated: boolean): void {
+    this.authStateChanged.next(isAuthenticated);
+  }
 
   isAuthenticated(): boolean {
     // Comprobar si las cookies access_token y refresh_token existen
@@ -49,37 +62,41 @@ export class AuthService {
     return this.http.post(`${this.baseUrl}/login.php`, data, {headers: this.headers, withCredentials: true})
       .pipe(
         tap((response: any) => {
-          // Solo hacemos algo si el login fue exitoso
+          // Only do something if login was successful
           if (response.status === 'OK') {
-            // Asegurarse de que se guarda toda la información del usuario, incluyendo image_path si existe
-            if (response.data && response.data.image_path) {
+            // Ensure all user information is saved, including image_path if it exists
+            if (response.data) {
               const userData = { ...response.data };
               localStorage.setItem('user_data', JSON.stringify(userData));
+
+              // Reset cookies cache to force a refresh
+              this.cookies = null;
+
+              // Update authentication state to notify subscribers (like header)
+              this.updateAuthState(true);
             }
           }
         }),
         catchError(error => {
-          console.error('Error en la petición de login:', error);
+          console.error('Error in login request:', error);
           return throwError(() => error);
         })
       );
   }
 
   logout(): Observable<any> {
-    // Hacer la solicitud HTTP para cerrar sesión en el servidor
-    return this.http.get(`${this.baseUrl}/logout.php`, { headers: this.headers, withCredentials: true })
+    // Your existing logout code...
+    // Add this line to update state when logging out
+    return this.http.get(`${this.baseUrl}/logout.php`, {headers: this.headers, withCredentials: true})
       .pipe(
-        tap((response: any) => {
-          console.log('Respuesta del servidor:', response);
-
-          // Eliminar las cookies en memoria
+        tap(() => {
+          // Clear user data
+          localStorage.removeItem('user_data');
+          // Reset cookies
           this.cookies = null;
-
-          // Redirigir al inicio si el usuario está en una ruta no permitida
-          const currentRoute = this.router.url;
-          if (currentRoute.startsWith('/perfil')) {
-            this.router.navigate(['/inicio']);
-          }
+          // Update authentication state
+          this.updateAuthState(false);
+          // Your existing code...
         })
       );
   }

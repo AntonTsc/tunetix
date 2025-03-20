@@ -73,9 +73,18 @@ import { UserService } from 'src/app/services/user.service';
   ]
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+  isAuthenticated = false;
+  userData: any = null;
+  user_data: any = null;
+  isLoggedOut: boolean = false;
+  serverResponse!: ServerResponse;
+
+  // Initialize subscriptions to null
+  private authSubscription: Subscription | null = null;
+  private userSubscription: Subscription | null = null;
 
   constructor(
-    private _auth: AuthService,
+    private authService: AuthService,
     private router: Router,
     private userService: UserService
   ) {
@@ -83,44 +92,63 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.checkIfLoggedIn();
+    // Subscribe to authentication state changes
+    this.authSubscription = this.authService.authState$.subscribe(isAuthenticated => {
+      this.isAuthenticated = isAuthenticated;
+      this.isLoggedOut = !isAuthenticated;
 
-    // Suscribirse a cambios en los datos del usuario
-    if (!this.isLoggedOut) {
-      this.userSubscription = this.userService.userData$.subscribe(userData => {
-        if (userData) {
-          this.user_data = {
-            id: userData.id,
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            email: userData.email,
-            image_path: userData.image_path
-          };
+      // If authenticated, get user data from localStorage
+      if (isAuthenticated) {
+        const userDataStr = localStorage.getItem('user_data');
+        if (userDataStr) {
+          this.userData = JSON.parse(userDataStr);
+          this.user_data = this.userData; // Sync both user data properties
         }
-      });
 
-      // Cargar datos del usuario al inicio
-      this.loadUserData();
-    }
+        // Load latest user data from API
+        this.loadUserData();
+      } else {
+        this.userData = null;
+        this.user_data = null;
+      }
+    });
+
+    // Initial check - already handled by checkIfLoggedIn() in constructor
+
+    // Subscribe to user data changes
+    this.userSubscription = this.userService.userData$.subscribe(userData => {
+      if (userData) {
+        this.user_data = {
+          id: userData.id,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          email: userData.email,
+          image_path: userData.image_path
+        };
+        // Keep userData in sync
+        this.userData = this.user_data;
+      }
+    });
   }
 
   ngOnDestroy(): void {
-    // Limpiar suscripciones para evitar memory leaks
+    // Clean up subscriptions to prevent memory leaks
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
   }
 
-  user_data: any = null;
-  isLoggedOut: boolean = false;
-  serverResponse!: ServerResponse;
-  private userSubscription: Subscription | null = null;
-
-  logout(){
-    this._auth.logout().subscribe({
+  logout() {
+    this.authService.logout().subscribe({
       next: (response: ServerResponse) => {
         this.user_data = null;
+        this.userData = null;
         this.isLoggedOut = true;
+        this.isAuthenticated = false;
         this.router.navigate(['/inicio']);
       },
       error: (err) => {
@@ -130,29 +158,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   checkIfLoggedIn(): void {
-    this.isLoggedOut = !this._auth.isAuthenticated();
+    this.isAuthenticated = this.authService.isAuthenticated();
+    this.isLoggedOut = !this.isAuthenticated;
 
-    // Si el usuario está logueado pero no tenemos sus datos, cargarlos
-    if (!this.isLoggedOut && !this.user_data) {
-      this.loadUserData();
+    // If user is logged in but we don't have their data, load it
+    if (this.isAuthenticated) {
+      this.userDataInint();
+      if (!this.user_data) {
+        this.loadUserData();
+      }
     }
   }
 
-  userDataInint(){
+  userDataInint() {
     const data = localStorage.getItem('user_data');
-    this.user_data = data ? JSON.parse(data) : null;
+    if (data) {
+      this.user_data = JSON.parse(data);
+      this.userData = this.user_data; // Keep both user data properties in sync
+    }
   }
 
-  // Método para cargar datos del usuario, incluyendo imagen de perfil
   loadUserData(): void {
-    this.userService.getUserProfile().subscribe({
-      next: () => {
-        // Los datos se actualizan automáticamente a través de la suscripción
-      },
-      error: (error) => {
-        console.error('Error al cargar datos del usuario:', error);
-      }
-    });
+    if (this.isAuthenticated) {
+      this.userService.getUserProfile().subscribe({
+        next: () => {
+          // Data is updated automatically through the subscription
+        },
+        error: (error) => {
+          console.error('Error al cargar datos del usuario:', error);
+        }
+      });
+    }
   }
 
   // Variables para el menú de usuario

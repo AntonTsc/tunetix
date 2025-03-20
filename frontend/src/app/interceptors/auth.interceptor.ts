@@ -1,6 +1,6 @@
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
@@ -9,19 +9,26 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private _auth: AuthService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Evitar la recursión: no interceptar solicitudes relacionadas con la obtención de cookies
+    // Avoid recursion: don't intercept requests related to cookie retrieval
     if (req.url.includes('http://localhost/tunetix/backend/auth/get_cookies.php')) {
-      console.log('Excluyendo solicitud de cookies');
+      console.log('Excluding cookie request');
       return next.handle(req);
     }
 
-    // Obtener las cookies y modificar la solicitud
+    // Get cookies and modify the request
     return this._auth.getCookies().pipe(
       switchMap((data: any) => {
-        console.log("Cookies recibidas:", data);
+        console.log("Cookies received:", data);
+
+        // If cookies couldn't be retrieved, continue without adding the token
+        if (data.status === 'ERROR') {
+          console.warn("Continuing without authentication token");
+          return next.handle(req);
+        }
+
         const cookies = data.data;
 
-        // Verificar si el access_token está presente
+        // Check if the access_token is present
         if (cookies?.access_token) {
           req = req.clone({
             setHeaders: {
@@ -31,11 +38,12 @@ export class AuthInterceptor implements HttpInterceptor {
           });
         }
 
-        return next.handle(req);  // Pasar la solicitud modificada
+        return next.handle(req);  // Pass the modified request
       }),
       catchError((err) => {
-        console.error("Error al obtener cookies:", err);
-        return throwError(() => err);  // Devuelve un error si no se obtienen cookies
+        console.error("Error getting cookies:", err);
+        // Continue without authentication instead of failing
+        return next.handle(req);
       })
     );
   }
