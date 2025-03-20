@@ -15,6 +15,10 @@ export class RegisterComponent {
   @ViewChild('repeatPassword') repeatPassword!: ElementRef<HTMLInputElement>;
   serverResponse?: ServerResponse;
 
+  // Propiedades para controlar la visibilidad de las contraseñas
+  showPassword: boolean = false;
+  showRepeatPassword: boolean = false;
+
   register(){
     const fd = new FormData(this.form.nativeElement);
 

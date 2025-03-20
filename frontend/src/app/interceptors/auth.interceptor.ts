@@ -10,7 +10,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Evitar la recursión: no interceptar solicitudes relacionadas con la obtención de cookies
-    if (req.url.includes('http://localhost/backend/auth/get_cookies.php')) {
+    if (req.url.includes('http://localhost/tunetix/backend/auth/get_cookies.php')) {
       console.log('Excluyendo solicitud de cookies');
       return next.handle(req);
     }
@@ -24,8 +24,8 @@ export class AuthInterceptor implements HttpInterceptor {
         // Verificar si el access_token está presente
         if (cookies?.access_token) {
           req = req.clone({
-            setHeaders: { 
-              Authorization: `Bearer ${cookies.access_token}` 
+            setHeaders: {
+              Authorization: `Bearer ${cookies.access_token}`
             },
             withCredentials: true
           });
@@ -38,5 +38,5 @@ export class AuthInterceptor implements HttpInterceptor {
         return throwError(() => err);  // Devuelve un error si no se obtienen cookies
       })
     );
-  }  
+  }
 }
