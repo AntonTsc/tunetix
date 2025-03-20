@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     // Consultar métodos de pago del usuario
-    $paymentQuery = $conn->prepare("SELECT id, tipo, titular, numero_oculto, fecha_expiracion, created_at FROM metodo_pago WHERE id_usuario = ?");
+    $paymentQuery = $conn->prepare("SELECT id, tipo, titular, cvc, fecha_expiracion, created_at FROM metodo_pago WHERE id_usuario = ?");
     $paymentQuery->bind_param("i", $userId);
     $paymentQuery->execute();
     $paymentResult = $paymentQuery->get_result();

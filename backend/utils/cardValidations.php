@@ -22,13 +22,13 @@
         return $isValid;
     }
 
-    function validatePan($pan){
-        if (!preg_match('/^\d{13,19}$/', $pan)) {
-            return false;
-        }
+    // function validatePan($pan){
+    //     if (!preg_match('/^\d{13,19}$/', $pan)) {
+    //         return false;
+    //     }
 
-        return luhnCheck($pan);
-    }
+    //     return luhnCheck($pan);
+    // }
 
     // Comprueba el formato del codigo PAN
     function luhnCheck($number) {

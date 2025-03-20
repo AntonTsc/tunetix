@@ -1,71 +1,94 @@
 <?php
-    include_once '../../db.php';
-    include_once '../../utils/cardValidations.php';
+include_once '../../db.php';
+include_once '../../utils/cardValidations.php';
+include_once '../../auth/validate_token.php';
 
-    header('Content-Type: application/json');
+// Add CORS headers
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: http://localhost:4200');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Credentials: true');
 
-    global $conn;
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
-    if($_SERVER['REQUEST_METHOD'] === 'POST'){
-        try{
-            $data = json_decode(file_get_contents("php://input"), true);
+global $conn;
 
-            $type = $data['type'];
-            $user_id = getUserId($conn, $data['email']);
-            $owner = $data['owner'];
-            $pan = $data['pan'];
-            $cvc = $data['cvc'];
-            $expiration_date = $data['expiration_date'];
-            $currency = $data['currency'];
-
-            if(!isset($type, $user_id, $owner, $pan, $cvc, $expiration_date)){
-                echo json_encode(["status" => "ERROR", "message" => "Campos incompo"]);
-                exit;
-            }
-    
-            if(!validateType($type, $conn)){
-                echo json_encode(["status" => "ERROR", "message" => "Tipo de tarjeta invalida"]);
-                exit;
-            }
-
-            if(!validatePan($pan)){
-                echo json_encode(["status" => "ERROR", "message" => "Codigo PAN invalido"]);
-                exit;
-            }
-
-            if(!validateCvc($cvc)){
-                echo json_encode(["status" => "ERROR", "message" => "Codigo CVC invalido"]);
-                exit;
-            }
-
-            if(!validateExpirationDate($expiration_date)){
-                echo json_encode(["status" => "ERROR", "message" => "Fecha de expiracion invalida"]);
-                exit;
-            }
-
-            $prep = $conn->prepare("INSERT INTO metodo_pago VALUES(null,?,?,?,?,?,?,?,null)");
-            $prep->bind_param("sisiiss", $type, $user_id, $owner, $pan, $cvc, $expiration_date, $currency);
-            $prep->execute();
-
-            echo json_encode(['status' => 'OK', 'message' => 'Se ha añadido un nuevo metodo de pago']);
-            
-        }catch(Exception $e){
-            echo json_encode(['status' => 'ERROR', 'message' => 'No se ha podido añadir un nuevo metodo de pago']);
-            throw $e;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        // Get user ID from token instead of email
+        if (!isset($_COOKIE['access_token'])) {
+            echo json_encode(["status" => "ERROR", "message" => "No autorizado"]);
             exit;
         }
-    }
 
-    function getUserId($conn, $email){
-        try{
-            $prep = $conn->prepare("SELECT id FROM usuario WHERE correo = ?");
-            $prep->bind_param('s', $email);
-            $prep->execute();
-            $result = $prep->get_result();
-            
-            return $result->fetch_assoc()['id'];    
-        }catch(Exception $e){
-            throw $e;
+        $token = $_COOKIE['access_token'];
+        $payload = verifyToken($token);
+
+        if (!$payload) {
+            echo json_encode(["status" => "ERROR", "message" => "Token inválido o expirado"]);
+            exit;
         }
+
+        $user_id = $payload->id;
+
+        // Get JSON data
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        // Match variable names with what your frontend is sending
+        $tipo = $data['tipo'] ?? $data['type'] ?? null;
+        $titular = $data['titular'] ?? $data['owner'] ?? null;
+        $pan = $data['numero'] ?? $data['pan'] ?? null;
+        $cvc = $data['cvc'] ?? null;
+        $fecha_expiracion = $data['fecha_expiracion'] ?? $data['expiration_date'] ?? null;
+        $divisa = $data['divisa'] ?? $data['currency'] ?? 'EUR';
+
+        // Validate required fields
+        if (!isset($tipo, $titular, $pan, $cvc, $fecha_expiracion)) {
+            echo json_encode(["status" => "ERROR", "message" => "Campos incompletos"]);
+            exit;
+        }
+
+        // Validate card type (match your enum values in the database)
+        if ($tipo !== 'VISA' && $tipo !== 'MASTERCARD') {
+            echo json_encode(["status" => "ERROR", "message" => "Tipo de tarjeta inválida"]);
+            exit;
+        }
+
+        // // Card validations
+        // if (function_exists('validatePan') && !validatePan($pan)) {
+        //     echo json_encode(["status" => "ERROR", "message" => "Número de tarjeta inválido"]);
+        //     exit;
+        // }
+
+        if (function_exists('validateCvc') && !validateCvc($cvc)) {
+            echo json_encode(["status" => "ERROR", "message" => "Código CVC inválido"]);
+            exit;
+        }
+
+        if (function_exists('validateExpirationDate') && !validateExpirationDate($fecha_expiracion)) {
+            echo json_encode(["status" => "ERROR", "message" => "Fecha de expiración inválida"]);
+            exit;
+        }
+
+        // Use column names that match your database schema
+        $prep = $conn->prepare("INSERT INTO metodo_pago (tipo, id_usuario, titular, pan, cvc, fecha_expiracion, divisa) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $prep->bind_param("sisiiss", $tipo, $user_id, $titular, $pan, $cvc, $fecha_expiracion, $divisa);
+
+        if ($prep->execute()) {
+            $id = $conn->insert_id;
+            echo json_encode(['status' => 'OK', 'message' => 'Se ha añadido un nuevo método de pago', 'id' => $id]);
+        } else {
+            echo json_encode(['status' => 'ERROR', 'message' => 'Error al guardar: ' . $prep->error]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'ERROR', 'message' => 'Error: ' . $e->getMessage()]);
+        exit;
     }
-?>
+} else {
+    echo json_encode(['status' => 'ERROR', 'message' => 'Método no permitido']);
+}
