@@ -1,9 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { AdminMessagesComponent } from './components/admin/messages/messages.component';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
 import { CancionesComponent } from './components/canciones/canciones.component';
+import { ContactoComponent } from './components/contacto/contacto.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
 import { EventoComponent } from './components/evento/evento.component';
 import { EventosComponent } from './components/eventos/eventos.component';
@@ -22,6 +24,8 @@ const routes: Routes = [
   {path: 'canciones', component: CancionesComponent},
   {path: 'evento', component: EventoComponent},
   {path: 'eventos', component: EventosComponent},
+  {path: 'contacto', component: ContactoComponent},
+  {path: 'admin/messages', component: AdminMessagesComponent, canActivate: [authGuard], data: { roles: ['admin'] }},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: RegisterComponent},
   {path: 'perfil', component: PerfilComponent, canActivate:[authGuard], children:[

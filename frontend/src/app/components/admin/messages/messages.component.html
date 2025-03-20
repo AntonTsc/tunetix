@@ -1,0 +1,508 @@
+<div class="bg-gray-50 min-h-screen">
+  <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="md:flex md:items-center md:justify-between mb-6">
+      <div class="flex-1 min-w-0">
+        <h2
+          class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"
+        >
+          Mensajes de contacto
+        </h2>
+        <div
+          class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6"
+        >
+          <div class="mt-2 flex items-center text-sm text-gray-500">
+            <svg
+              class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Total: {{ totalMessages }} mensajes
+            <span
+              *ngIf="newMessagesCount > 0"
+              class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+            >
+              {{ newMessagesCount }} nuevos
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 flex md:mt-0 md:ml-4">
+        <!-- Filtro por estado -->
+        <div class="ml-3">
+          <select
+            [(ngModel)]="statusFilter"
+            (change)="applyFilter()"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">Todos los estados</option>
+            <option value="nuevo">Nuevos</option>
+            <option value="leído">Leídos</option>
+            <option value="respondido">Respondidos</option>
+            <option value="archivado">Archivados</option>
+          </select>
+        </div>
+        <button
+          *ngIf="statusFilter"
+          type="button"
+          (click)="clearFilter()"
+          class="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Limpiar filtro
+        </button>
+      </div>
+    </div>
+
+    <div class="flex flex-col">
+      <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+          <!-- Tabla de mensajes -->
+          <div
+            class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg bg-white"
+          >
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Remitente
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Asunto
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Estado
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Fecha
+                  </th>
+                  <th scope="col" class="relative px-6 py-3">
+                    <span class="sr-only">Acciones</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngIf="loading">
+                  <td
+                    colspan="5"
+                    class="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    <div class="flex justify-center">
+                      <svg
+                        class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-500"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          class="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          stroke-width="4"
+                        ></circle>
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Cargando mensajes...
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="!loading && messages.length === 0">
+                  <td
+                    colspan="5"
+                    class="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    No se encontraron mensajes.
+                  </td>
+                </tr>
+                <tr
+                  *ngFor="let message of messages"
+                  (click)="viewMessage(message)"
+                  class="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                >
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <div
+                          class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500"
+                        >
+                          {{ message.name.charAt(0).toUpperCase() }}
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div
+                          class="text-sm font-medium text-gray-900 flex items-center"
+                        >
+                          {{ message.name }}
+                          <span
+                            *ngIf="message.status === 'nuevo'"
+                            class="ml-2 inline-flex h-2 w-2 rounded-full bg-blue-400"
+                          ></span>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          {{ message.email }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900 truncate max-w-xs">
+                      {{ message.subject }}
+                    </div>
+                    <div class="text-sm text-gray-500 truncate max-w-xs">
+                      {{ message.message.substring(0, 40)
+                      }}{{ message.message.length > 40 ? "..." : "" }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      [ngClass]="getStatusClass(message.status)"
+                    >
+                      {{ getStatusText(message.status) }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ formatDate(message.created_at) }}
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                  >
+                    <button
+                      (click)="viewMessage(message); $event.stopPropagation()"
+                      class="text-indigo-600 hover:text-indigo-900 mr-3"
+                    >
+                      Ver
+                    </button>
+                    <button
+                      (click)="
+                        deleteMessage(message.id); $event.stopPropagation()
+                      "
+                      class="text-red-600 hover:text-red-900"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div
+            *ngIf="totalPages > 1"
+            class="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 bg-white rounded-b-lg"
+          >
+            <div class="flex-1 flex justify-between sm:hidden">
+              <button
+                (click)="changePage(currentPage - 1)"
+                [disabled]="currentPage === 1"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                (click)="changePage(currentPage + 1)"
+                [disabled]="currentPage === totalPages"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Siguiente
+              </button>
+            </div>
+            <div
+              class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+            >
+              <div>
+                <p class="text-sm text-gray-700">
+                  Mostrando
+                  <span class="font-medium">{{
+                    (currentPage - 1) * messagesPerPage + 1
+                  }}</span>
+                  a
+                  <span class="font-medium">{{
+                    Math.min(currentPage * messagesPerPage, totalMessages)
+                  }}</span>
+                  de
+                  <span class="font-medium">{{ totalMessages }}</span>
+                  resultados
+                </p>
+              </div>
+              <div>
+                <nav
+                  class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  aria-label="Pagination"
+                >
+                  <button
+                    (click)="changePage(currentPage - 1)"
+                    [disabled]="currentPage === 1"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span class="sr-only">Anterior</span>
+                    <svg
+                      class="h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+
+                  <!-- Botones de páginas dinámicas -->
+                  <ng-container
+                    *ngFor="
+                      let page of [].constructor(totalPages);
+                      let i = index
+                    "
+                  >
+                    <button
+                      *ngIf="
+                        i + 1 === 1 ||
+                        i + 1 === totalPages ||
+                        (i + 1 >= currentPage - 1 && i + 1 <= currentPage + 1)
+                      "
+                      (click)="changePage(i + 1)"
+                      [ngClass]="{
+                        'bg-indigo-50 border-indigo-500 text-indigo-600':
+                          currentPage === i + 1,
+                        'bg-white border-gray-300 text-gray-500 hover:bg-gray-50':
+                          currentPage !== i + 1
+                      }"
+                      class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                    >
+                      {{ i + 1 }}
+                    </button>
+                    <span
+                      *ngIf="
+                        (i === 1 && currentPage > 3) ||
+                        (i === totalPages - 2 && currentPage < totalPages - 2)
+                      "
+                      class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                    >
+                      ...
+                    </span>
+                  </ng-container>
+
+                  <button
+                    (click)="changePage(currentPage + 1)"
+                    [disabled]="currentPage === totalPages"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span class="sr-only">Siguiente</span>
+                    <svg
+                      class="h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel lateral de detalle -->
+    <div
+      class="fixed inset-0 overflow-hidden z-50"
+      *ngIf="isDetailOpen"
+      [@slideInOut]
+    >
+      <div class="absolute inset-0 overflow-hidden">
+        <div
+          class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          (click)="closeDetail()"
+        ></div>
+        <section class="absolute inset-y-0 right-0 max-w-full flex">
+          <div class="w-screen max-w-md">
+            <div class="h-full flex flex-col bg-white shadow-xl">
+              <div class="flex-1 h-0 overflow-y-auto">
+                <div class="py-6 px-4 bg-indigo-700 sm:px-6">
+                  <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-medium text-white">
+                      Detalles del mensaje
+                    </h2>
+                    <div class="ml-3 h-7 flex items-center">
+                      <button
+                        (click)="closeDetail()"
+                        class="bg-indigo-700 rounded-md text-indigo-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
+                      >
+                        <span class="sr-only">Cerrar panel</span>
+                        <svg
+                          class="h-6 w-6"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex-1 flex flex-col justify-between">
+                  <div class="px-4 sm:px-6">
+                    <div class="space-y-6 pt-6 pb-5">
+                      <!-- Información del remitente -->
+                      <div>
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-12 w-12">
+                            <div
+                              class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 text-lg"
+                            >
+                              {{
+                                selectedMessage?.name.charAt(0).toUpperCase()
+                              }}
+                            </div>
+                          </div>
+                          <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">
+                              {{ selectedMessage?.name }}
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                              <a
+                                href="mailto:{{ selectedMessage?.email }}"
+                                class="text-indigo-600 hover:text-indigo-900"
+                              >
+                                {{ selectedMessage?.email }}
+                              </a>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Fecha y estado -->
+                      <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                          Recibido el
+                          {{ formatDate(selectedMessage?.created_at) }}
+                        </div>
+                        <span
+                          class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                          [ngClass]="getStatusClass(selectedMessage?.status)"
+                        >
+                          {{ getStatusText(selectedMessage?.status) }}
+                        </span>
+                      </div>
+
+                      <!-- Asunto -->
+                      <div>
+                        <h3 class="text-lg font-medium text-gray-900">
+                          Asunto
+                        </h3>
+                        <p class="mt-1 text-gray-600">
+                          {{ selectedMessage?.subject }}
+                        </p>
+                      </div>
+
+                      <!-- Mensaje -->
+                      <div>
+                        <h3 class="text-lg font-medium text-gray-900">
+                          Mensaje
+                        </h3>
+                        <div
+                          class="mt-1 text-gray-600 whitespace-pre-line bg-gray-50 p-4 rounded-md"
+                        >
+                          {{ selectedMessage?.message }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div
+                class="flex-shrink-0 px-4 py-4 flex justify-end space-x-3 border-t border-gray-200"
+              >
+                <div class="flex-1">
+                  <select
+                    [(ngModel)]="selectedMessage.status"
+                    (change)="
+                      updateStatus(selectedMessage.id, selectedMessage.status)
+                    "
+                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  >
+                    <option value="nuevo">Nuevo</option>
+                    <option value="leído">Leído</option>
+                    <option value="respondido">Respondido</option>
+                    <option value="archivado">Archivado</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  (click)="closeDetail()"
+                  class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Cerrar
+                </button>
+                <a
+                  [href]="
+                    'mailto:' +
+                    selectedMessage?.email +
+                    '?subject=RE: ' +
+                    selectedMessage?.subject
+                  "
+                  class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Responder
+                </a>
+                <button
+                  type="button"
+                  (click)="deleteMessage(selectedMessage.id)"
+                  class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
