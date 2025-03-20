@@ -50,10 +50,12 @@ export class AuthService {
       .pipe(
         tap((response: any) => {
           // Solo hacemos algo si el login fue exitoso
-          // Si hay un error, el componente que llamó a este método debería encargarse
           if (response.status === 'OK') {
-            // Podrías guardar alguna información de usuario en localStorage o sessionStorage
-            // O dejarlo solo con las cookies que ya están siendo configuradas por el backend
+            // Asegurarse de que se guarda toda la información del usuario, incluyendo image_path si existe
+            if (response.data && response.data.image_path) {
+              const userData = { ...response.data };
+              localStorage.setItem('user_data', JSON.stringify(userData));
+            }
           }
         }),
         catchError(error => {

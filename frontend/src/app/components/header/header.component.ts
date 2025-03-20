@@ -1,8 +1,10 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-header',
@@ -12,20 +14,24 @@ import { AuthService } from 'src/app/services/auth.service';
     trigger('userMenuAnimation', [
       state('closed', style({
         opacity: 0,
-        transform: 'translateY(-20px) scale(0.95)',
-        height: 0,
-        overflow: 'hidden'
+        transform: 'translateY(-20px)',
+        display: 'none'
       })),
       state('open', style({
         opacity: 1,
-        transform: 'translateY(0) scale(1)',
-        height: '*'
+        transform: 'translateY(0)',
+        display: 'block'
       })),
       transition('closed => open', [
+        style({ display: 'block' }),
         animate('200ms ease-out')
       ]),
       transition('open => closed', [
-        animate('250ms ease-in')
+        animate('200ms ease-in', style({
+          opacity: 0,
+          transform: 'translateY(-20px)'
+        })),
+        style({ display: 'none' })
       ])
     ]),
     trigger('dropdownAnimation', [
@@ -66,36 +72,87 @@ import { AuthService } from 'src/app/services/auth.service';
     ])
   ]
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
 
-  constructor(private _auth: AuthService, private router: Router){
+  constructor(
+    private _auth: AuthService,
+    private router: Router,
+    private userService: UserService
+  ) {
     this.checkIfLoggedIn();
   }
-  user_data: { first_name: string, last_name: string, email: string } | null = null;
+
+  ngOnInit(): void {
+    this.checkIfLoggedIn();
+
+    // Suscribirse a cambios en los datos del usuario
+    if (!this.isLoggedOut) {
+      this.userSubscription = this.userService.userData$.subscribe(userData => {
+        if (userData) {
+          this.user_data = {
+            id: userData.id,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            email: userData.email,
+            image_path: userData.image_path
+          };
+        }
+      });
+
+      // Cargar datos del usuario al inicio
+      this.loadUserData();
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar suscripciones para evitar memory leaks
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
+  }
+
+  user_data: any = null;
   isLoggedOut: boolean = false;
   serverResponse!: ServerResponse;
-  // TODO reemplazar apartado perfil por boton de login cuando no este logueado
+  private userSubscription: Subscription | null = null;
+
   logout(){
     this._auth.logout().subscribe({
       next: (response: ServerResponse) => {
-        this.serverResponse = response;
-        localStorage.removeItem('user_data');
-        this.isLoggedOut = true
-        this.checkIfLoggedIn();
+        this.user_data = null;
+        this.isLoggedOut = true;
+        this.router.navigate(['/inicio']);
       },
       error: (err) => {
-        this.serverResponse = {"status": "ERROR", "message": err}
+        console.error('Error al cerrar sesión:', err);
       }
     });
   }
 
-  checkIfLoggedIn() {
+  checkIfLoggedIn(): void {
     this.isLoggedOut = !this._auth.isAuthenticated();
+
+    // Si el usuario está logueado pero no tenemos sus datos, cargarlos
+    if (!this.isLoggedOut && !this.user_data) {
+      this.loadUserData();
+    }
   }
 
   userDataInint(){
     const data = localStorage.getItem('user_data');
     this.user_data = data ? JSON.parse(data) : null;
+  }
+
+  // Método para cargar datos del usuario, incluyendo imagen de perfil
+  loadUserData(): void {
+    this.userService.getUserProfile().subscribe({
+      next: () => {
+        // Los datos se actualizan automáticamente a través de la suscripción
+      },
+      error: (error) => {
+        console.error('Error al cargar datos del usuario:', error);
+      }
+    });
   }
 
   // Variables para el menú de usuario
@@ -196,21 +253,18 @@ export class HeaderComponent {
     }
   }
 
-  closeMobileMenu() {
+  closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
-    setTimeout(() => {
-      this.isMobileMenuVisible = false;
-      this.isMobileSubmenuOpen = false;
-      this.isMobileUserMenuOpen = false; // Cierra también el menú de usuario
-    }, 300);
+    this.isMobileMenuVisible = false;
+    this.isMobileUserMenuOpen = false; // También cerrar el menú de usuario
   }
 
   toggleMobileSubmenu() {
     this.isMobileSubmenuOpen = !this.isMobileSubmenuOpen;
   }
 
-  toggleMobileUserMenu(event: Event) {
-    event.stopPropagation();
+  toggleMobileUserMenu(event: Event): void {
+    event.stopPropagation(); // Evitar que el evento se propague al padre
     this.isMobileUserMenuOpen = !this.isMobileUserMenuOpen;
   }
 }

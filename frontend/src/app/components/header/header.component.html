@@ -139,23 +139,35 @@
           </li>
         </ul>
       </nav>
+      <!-- Sección del avatar de usuario en el header -->
       <ng-container *ngIf="isLoggedOut === false; else LoggedOut">
         <div class="usuario ml-8 relative" (clickOutside)="closeUserMenu()">
-          <!-- Usuario avatar con cursor pointer para indicar que es clickable -->
           <div class="cursor-pointer" (click)="toggleUserMenu($event)">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-[85px] h-[85px] rounded-full"
-              viewBox="0 0 24 24"
-              fill="rgb(122, 122, 122)"
+            <!-- Mostrar imagen de perfil si existe, SVG por defecto si no -->
+            <div
+              class="w-[85px] h-[85px] rounded-full overflow-hidden border-2 border-gray-300"
             >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
-              ></path>
-            </svg>
+              <img
+                *ngIf="user_data?.image_path"
+                [src]="user_data.image_path"
+                alt="Foto de perfil"
+                class="w-full h-full object-cover"
+              />
+              <svg
+                *ngIf="!user_data?.image_path"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-full h-full"
+                viewBox="0 0 24 24"
+                fill="rgb(122, 122, 122)"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
+                ></path>
+              </svg>
+            </div>
           </div>
-  
-          <!-- Dropdown del perfil con detección de mouse enter/leave -->
+
+          <!-- El resto del menú dropdown -->
           <div
             [@userMenuAnimation]="isUserMenuOpen ? 'open' : 'closed'"
             class="user-menu-container"
@@ -172,6 +184,25 @@
               "
               (mouseenter)="cancelCloseTimer()"
             >
+              <!-- Usuario info section -->
+              <li class="px-6 py-3 border-b border-gray-100">
+                <div class="">
+                  <p
+                    class="text-gray-800 font-bold text-lg"
+                    *ngIf="user_data && isLoggedOut === false"
+                  >
+                    {{ user_data.first_name }} {{ user_data.last_name }}
+                  </p>
+                  <p
+                    class="text-gray-500 text-sm"
+                    *ngIf="user_data && isLoggedOut === false"
+                  >
+                    {{ user_data.email }}
+                  </p>
+                </div>
+              </li>
+
+              <!-- Resto del menú... -->
               <li class="hover:bg-gray-100 hover:cursor-pointer">
                 <a
                   routerLink="/perfil/datos-personales"
@@ -190,25 +221,10 @@
                   Perfil
                 </a>
               </li>
-              <li class="hover:bg-gray-100 hover:cursor-pointer">
-                <a
-                  routerLink="/perfil/historial-compras"
-                  class="flex items-center px-6 py-3 text-gray-800 text-lg font-semibold w-full"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6 mr-3"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path
-                      d="M19 14V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zm-9-1c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm13-6v11c0 1.1-.9 2-2 2H4v-2h17V7h2z"
-                    ></path>
-                  </svg>
-                  Compras
-                </a>
-              </li>
-              <li class="hover:bg-gray-100 hover:cursor-pointer" (click)="logout()">
+              <li
+                class="hover:bg-gray-100 hover:cursor-pointer"
+                (click)="logout()"
+              >
                 <a
                   class="flex items-center px-6 py-3 text-red-600 text-lg font-semibold w-full"
                 >
@@ -231,12 +247,13 @@
       </ng-container>
       <ng-template #LoggedOut>
         <a
-        routerLink="/login"
-        routerLinkActive="bg-purple-600 text-white hover:bg-purple-700"
-        class="px-4 py-3 rounded-lg text-lg font-semibold bg-purple-200 hover:bg-purple-500 hover:text-white transition-colors duration-200"
-      >
-        Iniciar Sesión
-      </a>      </ng-template>
+          routerLink="/login"
+          routerLinkActive="bg-purple-600 text-white hover:bg-purple-700"
+          class="px-4 py-3 rounded-lg text-lg font-semibold bg-purple-200 hover:bg-purple-500 hover:text-white transition-colors duration-200"
+        >
+          Iniciar Sesión
+        </a>
+      </ng-template>
     </div>
 
     <!-- Botón de menú móvil a la derecha (visible solo en móviles) -->
@@ -264,7 +281,8 @@
   <div
     *ngIf="isMobileMenuVisible"
     [@mobileMenuAnimation]="isMobileMenuOpen ? 'open' : 'closed'"
-    class="lg:hidden fixed top-0 left-0 w-full h-full bg-white z-50 overflow-y-auto flex flex-col"
+    class="lg:hidden fixed top-0 left-0 w-full h-screen bg-white z-50 overflow-y-auto flex flex-col"
+    style="min-height: 100vh; height: -webkit-fill-available"
   >
     <!-- Cabecera del menú móvil -->
     <div
@@ -303,85 +321,105 @@
     <div class="flex flex-col flex-grow overflow-y-auto">
       <!-- Perfil de usuario -->
       <div class="flex flex-col items-center mt-6 mb-4">
-        <div class="cursor-pointer" (click)="toggleMobileUserMenu($event)">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-[70px] h-[70px] rounded-full"
-            viewBox="0 0 24 24"
-            fill="rgb(122, 122, 122)"
-          >
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
-            ></path>
-          </svg>
-        </div>
-        <h3 class="text-xl font-bold mt-2" *ngIf="isLoggedOut === true">Usuario Anonimo</h3>
-        <h3 class="text-xl font-bold mt-2" *ngIf="user_data && isLoggedOut === false">{{ user_data.first_name }} {{ user_data.last_name }}</h3>
+        <!-- Si el usuario está autenticado, mostrar su foto/avatar -->
+        <ng-container *ngIf="!isLoggedOut; else mobileLoginButtons">
+          <div class="cursor-pointer" (click)="toggleMobileUserMenu($event)">
+            <div
+              class="w-[70px] h-[70px] rounded-full overflow-hidden border-2 border-gray-300"
+            >
+              <img
+                *ngIf="user_data?.image_path"
+                [src]="user_data.image_path"
+                alt="Foto de perfil"
+                class="w-full h-full object-cover"
+              />
+              <svg
+                *ngIf="!user_data?.image_path"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-full h-full"
+                viewBox="0 0 24 24"
+                fill="rgb(122, 122, 122)"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <!-- Nombre y correo del usuario -->
+          <h3 class="text-xl font-bold mt-2">
+            {{ user_data.first_name }} {{ user_data.last_name }}
+          </h3>
+          <p class="text-gray-500 text-sm">
+            {{ user_data.email }}
+          </p>
+        </ng-container>
 
-        <!-- Menú de perfil en móvil -->
-        <div
-          *ngIf="isMobileUserMenuOpen"
-          [@userMenuAnimation]="isMobileUserMenuOpen ? 'open' : 'closed'"
-          class="mt-3 bg-gray-50 w-[80%] rounded-lg shadow-md overflow-hidden"
-        >
-          <ul>
-            <li class="border-b border-gray-100">
-              <a
-                routerLink="/perfil/datos-personales"
-                class="flex items-center px-6 py-2 text-gray-800 font-semibold w-full"
-                (click)="closeMobileMenu()"
+        <!-- Template para mostrar botones de inicio de sesión cuando el usuario no está autenticado -->
+        <ng-template #mobileLoginButtons>
+          <div class="flex flex-col items-center gap-3 my-4">
+            <a
+              routerLink="/login"
+              (click)="closeMobileMenu()"
+              class="w-48 text-center py-3 rounded-lg text-lg font-semibold bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-200"
+            >
+              Iniciar Sesión
+            </a>
+            <a
+              routerLink="/register"
+              (click)="closeMobileMenu()"
+              class="w-48 text-center py-3 rounded-lg text-lg font-semibold border border-purple-600 text-purple-600 hover:bg-purple-100 transition-colors duration-200"
+            >
+              Registrarse
+            </a>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Menú de perfil en móvil -->
+      <div
+        *ngIf="isMobileUserMenuOpen && !isLoggedOut"
+        [@userMenuAnimation]="isMobileUserMenuOpen ? 'open' : 'closed'"
+        class="mt-3 bg-gray-50 w-[80%] mx-auto rounded-lg shadow-md"
+      >
+        <ul>
+          <li class="border-b border-gray-100">
+            <a
+              routerLink="/perfil/datos-personales"
+              class="flex items-center px-6 py-2 text-gray-800 font-semibold w-full"
+              (click)="closeMobileMenu()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 mr-3"
+                viewBox="0 0 24 24"
+                fill="currentColor"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5 mr-3"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                  ></path>
-                </svg>
-                Perfil
-              </a>
-            </li>
-            <li class="border-b border-gray-100">
-              <a
-                routerLink="/perfil/historial-compras"
-                class="flex items-center px-6 py-2 text-gray-800 font-semibold w-full"
-                (click)="closeMobileMenu()"
+                <path
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                ></path>
+              </svg>
+              Perfil
+            </a>
+          </li>
+          <li class="hover:bg-gray-100 cursor-pointer" (click)="logout()">
+            <a
+              class="flex items-center px-6 py-2 text-red-600 font-semibold w-full"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 mr-3"
+                viewBox="0 0 24 24"
+                fill="currentColor"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5 mr-3"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M19 14V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zm-9-1c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm13-6v11c0 1.1-.9 2-2 2H4v-2h17V7h2z"
-                  ></path>
-                </svg>
-                Compras
-              </a>
-            </li>
-            <li class="hover:bg-gray-100 hover:cursor-pointer" (click)="logout()">
-              <a
-                class="flex items-center px-6 py-2 text-red-600 font-semibold w-full"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5 mr-3"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
-                  ></path>
-                </svg>
-                Cerrar sesión
-              </a>
-            </li>
-          </ul>
-        </div>
+                <path
+                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+                ></path>
+              </svg>
+              Cerrar sesión
+            </a>
+          </li>
+        </ul>
       </div>
 
       <!-- Divisor -->

@@ -22,6 +22,7 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { CreditCardComponent } from './components/credit-card/credit-card.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     MetodosPagoComponent,
     ClickOutsideDirective,
     AlertComponent,
-    HistorialComprasComponent
+    HistorialComprasComponent,
+    CreditCardComponent,
   ],
   imports: [
     BrowserModule,
