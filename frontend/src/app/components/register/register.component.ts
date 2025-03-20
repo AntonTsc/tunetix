@@ -1,5 +1,4 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { NgForm } from '@angular/forms';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
 
@@ -15,6 +14,10 @@ export class RegisterComponent {
   @ViewChild('form') form!: ElementRef<HTMLFormElement>;
   @ViewChild('repeatPassword') repeatPassword!: ElementRef<HTMLInputElement>;
   serverResponse?: ServerResponse;
+
+  // Propiedades para controlar la visibilidad de las contraseñas
+  showPassword: boolean = false;
+  showRepeatPassword: boolean = false;
 
   register(){
     const fd = new FormData(this.form.nativeElement);

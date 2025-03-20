@@ -1,45 +1,208 @@
-<div class="flex relative flex-col justify-center items-center p-8 w-screen h-[100vh]">
-    <ng-container *ngIf="serverResponse != undefined">
-        <app-alert class="fixed top-0 w-fit mt-6" [serverResponse]="serverResponse" />
-    </ng-container>
+<div class="flex justify-center py-8 px-4 bg-gray-100">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+    <div class="bg-purple-600 p-6 text-center">
+      <h1 class="ubuntu-bold text-3xl sm:text-4xl font-bold text-white">
+        Bienvenido a Tunetix
+      </h1>
+      <p class="text-purple-200 mt-2">Crea tu cuenta para comenzar</p>
+    </div>
 
-    <h1 class="ubuntu-bold text-6xl font-bold mb-12 text-center">Crear cuenta</h1>
-    <form class="w-1/4" (submit)="$event.preventDefault();register()" #form>
+    <div class="p-6">
+      <ng-container *ngIf="serverResponse != undefined">
+        <app-alert class="mb-4 w-full" [serverResponse]="serverResponse" />
+      </ng-container>
+
+      <form (submit)="$event.preventDefault(); register()" #form>
+        <!-- Nombre -->
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="nombre">
-                Nombre
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="first_name" name="first_name" type="text" placeholder="Jane">
+          <label class="block font-medium text-gray-700 mb-2" for="first_name">
+            Nombre
+          </label>
+          <input
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            id="first_name"
+            name="first_name"
+            type="text"
+            placeholder="Jane"
+            autocomplete="given-name"
+          />
         </div>
+
+        <!-- Apellido -->
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="apellido">
-                Apellido
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="last_name" name="last_name" type="text" placeholder="Smith">
+          <label class="block font-medium text-gray-700 mb-2" for="last_name">
+            Apellido
+          </label>
+          <input
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            id="last_name"
+            name="last_name"
+            type="text"
+            placeholder="Smith"
+            autocomplete="family-name"
+          />
         </div>
+
+        <!-- Correo electrónico -->
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                Correo electrónico
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" name="email" type="email" placeholder="jane@framer.com">
+          <label class="block font-medium text-gray-700 mb-2" for="email">
+            Correo electrónico
+          </label>
+          <input
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            id="email"
+            name="email"
+            type="email"
+            placeholder="jane@example.com"
+            autocomplete="email"
+          />
         </div>
+
+        <!-- Contraseña -->
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold" for="password">
-                Contraseña
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" name="password" type="password" placeholder="********">
-        </div>
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                Repetir contraseña
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" #repeatPassword type="password" placeholder="********">
-        </div>
-        <div class="flex items-center justify-between">
-            <button class="bg-black transition hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
-                Entrar
+          <label class="block font-medium text-gray-700 mb-2" for="password">
+            Contraseña
+          </label>
+          <div class="relative">
+            <input
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+              id="password"
+              name="password"
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="********"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+              (click)="showPassword = !showPassword"
+            >
+              <!-- Ojo abierto (cuando la contraseña es visible) -->
+              <svg
+                *ngIf="showPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-5 h-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+
+              <!-- Ojo cerrado (cuando la contraseña está oculta) -->
+              <svg
+                *ngIf="!showPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-5 h-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                />
+              </svg>
             </button>
+          </div>
         </div>
-    </form>
-    <p class="mt-6 w-full text-center text-lg">¿Ya tienes una cuenta? <a routerLink="/login" class="text-blue-700 hover:text-blue-900">Inicia Sesión</a></p>
+
+        <!-- Repetir contraseña -->
+        <div class="mb-6">
+          <label
+            class="block font-medium text-gray-700 mb-2"
+            for="repeat_password"
+          >
+            Repetir contraseña
+          </label>
+          <div class="relative">
+            <input
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+              id="repeat_password"
+              name="repeat_password"
+              #repeatPassword
+              [type]="showRepeatPassword ? 'text' : 'password'"
+              placeholder="********"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+              (click)="showRepeatPassword = !showRepeatPassword"
+            >
+              <!-- Ojo abierto (cuando la contraseña es visible) -->
+              <svg
+                *ngIf="showRepeatPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-5 h-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+
+              <!-- Ojo cerrado (cuando la contraseña está oculta) -->
+              <svg
+                *ngIf="!showRepeatPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-5 h-5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón de registro -->
+        <div class="flex items-center justify-center">
+          <button
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 transition"
+            type="submit"
+          >
+            Crear cuenta
+          </button>
+        </div>
+      </form>
+
+      <p class="mt-6 text-center text-base sm:text-lg">
+        ¿Ya tienes una cuenta?
+        <a
+          routerLink="/login"
+          class="text-purple-600 hover:text-purple-800 font-medium"
+          >Inicia Sesión</a
+        >
+      </p>
+    </div>
+  </div>
 </div>
