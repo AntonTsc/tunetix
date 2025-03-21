@@ -1,5 +1,5 @@
 <?php
-require_once '../../config/global_headers.php';
+require_once '../../auth/global_headers.php';
 require_once '../../db.php';
 
 // En un entorno de producción, debes descomentar la siguiente línea

@@ -1,25 +1,7 @@
 <?php
-require_once '../../config/global_headers.php';
+require_once '../../auth/global_headers.php';
 require_once '../../db.php';
-
-// En un entorno de producción, debes descomentar la siguiente línea
-// y asegurarte de que el archivo y la función isAdmin() existan
-// require_once '../../utils/authenticate.php';
-
-// IMPORTANTE: En producción, esta verificación debe ser reemplazada por una adecuada
-// Verificar autenticación del administrador (temporal)
-function isAdminTemp()
-{
-    // Para desarrollo: siempre retorna true
-    // En producción: implementa la lógica adecuada
-    return true;
-}
-
-if (!isAdminTemp()) {
-    http_response_code(403);
-    echo json_encode(array("status" => "ERROR", "message" => "Acceso denegado. Se requieren permisos de administrador."));
-    exit();
-}
+require_once '../../auth_verify.php';
 
 // Verificar que sea una solicitud DELETE
 if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
@@ -29,48 +11,56 @@ if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
 }
 
 // Verificar que se proporcione un ID
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+if (!isset($_GET['id'])) {
     http_response_code(400);
-    echo json_encode(array("status" => "ERROR", "message" => "Se requiere un ID de mensaje"));
+    echo json_encode(array("status" => "ERROR", "message" => "ID de mensaje no proporcionado"));
     exit();
 }
 
-try {
-    // Sanitizar el ID
-    $id = (int)$_GET['id'];
-    
-    // Preparar la consulta
-    $query = "DELETE FROM contact_messages WHERE id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $id);
-    
-    // Ejecutar la consulta
-    $stmt->execute();
-    
-    // Verificar si se eliminó alguna fila
-    if ($stmt->affected_rows > 0) {
-        http_response_code(200);
-        echo json_encode(array(
-            "status" => "OK",
-            "message" => "Mensaje eliminado con éxito"
-        ));
-    } else {
-        http_response_code(404);
-        echo json_encode(array(
-            "status" => "ERROR",
-            "message" => "No se encontró ningún mensaje con el ID proporcionado"
-        ));
-    }
-    
-    $stmt->close();
-    
-} catch (Exception $e) {
+// Verificar autenticación
+$auth_result = verifyAuth();
+if ($auth_result['status'] !== 'OK') {
+    http_response_code(401);
+    echo json_encode($auth_result);
+    exit();
+}
+
+// Obtener y sanitizar el ID
+$id = intval($_GET['id']);
+
+// Verificar que el mensaje exista
+$check_sql = "SELECT id FROM contact_messages WHERE id = ?";
+$check_stmt = $conn->prepare($check_sql);
+$check_stmt->bind_param("i", $id);
+$check_stmt->execute();
+$check_result = $check_stmt->get_result();
+
+if ($check_result->num_rows === 0) {
+    http_response_code(404);
+    echo json_encode(array("status" => "ERROR", "message" => "Mensaje no encontrado"));
+    $check_stmt->close();
+    exit();
+}
+$check_stmt->close();
+
+// Eliminar el mensaje
+$sql = "DELETE FROM contact_messages WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $id);
+
+if ($stmt->execute()) {
+    http_response_code(200);
+    echo json_encode(array(
+        "status" => "OK",
+        "message" => "Mensaje eliminado correctamente"
+    ));
+} else {
     http_response_code(500);
     echo json_encode(array(
         "status" => "ERROR",
-        "message" => "Error en el servidor: " . $e->getMessage()
+        "message" => "Error al eliminar el mensaje: " . $stmt->error
     ));
 }
 
+$stmt->close();
 $conn->close();
-?>

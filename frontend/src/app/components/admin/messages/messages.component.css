@@ -1,0 +1,43 @@
+.panel-with-effects {
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
+  border-left: 1px solid rgba(229, 231, 235, 1);
+  transition: all 0.3s cubic-bezier(0.35, 0, 0.25, 1);
+}
+
+.animate-item {
+  transform-origin: top left;
+  backface-visibility: hidden;
+}
+
+/* Efecto hover para las filas de mensajes */
+tr.hover\:bg-gray-50:hover {
+  background-color: rgba(249, 250, 251, 0.8);
+  transition: background-color 0.15s ease-in-out;
+}
+
+/* Mejorar el efecto visual del panel deslizante */
+.w-screen.max-w-md {
+  border-radius: 12px 0 0 12px;
+  overflow: hidden;
+}
+
+/* Mejorar la visualización de los mensajes */
+.whitespace-pre-line.bg-gray-50 {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  transition: all 0.2s ease;
+}
+
+.whitespace-pre-line.bg-gray-50:hover {
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Efecto visual para los badges de estado */
+span.rounded-full {
+  transition: all 0.3s ease;
+}
+
+span.rounded-full:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}

@@ -1,30 +1,20 @@
 <?php
-require_once '../../config/global_headers.php';
+require_once '../../auth/global_headers.php';
 require_once '../../db.php';
+require_once '../../auth_verify.php';
 
-// En un entorno de producción, debes descomentar la siguiente línea
-// y asegurarte de que el archivo y la función isAdmin() existan
-// require_once '../../utils/authenticate.php';
-
-// IMPORTANTE: En producción, esta verificación debe ser reemplazada por una adecuada
-// Verificar autenticación del administrador (temporal)
-function isAdminTemp()
-{
-    // Para desarrollo: siempre retorna true
-    // En producción: implementa la lógica adecuada
-    return true;
-}
-
-if (!isAdminTemp()) {
-    http_response_code(403);
-    echo json_encode(array("status" => "ERROR", "message" => "Acceso denegado. Se requieren permisos de administrador."));
-    exit();
-}
-
-// Verificar que sea una solicitud GET
+// Verificación de autenticación
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     echo json_encode(array("status" => "ERROR", "message" => "Method not allowed"));
+    exit();
+}
+
+// Verificar autenticación
+$auth_result = verifyAuth();
+if ($auth_result['status'] !== 'OK') {
+    http_response_code(401);
+    echo json_encode($auth_result);
     exit();
 }
 
@@ -34,39 +24,55 @@ try {
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
     $offset = ($page - 1) * $limit;
 
-    // Construir la consulta base
-    $query = "SELECT * FROM contact_messages";
+    // Construir la consulta base con JOIN para obtener datos de usuario
+    $query = "SELECT m.id, m.user_id, u.nombre as first_name, u.apellido as last_name, u.correo as email, 
+              m.subject, m.message, m.status, m.date_created as created_at 
+              FROM contact_messages m 
+              LEFT JOIN usuario u ON m.user_id = u.id";
+
     $countQuery = "SELECT COUNT(*) as total FROM contact_messages";
+    $newCountQuery = "SELECT COUNT(*) as new_count FROM contact_messages WHERE status = 'nuevo'";
 
     // Añadir filtro por estado si se proporciona
     $whereClause = "";
-    $params = array();
-
     if (isset($_GET['status']) && !empty($_GET['status'])) {
         $status = $conn->real_escape_string($_GET['status']);
-        $whereClause = " WHERE status = '$status'";
+        $whereClause = " WHERE m.status = '$status'";
+        $countQuery .= " WHERE status = '$status'";
     }
 
     // Completar las consultas
-    $countQuery .= $whereClause;
-    $query .= $whereClause . " ORDER BY created_at DESC LIMIT $offset, $limit";
+    $query .= $whereClause . " ORDER BY m.date_created DESC LIMIT $offset, $limit";
 
     // Ejecutar consulta para el conteo total
     $resultCount = $conn->query($countQuery);
     $totalRow = $resultCount->fetch_assoc();
     $total = $totalRow['total'];
 
+    // Ejecutar consulta para contar mensajes nuevos
+    $resultNewCount = $conn->query($newCountQuery);
+    $newCountRow = $resultNewCount->fetch_assoc();
+    $newCount = $newCountRow['new_count'];
+
     // Ejecutar la consulta principal
     $result = $conn->query($query);
+
+    if (!$result) {
+        throw new Exception("Error en la consulta: " . $conn->error);
+    }
 
     // Obtener los resultados
     $messages = array();
     while ($row = $result->fetch_assoc()) {
-        // Sanitizar los datos antes de devolverlos
-        $row['name'] = htmlspecialchars($row['name']);
-        $row['email'] = htmlspecialchars($row['email']);
+        // Sanitizar datos
+        $row['first_name'] = htmlspecialchars($row['first_name'] ?? '');
+        $row['last_name'] = htmlspecialchars($row['last_name'] ?? '');
+        $row['email'] = htmlspecialchars($row['email'] ?? '');
         $row['subject'] = htmlspecialchars($row['subject']);
         $row['message'] = htmlspecialchars($row['message']);
+
+        // Añadir nombre completo formateado para facilitar el display
+        $row['name'] = ($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '');
 
         $messages[] = $row;
     }
@@ -79,6 +85,7 @@ try {
         "data" => $messages,
         "pagination" => array(
             "total" => (int)$total,
+            "new_count" => (int)$newCount,
             "currentPage" => $page,
             "limit" => $limit,
             "totalPages" => ceil($total / $limit)

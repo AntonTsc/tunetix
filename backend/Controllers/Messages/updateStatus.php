@@ -1,25 +1,7 @@
 <?php
-require_once '../../config/global_headers.php';
+require_once '../../auth/global_headers.php';
 require_once '../../db.php';
-
-// En un entorno de producción, debes descomentar la siguiente línea
-// y asegurarte de que el archivo y la función isAdmin() existan
-// require_once '../../utils/authenticate.php';
-
-// IMPORTANTE: En producción, esta verificación debe ser reemplazada por una adecuada
-// Verificar autenticación del administrador (temporal)
-function isAdminTemp()
-{
-    // Para desarrollo: siempre retorna true
-    // En producción: implementa la lógica adecuada
-    return true;
-}
-
-if (!isAdminTemp()) {
-    http_response_code(403);
-    echo json_encode(array("status" => "ERROR", "message" => "Acceso denegado. Se requieren permisos de administrador."));
-    exit();
-}
+require_once '../../auth_verify.php';
 
 // Verificar que sea una solicitud PUT
 if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
@@ -28,66 +10,69 @@ if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
     exit();
 }
 
-// Obtener datos del cuerpo de la solicitud
+// Obtener datos del cuerpo
 $data = json_decode(file_get_contents("php://input"));
 
-// Verificar que se proporcionen los campos necesarios
-if (!isset($data->id) || !isset($data->status) || empty($data->id) || empty($data->status)) {
+// Verificar que se proporcionen los datos necesarios
+if (!isset($data->id) || !isset($data->status)) {
     http_response_code(400);
-    echo json_encode(array("status" => "ERROR", "message" => "Se requieren ID y estado del mensaje"));
+    echo json_encode(array("status" => "ERROR", "message" => "Faltan campos requeridos"));
     exit();
 }
 
-// Validar que el estado sea uno de los valores permitidos
-$allowedStatuses = array('nuevo', 'leído', 'respondido', 'archivado');
-if (!in_array($data->status, $allowedStatuses)) {
+// Verificar autenticación
+$auth_result = verifyAuth();
+if ($auth_result['status'] !== 'OK') {
+    http_response_code(401);
+    echo json_encode($auth_result);
+    exit();
+}
+
+// Sanitizar datos
+$id = intval($data->id);
+$status = $conn->real_escape_string($data->status);
+
+// Verificar que el status sea válido
+$valid_statuses = array('nuevo', 'leído', 'archivado');
+if (!in_array($status, $valid_statuses)) {
     http_response_code(400);
+    echo json_encode(array("status" => "ERROR", "message" => "Estado no válido"));
+    exit();
+}
+
+// Verificar que el mensaje exista
+$check_sql = "SELECT id FROM contact_messages WHERE id = ?";
+$check_stmt = $conn->prepare($check_sql);
+$check_stmt->bind_param("i", $id);
+$check_stmt->execute();
+$check_result = $check_stmt->get_result();
+
+if ($check_result->num_rows === 0) {
+    http_response_code(404);
+    echo json_encode(array("status" => "ERROR", "message" => "Mensaje no encontrado"));
+    $check_stmt->close();
+    exit();
+}
+$check_stmt->close();
+
+// Actualizar el estado del mensaje
+$sql = "UPDATE contact_messages SET status = ? WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("si", $status, $id);
+
+if ($stmt->execute()) {
+    http_response_code(200);
     echo json_encode(array(
-        "status" => "ERROR",
-        "message" => "Estado no válido. Estados permitidos: " . implode(', ', $allowedStatuses)
+        "status" => "OK",
+        "message" => "Estado actualizado correctamente"
     ));
-    exit();
-}
-
-try {
-    // Sanitizar los datos
-    $id = (int)$data->id;
-    $status = $conn->real_escape_string($data->status);
-    $updated_at = date('Y-m-d H:i:s');
-
-    // Preparar la consulta
-    $query = "UPDATE contact_messages 
-              SET status = ?, updated_at = ? 
-              WHERE id = ?";
-
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("ssi", $status, $updated_at, $id);
-
-    // Ejecutar la consulta
-    $stmt->execute();
-
-    // Verificar si se actualizó alguna fila
-    if ($stmt->affected_rows > 0) {
-        http_response_code(200);
-        echo json_encode(array(
-            "status" => "OK",
-            "message" => "Estado del mensaje actualizado con éxito"
-        ));
-    } else {
-        http_response_code(404);
-        echo json_encode(array(
-            "status" => "ERROR",
-            "message" => "No se encontró ningún mensaje con el ID proporcionado"
-        ));
-    }
-
-    $stmt->close();
-} catch (Exception $e) {
+} else {
     http_response_code(500);
     echo json_encode(array(
         "status" => "ERROR",
-        "message" => "Error en el servidor: " . $e->getMessage()
+        "message" => "Error al actualizar el estado: " . $stmt->error
     ));
 }
 
+$stmt->close();
 $conn->close();

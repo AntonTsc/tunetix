@@ -13,7 +13,14 @@ export class ContactService {
 
   // Enviar formulario de contacto
   submitContactForm(formData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/Controllers/Messages/submitMessage.php`, formData, { headers: this.headers });
+    return this.http.post(
+      `${this.baseUrl}/Controllers/Messages/submitMessage.php`,
+      formData,
+      {
+        headers: this.headers,
+        withCredentials: true // Importante para enviar cookies
+      }
+    );
   }
 
   // Obtener todos los mensajes (para panel de administración)
@@ -22,12 +29,15 @@ export class ContactService {
     if (status) {
       url += `&status=${status}`;
     }
-    return this.http.get(url, { headers: this.headers });
+    return this.http.get(url, { headers: this.headers, withCredentials: true });
   }
 
   // Obtener un mensaje específico por ID
   getMessage(id: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/Controllers/Messages/getMessage.php?id=${id}`, { headers: this.headers });
+    return this.http.get(
+      `${this.baseUrl}/Controllers/Messages/getMessage.php?id=${id}`,
+      { headers: this.headers, withCredentials: true }
+    );
   }
 
   // Actualizar el estado de un mensaje
@@ -35,13 +45,16 @@ export class ContactService {
     return this.http.put(
       `${this.baseUrl}/Controllers/Messages/updateStatus.php`,
       { id, status },
-      { headers: this.headers }
+      { headers: this.headers, withCredentials: true }
     );
   }
 
   // Eliminar un mensaje
   deleteMessage(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/Controllers/Messages/deleteMessage.php?id=${id}`, { headers: this.headers });
+    return this.http.delete(
+      `${this.baseUrl}/Controllers/Messages/deleteMessage.php?id=${id}`,
+      { headers: this.headers, withCredentials: true }
+    );
   }
 
   // Responder a un mensaje
@@ -49,12 +62,15 @@ export class ContactService {
     return this.http.post(
       `${this.baseUrl}/Controllers/Messages/respondMessage.php`,
       { id, response },
-      { headers: this.headers }
+      { headers: this.headers, withCredentials: true }
     );
   }
 
   // Obtener estadísticas
   getStats(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/Controllers/Messages/getStats.php`, { headers: this.headers });
+    return this.http.get(
+      `${this.baseUrl}/Controllers/Messages/getStats.php`,
+      { headers: this.headers, withCredentials: true }
+    );
   }
 }

@@ -108,4 +108,15 @@ export class AuthService {
   refreshToken(){
     return this.http.get(`${this.baseUrl}/refresh_token.php`, {withCredentials: true})
   }
+
+  getCurrentUser(): any {
+    const userStr = localStorage.getItem('user_data');
+    if (!userStr) return null;
+
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      return null;
+    }
+  }
 }

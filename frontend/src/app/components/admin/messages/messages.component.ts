@@ -1,35 +1,84 @@
-import { animate, style, transition, trigger } from '@angular/animations';
+import { animate, group, query, stagger, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
-import { ContactService } from 'src/app/services/contact.service';
+import { MessageService } from 'src/app/services/message.service';
+
+interface MessageResponse {
+  status: string;
+  message: string;
+  data: any[];
+  pagination: {
+    total: number;
+    new_count: number;
+    currentPage: number;
+    limit: number;
+    totalPages: number;
+  };
+}
 
 @Component({
-  selector: 'app-admin-messages',
+  selector: 'app-messages',
   templateUrl: './messages.component.html',
   styleUrls: ['./messages.component.css'],
   animations: [
+    // Animación de entrada/salida del panel con escala
     trigger('slideInOut', [
+      state('void', style({
+        transform: 'translateX(100%) scale(0.95)',
+        opacity: 0
+      })),
+      state('*', style({
+        transform: 'translateX(0) scale(1)',
+        opacity: 1
+      })),
       transition(':enter', [
-        style({ transform: 'translateX(100%)' }),
-        animate('300ms ease-out', style({ transform: 'translateX(0%)' }))
+        group([
+          animate('350ms cubic-bezier(0.35, 0, 0.25, 1)', style({ transform: 'translateX(0) scale(1)' })),
+          animate('250ms ease-in', style({ opacity: 1 }))
+        ])
       ]),
       transition(':leave', [
-        animate('300ms ease-in', style({ transform: 'translateX(100%)' }))
+        group([
+          animate('350ms cubic-bezier(0.35, 0, 0.25, 1)', style({ transform: 'translateX(100%) scale(0.95)' })),
+          animate('250ms ease-out', style({ opacity: 0 }))
+        ])
+      ])
+    ]),
+
+    // Animación para el fondo con zoom
+    trigger('backdropFade', [
+      state('void', style({ opacity: 0 })),
+      state('*', style({ opacity: 1 })),
+      transition(':enter', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+      transition(':leave', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
+    ]),
+
+    // Animación para contenido interno en cascada
+    trigger('contentAnimation', [
+      transition(':enter', [
+        query('.animate-item', [
+          style({ opacity: 0, transform: 'translateY(20px)' }),
+          stagger(60, [
+            animate('400ms cubic-bezier(0.35, 0, 0.25, 1)', style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
       ])
     ])
   ]
 })
-export class AdminMessagesComponent implements OnInit {
+export class MessagesComponent implements OnInit {
   messages: any[] = [];
-  loading = false;
-  currentPage = 1;
-  totalPages = 0;
-  totalMessages = 0;
-  messagesPerPage = 10;
+  selectedMessage: any = {};
+  isDetailOpen: boolean = false;
+  animatingClose: boolean = false;
+  newMessagesCount: number = 0;
+  loading: boolean = true;
+  error: string = '';
+  currentPage: number = 1;
+  messagesPerPage: number = 10;
+  totalMessages: number = 0;
+  totalPages: number = 1;
   statusFilter: string = '';
-  selectedMessage: any = null;
   isStatusDropdownOpen = false;
-  isDetailOpen = false;
-  newMessagesCount = 0;
   responseText: string = '';
   respondLoading: boolean = false;
 
@@ -38,7 +87,7 @@ export class AdminMessagesComponent implements OnInit {
 
   @ViewChild('statusDropdown') statusDropdownRef!: ElementRef;
 
-  constructor(private contactService: ContactService) { }
+  constructor(private messageService: MessageService) { }
 
   ngOnInit(): void {
     this.loadMessages();
@@ -57,79 +106,99 @@ export class AdminMessagesComponent implements OnInit {
 
   loadMessages(): void {
     this.loading = true;
-    this.contactService.getMessages(this.currentPage, this.messagesPerPage, this.statusFilter)
+    this.messageService.getMessagesWithParams(this.currentPage, this.messagesPerPage, this.statusFilter)
       .subscribe({
-        next: (response) => {
+        next: (response: MessageResponse) => {
           this.messages = response.data;
-          this.totalMessages = response.total;
-          this.totalPages = Math.ceil(response.total / this.messagesPerPage);
-          this.newMessagesCount = response.new_count || 0;
+          this.totalMessages = response.pagination.total;
+          this.totalPages = response.pagination.totalPages;
+          this.newMessagesCount = response.pagination.new_count || 0;
           this.loading = false;
         },
-        error: (error) => {
-          console.error('Error al cargar mensajes:', error);
+        error: (err) => {
+          console.error('Error loading messages:', err);
+          this.error = 'No se pudieron cargar los mensajes. Inténtalo de nuevo más tarde.';
           this.loading = false;
         }
       });
   }
 
-  viewMessage(message: any): void {
-    this.selectedMessage = message;
-    this.isDetailOpen = true;
+  countNewMessages(messages: any[]): number {
+    return messages.filter(m => m.status === 'nuevo').length;
+  }
 
-    // Si el mensaje está sin leer, marcarlo como leído
+  openDetail(message: any): void {
+    this.selectedMessage = { ...message };
+    this.isDetailOpen = true;
+    this.animatingClose = false;
+
+    // Si el mensaje estaba en estado 'nuevo', actualizarlo a 'leído'
     if (message.status === 'nuevo') {
-      this.updateStatus(message.id, 'leído');
+      this.updateStatus(message.id, 'leído', false);
     }
   }
 
   closeDetail(): void {
-    this.isDetailOpen = false;
-    this.selectedMessage = null;
-  }
+    // Primero, actualiza el estado para permitir que se active la animación
+    this.animatingClose = true;
 
-  updateStatus(id: number, status: string): void {
-    this.isStatusDropdownOpen = false;
-    this.contactService.updateMessageStatus(id, status)
-      .subscribe({
-        next: () => {
-          const messageIndex = this.messages.findIndex(m => m.id === id);
-          if (messageIndex > -1) {
-            if (this.messages[messageIndex].status === 'nuevo' && status !== 'nuevo') {
-              this.newMessagesCount--;
-            }
-            this.messages[messageIndex].status = status;
-          }
-
-          if (this.selectedMessage && this.selectedMessage.id === id) {
-            this.selectedMessage.status = status;
-          }
-        },
-        error: (error) => console.error('Error al actualizar estado:', error)
-      });
+    // Después de un tiempo que coincida con la duración de la animación,
+    // realmente cambia isDetailOpen a false
+    setTimeout(() => {
+      this.isDetailOpen = false;
+      this.animatingClose = false;
+    }, 300); // Duración de la animación en ms
   }
 
   deleteMessage(id: number): void {
-    if (confirm('¿Estás seguro de que deseas eliminar este mensaje? Esta acción no se puede deshacer.')) {
-      this.contactService.deleteMessage(id)
-        .subscribe({
-          next: () => {
-            if (this.selectedMessage && this.selectedMessage.id === id) {
-              this.closeDetail();
-            }
+    if (confirm('¿Estás seguro de que deseas eliminar este mensaje?')) {
+      this.messageService.deleteMessage(id).subscribe({
+        next: () => {
+          // Eliminar mensaje de la lista local
+          this.messages = this.messages.filter(m => m.id !== id);
 
-            const messageIndex = this.messages.findIndex(m => m.id === id);
-            if (messageIndex > -1) {
-              if (this.messages[messageIndex].status === 'nuevo') {
-                this.newMessagesCount--;
-              }
-              this.messages.splice(messageIndex, 1);
-              this.totalMessages--;
-            }
-          },
-          error: (error) => console.error('Error al eliminar mensaje:', error)
-        });
+          // Si el panel de detalle está abierto y muestra este mensaje, cerrarlo
+          if (this.isDetailOpen && this.selectedMessage.id === id) {
+            this.closeDetail();
+          }
+
+          // Actualizar contador de mensajes nuevos
+          this.newMessagesCount = this.countNewMessages(this.messages);
+
+          // Recargar los mensajes si la página actual podría estar vacía
+          if (this.messages.length === 0 && this.currentPage > 1) {
+            this.currentPage--;
+            this.loadMessages();
+          }
+        },
+        error: (err) => {
+          console.error('Error deleting message:', err);
+          alert('No se pudo eliminar el mensaje. Inténtalo de nuevo más tarde.');
+        }
+      });
     }
+  }
+
+  updateStatus(id: number, status: string, reloadMessages: boolean = true): void {
+    this.messageService.updateMessageStatus(id, status).subscribe({
+      next: () => {
+        // Actualizar la lista de mensajes
+        if (reloadMessages) {
+          this.loadMessages();
+        } else {
+          // Actualizar solo el mensaje en la lista local
+          const index = this.messages.findIndex(m => m.id === id);
+          if (index !== -1) {
+            this.messages[index].status = status;
+            // Actualizar contador de mensajes nuevos
+            this.newMessagesCount = this.countNewMessages(this.messages);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error updating message status:', err);
+      }
+    });
   }
 
   respondToMessage(): void {
@@ -138,20 +207,20 @@ export class AdminMessagesComponent implements OnInit {
     }
 
     this.respondLoading = true;
-    this.contactService.respondMessage(this.selectedMessage.id, this.responseText)
-      .subscribe({
-        next: () => {
-          this.updateStatus(this.selectedMessage.id, 'respondido');
-          this.responseText = '';
-          this.respondLoading = false;
-          alert('Respuesta enviada correctamente');
-        },
-        error: (error) => {
-          console.error('Error al enviar respuesta:', error);
-          this.respondLoading = false;
-          alert('Error al enviar la respuesta');
-        }
-      });
+    // this.messageService.respondMessage(this.selectedMessage.id, this.responseText)
+    //   .subscribe({
+    //     next: () => {
+    //       this.updateStatus(this.selectedMessage.id, 'respondido');
+    //       this.responseText = '';
+    //       this.respondLoading = false;
+    //       alert('Respuesta enviada correctamente');
+    //     },
+    //     error: (error) => {
+    //       console.error('Error al enviar respuesta:', error);
+    //       this.respondLoading = false;
+    //       alert('Error al enviar la respuesta');
+    //     }
+    //   });
   }
 
   changePage(page: number): void {
@@ -175,9 +244,9 @@ export class AdminMessagesComponent implements OnInit {
   getStatusClass(status: string): string {
     switch (status) {
       case 'nuevo':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-red-100 text-red-800';
       case 'leído':
-        return 'bg-green-100 text-green-800';
+        return 'bg-blue-100 text-blue-800';
       case 'respondido':
         return 'bg-purple-100 text-purple-800';
       case 'archivado':
@@ -203,13 +272,15 @@ export class AdminMessagesComponent implements OnInit {
   }
 
   formatDate(dateString: string): string {
+    if (!dateString) return '';
+
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-ES', {
+    return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    }).format(date);
+    });
   }
 }

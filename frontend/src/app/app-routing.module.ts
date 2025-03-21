@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { AdminMessagesComponent } from './components/admin/messages/messages.component';
+import { MessagesComponent } from './components/admin/messages/messages.component';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
 import { CancionesComponent } from './components/canciones/canciones.component';
@@ -15,7 +15,7 @@ import { LoginComponent } from './components/login/login.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
-import { authGuard } from './guards/auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   {path: 'inicio', component: InicioComponent},
@@ -24,11 +24,13 @@ const routes: Routes = [
   {path: 'canciones', component: CancionesComponent},
   {path: 'evento', component: EventoComponent},
   {path: 'eventos', component: EventosComponent},
-  {path: 'contacto', component: ContactoComponent},
-  {path: 'admin/messages', component: AdminMessagesComponent, canActivate: [authGuard], data: { roles: ['admin'] }},
+  {path: 'contacto', component: ContactoComponent, canActivate: [AuthGuard]},
+  {path: 'admin/messages', component: MessagesComponent, canActivate: [AuthGuard]
+    // , data: { roles: ['admin'] }
+  },
   {path: 'login', component: LoginComponent},
   {path: 'register', component: RegisterComponent},
-  {path: 'perfil', component: PerfilComponent, canActivate:[authGuard], children:[
+  {path: 'perfil', component: PerfilComponent, canActivate:[AuthGuard], children:[
     {path: 'datos-personales', component: DatosPersonalesComponent},
     {path: 'metodos-de-pago', component: MetodosPagoComponent},
     {path: 'historial-de-compras', component: HistorialComprasComponent}

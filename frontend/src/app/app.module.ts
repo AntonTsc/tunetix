@@ -1,14 +1,19 @@
+import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { MessagesComponent } from './components/admin/messages/messages.component';
 import { AlertComponent } from './components/alert/alert.component';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
 import { CancionesComponent } from './components/canciones/canciones.component';
+import { ContactoComponent } from './components/contacto/contacto.component';
+import { CreditCardComponent } from './components/credit-card/credit-card.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
 import { EventoComponent } from './components/evento/evento.component';
 import { EventosComponent } from './components/eventos/eventos.component';
@@ -22,9 +27,6 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
-import { CreditCardComponent } from './components/credit-card/credit-card.component';
-import { ContactoComponent } from './components/contacto/contacto.component';
-import { AdminMessagesComponent } from './components/admin/messages/messages.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +49,7 @@ import { AdminMessagesComponent } from './components/admin/messages/messages.com
     HistorialComprasComponent,
     CreditCardComponent,
     ContactoComponent,
-    AdminMessagesComponent,
+    MessagesComponent,
   ],
   imports: [
     BrowserModule,
@@ -55,7 +57,9 @@ import { AdminMessagesComponent } from './components/admin/messages/messages.com
     HttpClientModule,
     FormsModule,
     BrowserAnimationsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    CommonModule,
+    RouterModule
   ],
   // Se registra el interceptor para poder usarlo en todo el proyecto
   providers: [
