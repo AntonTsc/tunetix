@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 20-03-2025 a las 16:43:49
+-- Tiempo de generación: 21-03-2025 a las 14:53:38
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -29,13 +29,11 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `contact_messages` (
   `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
   `subject` varchar(200) NOT NULL,
   `message` text NOT NULL,
-  `status` enum('nuevo','leído','respondido','archivado') NOT NULL DEFAULT 'nuevo',
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime DEFAULT NULL
+  `status` enum('nuevo','leído','archivado') NOT NULL DEFAULT 'nuevo',
+  `date_created` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -62,7 +60,9 @@ CREATE TABLE `metodo_pago` (
 
 INSERT INTO `metodo_pago` (`id`, `tipo`, `id_usuario`, `titular`, `pan`, `cvc`, `fecha_expiracion`, `divisa`, `created_at`) VALUES
 (4, 'VISA', 7, 'NIco oasod', 1242142121212125, 244, '11/34', 'USD', '2025-03-20 12:49:24'),
-(5, 'MASTERCARD', 3, 'Anton Tschanz Shueman', 1234566109210091, 569, '11/33', 'EUR', '2025-03-20 13:00:39');
+(5, 'MASTERCARD', 3, 'Anton Tschanz Shueman', 1234566109210091, 569, '11/33', 'EUR', '2025-03-20 13:00:39'),
+(6, 'MASTERCARD', 3, 'asdsa', 1615165165666677, 421, '11/26', 'EUR', '2025-03-21 09:22:35'),
+(7, 'VISA', 3, 'asdsa', 1615165165666677, 421, '11/26', 'EUR', '2025-03-21 09:22:44');
 
 -- --------------------------------------------------------
 
@@ -103,7 +103,7 @@ CREATE TABLE `usuario` (
 --
 
 INSERT INTO `usuario` (`id`, `nombre`, `apellido`, `correo`, `contrasena`, `image_path`, `created_at`, `updated_at`) VALUES
-(3, 'Anton', 'Tschanz', 'anton@gmail.com', '$2y$10$FJTXA54f5YA6FLjsrbzTGu6359.0aYmaV3uW4MzvkA0vvHnP.3hVe', 'assets/imgs/avatars/avatar_3_1742475706.png', '2025-03-20 09:38:23', '2025-03-20 13:01:46'),
+(3, 'Anton', 'Tschanz Shueman', 'anton@gmail.com', '$2y$10$FJTXA54f5YA6FLjsrbzTGu6359.0aYmaV3uW4MzvkA0vvHnP.3hVe', 'assets/imgs/avatars/avatar_3_1742548936.png', '2025-03-20 09:38:23', '2025-03-21 11:03:45'),
 (5, 'asdsa', 'dsadas', 'asd@asd.c', '$2y$10$/mpoqWVfH2Rhqfd6ZLsKleY9DrRHtHxLsOnHgJtEe8U8tXu7rXFv.', '', '2025-03-20 11:02:33', '2025-03-20 11:02:33'),
 (6, 'Test', 'test', 'test@test.test', '$2y$10$sFHW7pzXG6TvEVMVec2m3e2CJIJ4hMB40yJMR3rFnVCFuF7MvlI0G', '', '2025-03-20 12:37:56', '2025-03-20 12:37:56'),
 (7, 'Nico', 'Nas', 'nico@gmail.cam', '$2y$10$qxlpEZNDGxmXvypxPQSAPeuFIiHnnI/d23jdCpshkLq01aDeXKLAi', '', '2025-03-20 12:48:48', '2025-03-20 12:49:11');
@@ -116,7 +116,10 @@ INSERT INTO `usuario` (`id`, `nombre`, `apellido`, `correo`, `contrasena`, `imag
 -- Indices de la tabla `contact_messages`
 --
 ALTER TABLE `contact_messages`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `idx_message_status` (`status`),
+  ADD KEY `idx_message_date` (`date_created`);
 
 --
 -- Indices de la tabla `metodo_pago`
@@ -153,7 +156,7 @@ ALTER TABLE `contact_messages`
 -- AUTO_INCREMENT de la tabla `metodo_pago`
 --
 ALTER TABLE `metodo_pago`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket`
@@ -170,6 +173,12 @@ ALTER TABLE `usuario`
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `contact_messages`
+--
+ALTER TABLE `contact_messages`
+  ADD CONSTRAINT `fk_contact_message_user` FOREIGN KEY (`user_id`) REFERENCES `usuario` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `metodo_pago`
