@@ -173,9 +173,14 @@ export class ContactoComponent implements OnInit, OnDestroy {
 
     this.loading = true;
 
-    // Incluir los valores deshabilitados manualmente
+    // Obtener el ID del usuario desde el localStorage
+    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    const userId = userData.id || 0;
+
+    // Incluir los valores deshabilitados manualmente y el ID del usuario
     const formData = {
       ...this.contactForm.getRawValue(), // Obtiene todos los valores incluyendo los deshabilitados
+      user_id: userId, // Añadir el ID del usuario explícitamente
       date: new Date(),
       status: 'nuevo'
     };
@@ -185,7 +190,10 @@ export class ContactoComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.loading = false;
           this.successMessage = 'Tu mensaje ha sido enviado correctamente.';
-          // Resetear formulario o manejar éxito
+          // Resetear formulario
+          this.contactForm.reset();
+          this.submitted = false;
+          this.updateFormValues(); // Actualizar con los datos del usuario nuevamente
         },
         error: (error) => {
           this.loading = false;

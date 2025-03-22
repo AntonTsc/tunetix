@@ -19,17 +19,19 @@ export interface MessageResponse {
   providedIn: 'root'
 })
 export class MessageService {
-  private baseUrl = 'http://localhost/tunetix/backend';
+  private apiUrl = 'http://localhost/backend';
 
   constructor(private http: HttpClient) { }
 
   // Método simple para obtener mensajes sin parámetros
   getMessages(): Observable<MessageResponse> {
-    return this.http.get<MessageResponse>(`${this.baseUrl}/Controllers/Messages/getMessages.php`, { withCredentials: true });
+    return this.http.get<MessageResponse>(`${this.apiUrl}/Controllers/Messages/getMessages.php`, { withCredentials: true });
   }
 
-  // Método con parámetros para paginación y filtrado
-  getMessagesWithParams(page: number = 1, limit: number = 10, status: string = ''): Observable<MessageResponse> {
+  /**
+   * Obtiene todos los mensajes con paginación y filtrado opcional
+   */
+  getMessagesWithParams(page = 1, limit = 10, status = ''): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
@@ -38,24 +40,49 @@ export class MessageService {
       params = params.set('status', status);
     }
 
-    return this.http.get<MessageResponse>(`${this.baseUrl}/Controllers/Messages/getMessages.php`, {
-      params,
-      withCredentials: true
-    });
+    return this.http.get(`${this.apiUrl}/Controllers/Messages/getMessages.php`,
+      { params, withCredentials: true });
   }
 
-  deleteMessage(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/Controllers/Messages/deleteMessage.php?id=${id}`, { withCredentials: true });
-  }
-
-  updateMessageStatus(id: number, status: string): Observable<any> {
-    return this.http.put(`${this.baseUrl}/Controllers/Messages/updateStatus.php`,
-      { id, status },
-      { withCredentials: true }
-    );
-  }
-
+  /**
+   * Obtiene un mensaje específico por su ID
+   */
   getMessage(id: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/Controllers/Messages/getMessage.php?id=${id}`, { withCredentials: true });
+    return this.http.get(`${this.apiUrl}/Controllers/Messages/getMessage.php?id=${id}`,
+      { withCredentials: true });
+  }
+
+  /**
+   * Elimina un mensaje específico
+   */
+  deleteMessage(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/Controllers/Messages/deleteMessage.php?id=${id}`,
+      { withCredentials: true });
+  }
+
+  /**
+   * Actualiza el estado de un mensaje
+   */
+  updateMessageStatus(id: number, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/Controllers/Messages/updateStatus.php`,
+      { id: id, status: status },
+      { withCredentials: true });
+  }
+
+  /**
+   * Obtiene estadísticas de mensajes
+   */
+  getMessageStats(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/Controllers/Messages/getStats.php`,
+      { withCredentials: true });
+  }
+
+  /**
+   * Envía una respuesta a un mensaje
+   */
+  respondMessage(messageId: number, text: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/Controllers/Messages/respondMessage.php`,
+      { id: messageId, response: text },
+      { withCredentials: true });
   }
 }

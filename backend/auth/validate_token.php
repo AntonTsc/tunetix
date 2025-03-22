@@ -6,26 +6,34 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 
-$secret_key = $_ENV['SECRET'];
+// SOLUCIÓN RADICAL: Definir la clave secreta directamente en este archivo
+// sin depender de las variables de entorno
+$secret_key = 'F-!5W30#s5#?7y=Oc(FV<%pi0GWm1b:gE`W^N:cR"{/eVdr.vw';
 
 // Función para verificar un token
 function verifyToken($token)
 {
-    global $secret_key;
+    // IMPORTANTE: Usamos una clave definitiva en lugar de la global
+    $hardcoded_key = 'F-!5W30#s5#?7y=Oc(FV<%pi0GWm1b:gE`W^N:cR"{/eVdr.vw';
+
+    if (empty($token)) {
+        return false;
+    }
+
     try {
-        $decoded = JWT::decode($token, new Key($secret_key, 'HS256'));
+        // Usar la clave hardcoded para evitar problemas con variables de entorno
+        $decoded = JWT::decode($token, new Key($hardcoded_key, 'HS256'));
         return $decoded;
     } catch (ExpiredException $e) {
-        // Token expirado
+        error_log('JWT Error: Token expirado');
         return false;
     } catch (Exception $e) {
-        // Token inválido
+        error_log('JWT Error: ' . $e->getMessage());
         return false;
     }
 }
 
-// Este código solo se ejecuta si este archivo se llama directamente,
-// no cuando se incluye en otro archivo
+// Este código solo se ejecuta si este archivo se llama directamente
 if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
     header('Content-Type: application/json');
 

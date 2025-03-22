@@ -1,19 +1,6 @@
 import { animate, group, query, stagger, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
-import { MessageService } from 'src/app/services/message.service';
-
-interface MessageResponse {
-  status: string;
-  message: string;
-  data: any[];
-  pagination: {
-    total: number;
-    new_count: number;
-    currentPage: number;
-    limit: number;
-    totalPages: number;
-  };
-}
+import { MessageResponse, MessageService } from 'src/app/services/message.service';
 
 @Component({
   selector: 'app-messages',
@@ -82,6 +69,12 @@ export class MessagesComponent implements OnInit {
   responseText: string = '';
   respondLoading: boolean = false;
 
+  // Nuevas propiedades para el modal de confirmación
+  showConfirmModal: boolean = false;
+  confirmModalClosing: boolean = false;
+  confirmAction: 'archive' | 'delete' = 'delete';
+  selectedConfirmMessage: any = null;
+
   // Para usar Math en el template
   Math = Math;
 
@@ -109,6 +102,7 @@ export class MessagesComponent implements OnInit {
     this.messageService.getMessagesWithParams(this.currentPage, this.messagesPerPage, this.statusFilter)
       .subscribe({
         next: (response: MessageResponse) => {
+          console.log('Mensajes cargados:', response);
           this.messages = response.data;
           this.totalMessages = response.pagination.total;
           this.totalPages = response.pagination.totalPages;
@@ -127,15 +121,20 @@ export class MessagesComponent implements OnInit {
     return messages.filter(m => m.status === 'nuevo').length;
   }
 
+  // Modificar el método openDetail para que no marque como leído automáticamente
   openDetail(message: any): void {
-    this.selectedMessage = { ...message };
+    this.selectedMessage = message;
     this.isDetailOpen = true;
     this.animatingClose = false;
 
-    // Si el mensaje estaba en estado 'nuevo', actualizarlo a 'leído'
-    if (message.status === 'nuevo') {
-      this.updateStatus(message.id, 'leído', false);
-    }
+    // Comentamos o eliminamos esta parte para que no marque como leído automáticamente
+    // if (message.status === 'nuevo') {
+    //   this.updateStatus(message.id, 'leído');
+    //   message.status = 'leído';
+    // }
+
+    // Bloquear el scroll del cuerpo cuando se abre el panel
+    document.body.style.overflow = 'hidden';
   }
 
   closeDetail(): void {
@@ -150,50 +149,122 @@ export class MessagesComponent implements OnInit {
     }, 300); // Duración de la animación en ms
   }
 
+  // Método para mostrar el modal de confirmación de archivo
+  showArchiveConfirm(message: any): void {
+    this.selectedConfirmMessage = message;
+    this.confirmAction = 'archive';
+    this.showConfirmModal = true;
+    this.confirmModalClosing = false;
+  }
+
+  // Método para mostrar el modal de confirmación de eliminación
+  showDeleteConfirm(message: any): void {
+    this.selectedConfirmMessage = message;
+    this.confirmAction = 'delete';
+    this.showConfirmModal = true;
+    this.confirmModalClosing = false;
+  }
+
+  // Método para cancelar la acción de confirmación
+  cancelConfirmModal(): void {
+    this.confirmModalClosing = true;
+    setTimeout(() => {
+      this.showConfirmModal = false;
+      this.selectedConfirmMessage = null;
+    }, 300); // Tiempo de la animación
+  }
+
+  // Método para ejecutar la acción confirmada
+  confirmActionExecute(): void {
+    const messageId = this.selectedConfirmMessage.id;
+
+    if (this.confirmAction === 'archive') {
+      this.updateStatus(messageId, 'archivado');
+    } else if (this.confirmAction === 'delete') {
+      this.deleteMessage(messageId);
+    }
+
+    // Cerrar el modal
+    this.cancelConfirmModal();
+  }
+
+  // Modificamos el método deleteMessage para que no use confirm() nativo
   deleteMessage(id: number): void {
-    if (confirm('¿Estás seguro de que deseas eliminar este mensaje?')) {
-      this.messageService.deleteMessage(id).subscribe({
-        next: () => {
-          // Eliminar mensaje de la lista local
+    this.messageService.deleteMessage(id).subscribe({
+      next: () => {
+        // Eliminar mensaje de la lista local
+        this.messages = this.messages.filter(m => m.id !== id);
+
+        // Si el panel de detalle está abierto y muestra este mensaje, cerrarlo
+        if (this.isDetailOpen && this.selectedMessage.id === id) {
+          this.closeDetail();
+        }
+
+        // Actualizar contador de mensajes nuevos
+        this.newMessagesCount = this.countNewMessages(this.messages);
+
+        // Recargar los mensajes si la página actual podría estar vacía
+        if (this.messages.length === 0 && this.currentPage > 1) {
+          this.currentPage--;
+          this.loadMessages();
+        }
+      },
+      error: (err) => {
+        console.error('Error deleting message:', err);
+        alert('No se pudo eliminar el mensaje. Inténtalo de nuevo más tarde.');
+      }
+    });
+  }
+
+  // Actualizar el método updateStatus para manejar correctamente los mensajes archivados
+  updateStatus(id: number, status: string): void {
+    this.messageService.updateMessageStatus(id, status).subscribe({
+      next: () => {
+        // Caso 1: Si estamos desarchivando un mensaje mientras filtramos por archivados
+        if (status !== 'archivado' && this.statusFilter === 'archivado') {
+          // Quitar el mensaje de la lista si estamos viendo solo archivados
           this.messages = this.messages.filter(m => m.id !== id);
 
           // Si el panel de detalle está abierto y muestra este mensaje, cerrarlo
           if (this.isDetailOpen && this.selectedMessage.id === id) {
             this.closeDetail();
           }
-
-          // Actualizar contador de mensajes nuevos
-          this.newMessagesCount = this.countNewMessages(this.messages);
-
-          // Recargar los mensajes si la página actual podría estar vacía
-          if (this.messages.length === 0 && this.currentPage > 1) {
-            this.currentPage--;
-            this.loadMessages();
-          }
-        },
-        error: (err) => {
-          console.error('Error deleting message:', err);
-          alert('No se pudo eliminar el mensaje. Inténtalo de nuevo más tarde.');
         }
-      });
-    }
-  }
+        // Caso 2: Si estamos archivando un mensaje y no filtramos por archivados
+        else if (status === 'archivado' && this.statusFilter !== 'archivado') {
+          // Añadir clase para animación de desaparición
+          const messageElement = document.querySelector(`[data-message-id="${id}"]`);
+          if (messageElement) {
+            messageElement.classList.add('archiving-animation');
 
-  updateStatus(id: number, status: string, reloadMessages: boolean = true): void {
-    this.messageService.updateMessageStatus(id, status).subscribe({
-      next: () => {
-        // Actualizar la lista de mensajes
-        if (reloadMessages) {
-          this.loadMessages();
-        } else {
-          // Actualizar solo el mensaje en la lista local
-          const index = this.messages.findIndex(m => m.id === id);
-          if (index !== -1) {
-            this.messages[index].status = status;
-            // Actualizar contador de mensajes nuevos
-            this.newMessagesCount = this.countNewMessages(this.messages);
+            // Quitar de la lista después de la animación
+            setTimeout(() => {
+              this.messages = this.messages.filter(m => m.id !== id);
+
+              // Si el panel de detalle está abierto y muestra este mensaje, cerrarlo
+              if (this.isDetailOpen && this.selectedMessage.id === id) {
+                this.closeDetail();
+              }
+            }, 500); // Tiempo de duración de la animación
+          } else {
+            // Si no encontramos el elemento, actualizar inmediatamente
+            this.messages = this.messages.filter(m => m.id !== id);
+
+            if (this.isDetailOpen && this.selectedMessage.id === id) {
+              this.closeDetail();
+            }
           }
         }
+        // Caso 3: Para todos los demás casos (ej. marcar como leído)
+        else {
+          // Actualizar el estado del mensaje en la lista local
+          this.messages = this.messages.map(m =>
+            m.id === id ? { ...m, status: status } : m
+          );
+        }
+
+        // Actualizar contadores
+        this.updateMessageCounters();
       },
       error: (err) => {
         console.error('Error updating message status:', err);
@@ -201,26 +272,23 @@ export class MessagesComponent implements OnInit {
     });
   }
 
-  respondToMessage(): void {
-    if (!this.selectedMessage || !this.responseText.trim()) {
+  // Método auxiliar para actualizar contadores
+  updateMessageCounters(): void {
+    // Si la lista se ha quedado vacía después de archivar y no estamos en la primera página
+    if (this.messages.length === 0 && this.currentPage > 1) {
+      this.currentPage--;
+      this.loadMessages();
       return;
     }
 
-    this.respondLoading = true;
-    // this.messageService.respondMessage(this.selectedMessage.id, this.responseText)
-    //   .subscribe({
-    //     next: () => {
-    //       this.updateStatus(this.selectedMessage.id, 'respondido');
-    //       this.responseText = '';
-    //       this.respondLoading = false;
-    //       alert('Respuesta enviada correctamente');
-    //     },
-    //     error: (error) => {
-    //       console.error('Error al enviar respuesta:', error);
-    //       this.respondLoading = false;
-    //       alert('Error al enviar la respuesta');
-    //     }
-    //   });
+    // Actualizar el contador de mensajes nuevos
+    this.newMessagesCount = this.messages.filter(m => m.status === 'nuevo').length;
+
+    // Si usas un contador total que no depende solo de la página actual
+    // this.messageService.getMessageCounts().subscribe(counts => {
+    //   this.totalMessages = counts.total;
+    //   this.newMessagesCount = counts.new;
+    // });
   }
 
   changePage(page: number): void {
@@ -282,5 +350,16 @@ export class MessagesComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  // Añadir este método al componente
+  formatMessageText(text: string): string {
+    if (!text) return '';
+
+    // Normalizar diferentes tipos de saltos de línea
+    return text
+      .replace(/\\n/g, '\n')  // Convertir la cadena literal "\n" a un salto de línea real
+      .replace(/\r\n/g, '\n') // Normalizar saltos de línea Windows a Unix
+      .replace(/\n{3,}/g, '\n\n'); // Reducir múltiples saltos de línea a máximo dos
   }
 }

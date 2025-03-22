@@ -27,7 +27,7 @@ export interface UpdateUserData {
   providedIn: 'root'
 })
 export class UserService {
-  private apiBaseUrl = 'http://localhost/tunetix/backend';
+  private apiBaseUrl = 'http://localhost/backend';
 
   // BehaviorSubject para mantener y emitir los datos actualizados del usuario
   private userDataSubject = new BehaviorSubject<any>(null);
