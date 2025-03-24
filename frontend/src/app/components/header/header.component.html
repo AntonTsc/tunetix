@@ -67,7 +67,7 @@
             <div
               [@dropdownAnimation]="explorarMenuOpen ? 'open' : 'closed'"
               class="dropdown-container absolute"
-              style="top: calc(100% + 50px); left: 0; z-index: 10"
+              style="top: calc(100% + 50px); left: 0; z-index: 100"
             >
               <ul
                 *ngIf="explorarMenuVisible"
@@ -172,6 +172,7 @@
             [@userMenuAnimation]="isUserMenuOpen ? 'open' : 'closed'"
             class="user-menu-container"
             (mouseleave)="startCloseTimer()"
+            style="z-index: 100"
           >
             <ul
               *ngIf="menuVisible"

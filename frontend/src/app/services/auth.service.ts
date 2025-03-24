@@ -13,7 +13,7 @@ export class AuthService {
     this.authStateChanged.next(this.isAuthenticated());
   }
 
-  baseUrl = 'http://localhost/backend/auth';
+  baseUrl = 'http://localhost/tunetix/backend/auth';
   headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
   cookies: any = null;
 

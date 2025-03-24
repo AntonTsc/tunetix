@@ -19,7 +19,7 @@ export interface MessageResponse {
   providedIn: 'root'
 })
 export class MessageService {
-  private apiUrl = 'http://localhost/backend';
+  private apiUrl = 'http://localhost/tunetix/backend';
 
   constructor(private http: HttpClient) { }
 

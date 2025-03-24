@@ -10,7 +10,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Avoid recursion: don't intercept requests related to cookie retrieval
-    if (req.url.includes('http://localhost/backend/auth/get_cookies.php')) {
+    if (req.url.includes('http://localhost/tunetix/backend/auth/get_cookies.php')) {
       console.log('Excluding cookie request');
       return next.handle(req);
     }
