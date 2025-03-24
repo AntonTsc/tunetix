@@ -92,4 +92,25 @@ export class UserService {
       })
     );
   }
+
+  /**
+   * Obtiene todos los usuarios (solo para administradores)
+   */
+  getAllUsers(): Observable<any> {
+    return this.http.get<any>(`${this.apiBaseUrl}/Controllers/Usuario/admin/getAllUsers.php`, {
+      withCredentials: true
+    });
+  }
+
+  /**
+   * Actualiza el rol de un usuario (solo para administradores)
+   */
+  updateUserRole(userId: number, role: string): Observable<any> {
+    return this.http.post<any>(`${this.apiBaseUrl}/Controllers/Usuario/admin/updateUserRole.php`, {
+      userId,
+      role
+    }, {
+      withCredentials: true
+    });
+  }
 }

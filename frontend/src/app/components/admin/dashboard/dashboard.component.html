@@ -1,0 +1,88 @@
+<div class="bg-gray-50 min-h-screen">
+  <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Panel de Administración</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Tarjeta de Mensajes -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-indigo-100 rounded-md p-3">
+              <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">
+                Gestión de Mensajes
+              </dt>
+              <dd class="flex items-baseline">
+                <div class="text-lg font-semibold text-gray-900">
+                  {{ messageStats?.general?.total || 0 }} mensajes
+                </div>
+                <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                  <span>{{ messageStats?.general?.unread || 0 }} nuevos</span>
+                </div>
+              </dd>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+          <div class="text-sm">
+            <a routerLink="/admin/messages" class="font-medium text-indigo-600 hover:text-indigo-500">
+              Ver todos los mensajes <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Usuarios -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
+              <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">
+                Gestión de Usuarios
+              </dt>
+              <dd>
+                <div class="text-lg font-semibold text-gray-900">
+                  Administrar usuarios
+                </div>
+              </dd>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+          <div class="text-sm">
+            <a routerLink="/admin/users" class="font-medium text-indigo-600 hover:text-indigo-500">
+              Gestionar usuarios <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Información del sistema</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Detalles y estadísticas generales.</p>
+      </div>
+      <div class="border-t border-gray-200">
+        <dl>
+          <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Último mensaje</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              {{ messageStats?.general?.latest ? (messageStats.general.latest | date:'dd/MM/yyyy HH:mm') : 'No hay mensajes' }}
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>

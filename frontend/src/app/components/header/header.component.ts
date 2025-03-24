@@ -1,7 +1,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserService } from 'src/app/services/user.service';
@@ -78,44 +78,45 @@ export class HeaderComponent implements OnInit, OnDestroy {
   user_data: any = null;
   isLoggedOut: boolean = false;
   serverResponse!: ServerResponse;
+  private adminSubscription: Subscription | null = null;
 
   // Initialize subscriptions to null
   private authSubscription: Subscription | null = null;
   private userSubscription: Subscription | null = null;
+  private adminStatusSubscription: Subscription | null = null; // Nueva suscripción
+
+  // Declara isAdmin como BehaviorSubject para mantener su estado consistente
+  private isAdminSubject = new BehaviorSubject<boolean>(false);
+  isAdmin$ = this.isAdminSubject.asObservable();
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private cdr: ChangeDetectorRef
   ) {
     this.checkIfLoggedIn();
   }
 
   ngOnInit(): void {
-    // Subscribe to authentication state changes
+    console.log("Header ngOnInit - isAdmin inicial:", this.isAdmin);
+
+    // Suscripción existente a cambios de autenticación
     this.authSubscription = this.authService.authState$.subscribe(isAuthenticated => {
       this.isAuthenticated = isAuthenticated;
       this.isLoggedOut = !isAuthenticated;
 
-      // If authenticated, get user data from localStorage
       if (isAuthenticated) {
-        const userDataStr = localStorage.getItem('user_data');
-        if (userDataStr) {
-          this.userData = JSON.parse(userDataStr);
-          this.user_data = this.userData; // Sync both user data properties
-        }
-
-        // Load latest user data from API
         this.loadUserData();
+        this.checkAdminStatus(); // Verificar si es admin cuando está autenticado
       } else {
         this.userData = null;
         this.user_data = null;
+        this.setIsAdmin(false); // Resetear estado de admin al cerrar sesión
       }
     });
 
-    // Initial check - already handled by checkIfLoggedIn() in constructor
-
-    // Subscribe to user data changes
+    // Suscripción existente a cambios de datos de usuario
     this.userSubscription = this.userService.userData$.subscribe(userData => {
       if (userData) {
         this.user_data = {
@@ -123,23 +124,57 @@ export class HeaderComponent implements OnInit, OnDestroy {
           first_name: userData.first_name,
           last_name: userData.last_name,
           email: userData.email,
-          image_path: userData.image_path
+          image_path: userData.image_path,
+          role: userData.role // Asegurarnos de capturar el rol
         };
-        // Keep userData in sync
         this.userData = this.user_data;
+
+        // Actualizar estado de admin basado en el rol del usuario
+        this.setIsAdmin(userData.role === 'admin');
       }
     });
+
+    // Verificación inicial
+    this.checkIfLoggedIn();
+    if (this.isAuthenticated) {
+      this.checkAdminStatus();
+    }
+
+    // Suscribirse al observable de admin
+    this.adminSubscription = this.authService.isAdmin$.subscribe(isAdmin => {
+      console.log("Header recibió actualización de admin:", isAdmin, "anterior:", this.isAdmin);
+
+      // Usar el método setter en lugar de asignar directamente
+      this.setIsAdmin(isAdmin);
+
+      console.log("Header isAdmin después de actualizar:", this.isAdmin);
+    });
+
+    // Verificar el estado inicial de admin
+    this.checkAdminStatus();
   }
 
   ngOnDestroy(): void {
-    // Clean up subscriptions to prevent memory leaks
+    // Limpiar suscripciones
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
-
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
+    if (this.adminStatusSubscription) {
+      this.adminStatusSubscription.unsubscribe();
+    }
+    if (this.adminSubscription) {
+      this.adminSubscription.unsubscribe();
+    }
+  }
+
+  // Nuevo método para verificar si el usuario es administrador
+  // Añadir logs para depuración
+  checkAdminStatus(): void {
+    // Este método solo inicializa la verificación
+    this.authService.checkAndUpdateAdminStatus().subscribe();
   }
 
   logout() {
@@ -302,5 +337,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
   toggleMobileUserMenu(event: Event): void {
     event.stopPropagation(); // Evitar que el evento se propague al padre
     this.isMobileUserMenuOpen = !this.isMobileUserMenuOpen;
+  }
+
+  // Para el menú móvil, agregar esta variable:
+  showAdminMenu = false;
+
+  // Método para alternar visibilidad del menú admin (para móvil)
+  toggleAdminMenu(): void {
+    this.showAdminMenu = !this.showAdminMenu;
+  }
+
+  // Añade getters para depuración
+  get debugIsAdmin(): boolean {
+    const value = this.isAdmin;
+    console.log("GETTER debugIsAdmin llamado:", value);
+    return value;
+  }
+
+  // Modifica el getter para usar el BehaviorSubject
+  get isAdmin(): boolean {
+    return this.isAdminSubject.value;
+  }
+
+  // Cuando necesites actualizar el valor
+  private setIsAdmin(value: boolean): void {
+    if (this.isAdminSubject.value !== value) {
+      console.log("Actualizando isAdmin a:", value);
+      this.isAdminSubject.next(value);
+    }
+  }
+
+  navigateTo(route: string) {
+    this.router.navigate([route]);
   }
 }

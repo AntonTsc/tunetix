@@ -7,7 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { MessagesComponent } from './components/admin/messages/messages.component';
+import { AdminMessagesComponent } from './components/admin/messages/messages.component';
 import { AlertComponent } from './components/alert/alert.component';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
@@ -27,6 +27,8 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { AdminDashboardComponent } from './components/admin/dashboard/dashboard.component';
+import { AdminUsersComponent } from './components/admin/users/users.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +51,11 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     HistorialComprasComponent,
     CreditCardComponent,
     ContactoComponent,
-    MessagesComponent,
+    AdminMessagesComponent,
+    AdminDashboardComponent,
+    AdminUsersComponent,
+    AdminDashboardComponent,
+    AdminUsersComponent,
   ],
   imports: [
     BrowserModule,

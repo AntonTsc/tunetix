@@ -17,7 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $data['email'];
     $password = $data['password'];
 
-    $prep = $conn->prepare("SELECT id, nombre, apellido, correo, contrasena FROM usuario WHERE correo = ?");
+    // Modificar la consulta para incluir el rol
+    $prep = $conn->prepare("SELECT id, nombre, apellido, correo, contrasena, rol FROM usuario WHERE correo = ?");
     $prep->bind_param("s", $email);
     $prep->execute();
     $result = $prep->get_result();
@@ -47,12 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie("access_token", $access_token, time() + 1800, "/", "localhost", false, false);
         setcookie("refresh_token", $refresh_token, time() + 259200, "/", "localhost", false, false);
 
-        // Preparar respuesta
+        // Modificar la preparación de userData para incluir el rol
         $userData = [
             "id" => $user['id'],
             "first_name" => $user['nombre'],
             "last_name" => $user['apellido'],
-            "email" => $user['correo']
+            "email" => $user['correo'],
+            "role" => $user['rol'] ?: 'user' // Si es NULL, poner 'user' por defecto
         ];
 
         echo json_encode([

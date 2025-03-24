@@ -52,7 +52,7 @@ import { MessageResponse, MessageService } from 'src/app/services/message.servic
     ])
   ]
 })
-export class MessagesComponent implements OnInit {
+export class AdminMessagesComponent implements OnInit {
   messages: any[] = [];
   selectedMessage: any = {};
   isDetailOpen: boolean = false;
