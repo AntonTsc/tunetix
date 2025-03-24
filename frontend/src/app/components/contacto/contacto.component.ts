@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
 import { ContactService } from 'src/app/services/contact.service';
 import { UserService } from 'src/app/services/user.service';
@@ -18,6 +19,7 @@ export class ContactoComponent implements OnInit, OnDestroy {
   successMessage = '';
   errorMessage = '';
   currentUser: any;
+  alertServerResponse: ServerResponse = { status: 'OK', message: '' };
 
   // Suscripciones para manejar eventos
   private authSubscription: Subscription | null = null;
@@ -190,6 +192,11 @@ export class ContactoComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.loading = false;
           this.successMessage = 'Tu mensaje ha sido enviado correctamente.';
+          // Configurar alertServerResponse
+          this.alertServerResponse = {
+            status: 'OK',
+            message: 'Tu mensaje ha sido enviado correctamente.'
+          };
           // Resetear formulario
           this.contactForm.reset();
           this.submitted = false;
@@ -198,6 +205,11 @@ export class ContactoComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.loading = false;
           this.errorMessage = 'Hubo un problema al enviar tu mensaje.';
+          // Configurar alertServerResponse
+          this.alertServerResponse = {
+            status: 'ERROR',
+            message: 'Hubo un problema al enviar tu mensaje.'
+          };
           console.error('Error al enviar formulario:', error);
         }
       });

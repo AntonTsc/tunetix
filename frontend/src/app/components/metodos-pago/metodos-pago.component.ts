@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import ServerResponse from 'src/app/interfaces/ServerResponse';
 import Card from 'src/app/interfaces/Card';
+import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { CardService } from 'src/app/services/card.service';
 
 // Custom validator function
@@ -32,7 +32,7 @@ function cardNumberValidator(control: AbstractControl): ValidationErrors | null 
 export class MetodosPagoComponent implements OnInit {
   serverResponse?: ServerResponse
   @ViewChild('form') form!: ElementRef<HTMLFormElement>;
-  
+
   // Array of saved cards
   savedCards: Card[] = [];
 
@@ -81,6 +81,14 @@ export class MetodosPagoComponent implements OnInit {
   }
 
   create(){
+    if (!this.cardForm.valid) {
+      // Marcar todos los campos como tocados para mostrar errores de validación
+      Object.keys(this.cardForm.controls).forEach(key => {
+        this.cardForm.get(key)?.markAsTouched();
+      });
+      return;
+    }
+
     const formValue = this.cardForm.value;
 
     const json = {
@@ -96,49 +104,34 @@ export class MetodosPagoComponent implements OnInit {
     this._card.create(json).subscribe({
       next: (response: ServerResponse) => {
         this.serverResponse = response;
-        console.log(response)
+        console.log(response);
+
+        // Solo si la operación fue exitosa
+        if (response.status === 'OK') {
+          // Reset the form
+          this.cardForm.reset();
+
+          // Inicializar valores por defecto después del reset si es necesario
+          // this.cardForm.patchValue({
+          //   cardType: 'VISA',
+          //   currency: 'EUR'
+          // });
+        }
+
         this.getAll();
+      },
+      error: (error) => {
+        console.error('Error al crear la tarjeta:', error);
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Ha ocurrido un error al guardar la tarjeta.'
+        };
       }
-    })
+    });
   }
 
   ngOnInit(): void {
     this.getAll();
-    // Sample saved card for demonstration
-    // this.savedCards = [
-    //   {
-    //     lastFour: '4242',
-    //     expMonth: '12',
-    //     expYear: '25',
-    //     type: 'visa',
-    //     currency: 'EUR'
-    //   }
-    // ];
-  }
-
-  // Add a new card
-  addCard(): void {
-    if (this.cardForm.valid) {
-      const formValue = this.cardForm.value;
-
-      // Remove spaces from card number
-      const cardNumberWithoutSpaces = formValue.cardNumber.replace(/\s/g, '');
-
-      // Create new card object with last 4 digits
-      const newCard: Card = {
-
-        pan: cardNumberWithoutSpaces.slice(-4),
-        fecha_expiracion: `${formValue.expMonth}/${formValue.expYear}`,
-        tipo: formValue.cardType,
-        divisa: formValue.currency
-      };
-
-      // Add to saved cards
-      this.savedCards.push(newCard);
-
-      // Reset the form
-      this.cardForm.reset();
-    }
   }
 
   // Delete a card
