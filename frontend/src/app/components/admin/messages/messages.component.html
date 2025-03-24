@@ -137,34 +137,34 @@
               class="min-w-full divide-y divide-gray-200"
             >
               <thead class="bg-gray-50">
-                <tr>
+                <tr class="grid grid-cols-12 w-full">
                   <th
                     scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="col-span-1 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Estado
                   </th>
                   <th
                     scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="col-span-2 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Usuario
                   </th>
                   <th
                     scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="col-span-4 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Asunto
                   </th>
                   <th
                     scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="col-span-2 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Fecha
                   </th>
                   <th
                     scope="col"
-                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    class="col-span-3 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Acciones
                   </th>
@@ -224,7 +224,7 @@
                         {{ formatDate(message.created_at) }}
                       </div>
                       <div
-                        class="col-span-2 px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                        class="col-span-3 px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
                         (click)="$event.stopPropagation()"
                       >
                         <button
@@ -436,7 +436,7 @@
 </div>
 
 <!-- Panel lateral de detalle con animación mejorada -->
-<div class="fixed inset-0 overflow-hidden z-50" *ngIf="isDetailOpen">
+<div class="fixed inset-0 overflow-hidden z-[100]" *ngIf="isDetailOpen">
   <div class="absolute inset-0 overflow-hidden">
     <!-- Fondo con animación -->
     <div
@@ -661,7 +661,7 @@
 <!-- Modal de confirmación para archivar/eliminar -->
 <div
   *ngIf="showConfirmModal"
-  class="fixed z-[60] inset-0 overflow-y-auto"
+  class="fixed z-[110] inset-0 overflow-y-auto"
   aria-labelledby="modal-title"
   role="dialog"
   aria-modal="true"
