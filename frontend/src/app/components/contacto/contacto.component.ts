@@ -42,8 +42,28 @@ export class ContactoComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Inicializar con datos actuales del localStorage
-    this.currentUser = this.authService.getCurrentUser();
+    // Suscribirse a datos de usuario del AuthService
+    this.authService.userData$.subscribe(userData => {
+      if (userData) {
+        this.currentUser = userData;
+        this.updateFormValues();
+      }
+    });
+
+    // Inicializar con datos del servicio, no del localStorage
+    this.userService.getUserProfile().subscribe({
+      next: (response) => {
+        if (response.status === 'OK' && response.data) {
+          this.currentUser = response.data;
+          this.initForm();
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar datos iniciales:', error);
+      }
+    });
+
+    // Inicializar formulario (se actualizará cuando lleguen los datos)
     this.initForm();
 
     // Suscribirse a cambios de autenticación
@@ -57,20 +77,11 @@ export class ContactoComponent implements OnInit, OnDestroy {
     this.userSubscription = this.userService.userData$.subscribe(userData => {
       if (userData) {
         // Actualizar los datos del usuario cuando cambien
-        this.currentUser = {
-          id: userData.id,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          email: userData.email,
-          image_path: userData.image_path
-        };
+        this.currentUser = userData;
         // Actualizar el formulario con los nuevos datos
         this.updateFormValues();
       }
     });
-
-    // Cargar los datos más recientes del usuario (igual que en header)
-    this.loadUserData();
   }
 
   ngOnDestroy(): void {
@@ -175,14 +186,13 @@ export class ContactoComponent implements OnInit, OnDestroy {
 
     this.loading = true;
 
-    // Obtener el ID del usuario desde el localStorage
-    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-    const userId = userData.id || 0;
+    // Obtener el ID del usuario del currentUser
+    const userId = this.currentUser?.id || 0;
 
     // Incluir los valores deshabilitados manualmente y el ID del usuario
     const formData = {
       ...this.contactForm.getRawValue(), // Obtiene todos los valores incluyendo los deshabilitados
-      user_id: userId, // Añadir el ID del usuario explícitamente
+      user_id: userId, // Añadir el ID del usuario desde el objeto currentUser
       date: new Date(),
       status: 'nuevo'
     };

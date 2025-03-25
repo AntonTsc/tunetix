@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 export interface MessageResponse {
   status: string;
@@ -73,8 +74,31 @@ export class MessageService {
    * Obtiene estadísticas de mensajes
    */
   getMessageStats(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/Controllers/Messages/getStats.php`,
-      { withCredentials: true });
+    return this.http.get<any>(`${this.apiUrl}/Controllers/Messages/stats.php`, {
+      withCredentials: true
+    }).pipe(
+      catchError(error => {
+        console.error('Error al obtener estadísticas de mensajes:', error);
+        // Devolvemos datos de fallback para que la UI no se rompa
+        return of({
+          status: 'OK',
+          data: {
+            general: {
+              total: 0,
+              unread: 0,
+              latest: null
+            },
+            byStatus: {
+              nuevo: 0,
+              leído: 0,
+              respondido: 0,
+              archivado: 0
+            },
+            latestMessage: null
+          }
+        });
+      })
+    );
   }
 
   /**

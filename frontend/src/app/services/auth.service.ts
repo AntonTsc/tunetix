@@ -3,33 +3,48 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { ServerResponse, User } from '../interfaces/User';
+import { TokenService } from './token.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private http: HttpClient, private router: Router, private tokenService: TokenService) {
     // Initialize authentication state based on existing cookies
     this.authStateChanged.next(this.isAuthenticated());
+
+    // Check admin status on initialization if authenticated
+    if (this.isAuthenticated()) {
+      this.checkAndUpdateAdminStatus().subscribe();
+    }
   }
 
   baseUrl = 'http://localhost/tunetix/backend';
   headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
   cookies: any = null;
 
+  // BehaviorSubject para datos básicos del usuario
+  private userDataSubject = new BehaviorSubject<any>(null);
+  userData$ = this.userDataSubject.asObservable();
+
   // Add a BehaviorSubject to track authentication state
   private authStateChanged = new BehaviorSubject<boolean>(false);
   // Observable that components can subscribe to
   authState$ = this.authStateChanged.asObservable();
 
-  // Añadir estas propiedades al servicio
-  private isAdminSubject = new BehaviorSubject<boolean>(false);
+  // Public Subject for Admin status tracking
+  public isAdminSubject = new BehaviorSubject<boolean>(false);
   isAdmin$ = this.isAdminSubject.asObservable();
 
   // Method to update auth state and notify subscribers
   private updateAuthState(isAuthenticated: boolean): void {
     this.authStateChanged.next(isAuthenticated);
+
+    // Si no está autenticado, limpiar datos de usuario
+    if (!isAuthenticated) {
+      this.userDataSubject.next(null);
+    }
   }
 
   isAuthenticated(): boolean {
@@ -60,7 +75,7 @@ export class AuthService {
   }
 
   register(data: any): Observable<any>{
-    return this.http.post(`${this.baseUrl}/auth/register.php`, data, {headers: this.headers, withCredentials: true})
+    return this.http.post(`${this.baseUrl}/auth/register.php`, data, {headers: this.headers, withCredentials: true});
   }
 
   login(data: any): Observable<any>{
@@ -69,22 +84,27 @@ export class AuthService {
         tap((response: any) => {
           // Only do something if login was successful
           if (response.status === 'OK') {
-            // Ensure all user information is saved, including image_path if it exists
+            // Reset cookies cache to force a refresh
+            this.cookies = null;
+
+            // Update authentication state to notify subscribers
+            this.updateAuthState(true);
+
+            // Store basic user data in BehaviorSubject (WITHOUT role)
             if (response.data) {
-              const userData = { ...response.data };
-              localStorage.setItem('user_data', JSON.stringify(userData));
-
-              // Reset cookies cache to force a refresh
-              this.cookies = null;
-
-              // Update authentication state to notify subscribers (like header)
-              this.updateAuthState(true);
-
-              // También actualizar el estado de admin al iniciar sesión
-              const isAdmin = userData.role === 'admin';
-              this.isAdminSubject.next(isAdmin);
-              console.log("Login: Estado admin actualizado a:", isAdmin);
+              const userData = {
+                id: response.data.id,
+                first_name: response.data.first_name,
+                last_name: response.data.last_name,
+                email: response.data.email,
+                image_path: response.data.image_path
+              };
+              // Update the user data subject
+              this.userDataSubject.next(userData);
             }
+
+            // Query database for role and update status
+            this.checkAndUpdateAdminStatus().subscribe();
           }
         }),
         catchError(error => {
@@ -95,207 +115,201 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
-    // Your existing logout code...
-    // Add this line to update state when logging out
     return this.http.get(`${this.baseUrl}/auth/logout.php`, {headers: this.headers, withCredentials: true})
       .pipe(
         tap(() => {
-          // Clear user data
-          localStorage.removeItem('user_data');
           // Reset cookies
           this.cookies = null;
-          // Update authentication state
+          // Update authentication state (this also clears user data)
           this.updateAuthState(false);
-          // Resetear el estado de admin
+          // Reset admin status
           this.isAdminSubject.next(false);
-          // Your existing code...
         })
       );
   }
 
   validateToken(): Observable<any>{
-    return this.http.get(`${this.baseUrl}/auth/validate_token.php`, {withCredentials: true})
+    return this.http.get(`${this.baseUrl}/auth/validate_token.php`, {withCredentials: true});
   }
 
-  refreshToken(){
-    return this.http.get(`${this.baseUrl}/auth/refresh_token.php`, {withCredentials: true})
-  }
-
-  getCurrentUser(): any {
-    const userStr = localStorage.getItem('user_data');
-    if (!userStr) return null;
-
-    try {
-      return JSON.parse(userStr);
-    } catch (e) {
-      return null;
-    }
+  refreshToken(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/auth/refresh_token.php`, {withCredentials: true});
   }
 
   /**
-   * Obtiene el rol del usuario actual del localStorage o lo consulta al servidor
+   * Obtiene datos del usuario actual desde el servidor.
+   * Reemplaza el uso de localStorage.
+   */
+  fetchCurrentUserData(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/Controllers/Usuario/getUser.php`, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        if (response.status === 'OK' && response.data) {
+          // Actualizar el BehaviorSubject con los datos del usuario
+          this.userDataSubject.next(response.data);
+        }
+      }),
+      catchError(error => {
+        console.error('Error fetching user data:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Gets user role directly from the server, never from localStorage
    */
   getUserRole(): Observable<string> {
-    console.log("Obteniendo rol de usuario del servidor...");
-    const tokenCookie = this.getCookie('access_token');
-    console.log("Token cookie presente:", !!tokenCookie);
-
-    // También intentar verificar desde localStorage para diagnóstico
-    const userData = localStorage.getItem('user_data');
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        console.log("Role en localStorage:", user.role);
-      } catch (e) {}
-    }
-
     return this.http.get<any>(`${this.baseUrl}/Controllers/Usuario/get_user_role.php`, {
       withCredentials: true
     }).pipe(
       map(response => {
-        console.log("Respuesta completa del servicio getRole:", response);
         if (response.status === 'OK' && response.data) {
-          const role = response.data.role || 'user';
-          console.log("Rol devuelto por el servidor:", role);
-          return role;
+          return response.data.role;
         }
-        console.log("Usando rol predeterminado 'user' porque la respuesta no es válida");
         return 'user';
       }),
       catchError(error => {
-        console.error('Error obteniendo rol de usuario:', error);
-
-        // Si falla la petición, usar el valor del localStorage como respaldo
-        if (userData) {
-          try {
-            const user = JSON.parse(userData);
-            if (user && user.role) {
-              console.log("Usando rol de localStorage como fallback:", user.role);
-              return of(user.role);
-            }
-          } catch (e) {}
-        }
-
+        console.error('Error getting user role:', error);
         return of('user');
       })
     );
   }
 
   /**
-   * Verifica si el usuario actual tiene rol de administrador
+   * Verifies if the current user has admin role by checking the BehaviorSubject value
+   * or querying the server if needed
    */
-  isAdmin(): Observable<boolean> {
-    // Si ya tenemos el valor en el BehaviorSubject, usarlo
-    if (this.isAdminSubject.value) {
-      return of(true);
+  checkIsAdmin(): Observable<boolean> {
+    // If user isn't authenticated, they can't be admin
+    if (!this.isAuthenticated()) {
+      return of(false);
     }
 
-    // Si no, verificar y actualizar
+    // If we already have the admin status, return it
+    // Otherwise check with the server
     return this.checkAndUpdateAdminStatus();
   }
 
-  // Añadir este método
-  checkAndUpdateAdminStatus(): Observable<boolean> {
-    console.log("AuthService: Verificando estado de administrador...");
-
-    // Primero intentar obtener el valor del localStorage
-    const userData = localStorage.getItem('user_data');
-    let initialValue = false;
-
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        initialValue = user.role === 'admin';
-        // Actualizar el BehaviorSubject con el valor inicial
-        this.isAdminSubject.next(initialValue);
-      } catch (e) {}
-    }
-
-    // Luego verificar con el servidor y actualizar si es necesario
-    if (this.isAuthenticated()) {
-      return this.getUserRole().pipe(
-        map(role => {
-          const isAdmin = role === 'admin';
-          // Solo actualizar el BehaviorSubject si el valor ha cambiado
-          if (this.isAdminSubject.value !== isAdmin) {
-            this.isAdminSubject.next(isAdmin);
-            console.log("AuthService: Estado admin actualizado a:", isAdmin);
-          }
-          return isAdmin;
-        }),
-        catchError(error => {
-          console.error("Error verificando rol admin:", error);
-          // En caso de error, mantener el valor actual
-          return of(this.isAdminSubject.value);
-        })
-      );
-    }
-
-    // Si no está autenticado, retornar el valor inicial
-    return of(initialValue);
-  }
-
   /**
-   * Verifica si el usuario es administrador consultando SIEMPRE al servidor
-   * Este método se utiliza para control de acceso a rutas protegidas
+   * Updates admin status by querying the server
    */
-  verifyAdminWithServer(): Observable<boolean> {
-    console.log("Verificando permisos de administrador con el servidor...");
+  checkAndUpdateAdminStatus(): Observable<boolean> {
+    if (!this.isAuthenticated()) {
+      this.isAdminSubject.next(false);
+      return of(false);
+    }
 
-    // No usar localStorage, siempre verificar con el servidor
-    return this.http.get<any>(`${this.baseUrl}/Controllers/Usuario/get_user_role.php`, {
-      withCredentials: true
-    }).pipe(
-      map(response => {
-        console.log("Respuesta de verificación admin:", response);
-        if (response.status === 'OK' && response.data) {
-          const isAdmin = response.data.role === 'admin';
-
-          // Si el servidor confirma que es admin, actualizar el BehaviorSubject
-          if (isAdmin) {
-            this.isAdminSubject.next(true);
-
-            // También sincronizar el localStorage para mantener consistencia
-            const userData = localStorage.getItem('user_data');
-            if (userData) {
-              try {
-                const user = JSON.parse(userData);
-                if (user.role !== 'admin') {
-                  user.role = 'admin';
-                  localStorage.setItem('user_data', JSON.stringify(user));
-                }
-              } catch (e) {}
-            }
-          } else {
-            // Si el servidor dice que NO es admin, asegurarnos de actualizar todo
-            this.isAdminSubject.next(false);
-
-            // Corregir el localStorage si alguien lo manipuló
-            const userData = localStorage.getItem('user_data');
-            if (userData) {
-              try {
-                const user = JSON.parse(userData);
-                if (user.role === 'admin') {
-                  user.role = 'user';
-                  localStorage.setItem('user_data', JSON.stringify(user));
-                }
-              } catch (e) {}
-            }
-          }
-
-          return isAdmin;
-        }
-
-        // Si no hay respuesta válida, denegar acceso
-        this.isAdminSubject.next(false);
-        return false;
+    // Always verify with server
+    return this.getUserRole().pipe(
+      map(role => {
+        const isAdmin = role === 'admin';
+        this.isAdminSubject.next(isAdmin);
+        return isAdmin;
       }),
-      catchError(error => {
-        console.error('Error verificando permisos de administrador:', error);
-        // En caso de error, denegar acceso
+      catchError(() => {
         this.isAdminSubject.next(false);
         return of(false);
       })
     );
+  }
+
+  /**
+   * Verifies if the user is admin by always querying the server
+   * Used for route protection
+   */
+  verifyAdminWithServer(): Observable<boolean> {
+
+    return this.http.get<any>(`${this.baseUrl}/Controllers/Usuario/get_user_role.php`, {
+      withCredentials: true
+    }).pipe(
+      map(response => {
+        const isAdmin = response.status === 'OK' &&
+                       response.data &&
+                       response.data.role === 'admin';
+
+        // Update the BehaviorSubject for consistency
+        this.isAdminSubject.next(isAdmin);
+        return isAdmin;
+      }),
+      catchError(error => {
+        console.error('Admin verification error:', error);
+        this.isAdminSubject.next(false);
+        return of(false);
+      })
+    );
+  }
+
+  /**
+   * Gets the current admin status from the BehaviorSubject
+   * Warning: This might not reflect the actual server state
+   */
+  getAdminStatus(): boolean {
+    return this.isAdminSubject.value;
+  }
+
+  // Utiliza TokenService para verificar si hay un token
+  checkAuthStatus(): Observable<boolean> {
+    if (this.tokenService.isTokenValid()) {
+      return this.validateToken().pipe(
+        map(response => {
+          if (response && response.status === 'OK') {
+            this.updateAuthState(true);
+            return true;
+          }
+          this.updateAuthState(false);
+          return false;
+        }),
+        catchError(error => {
+          console.error('Error validating token:', error);
+          this.updateAuthState(false);
+          return of(false);
+        })
+      );
+    } else {
+      // No hay token, el usuario no está autenticado
+      this.updateAuthState(false);
+      return of(false);
+    }
+  }
+
+  // Añade este método para refrescar explícitamente los datos de usuario
+  refreshUserData(): Observable<User> {
+    return this.http.get<ServerResponse>(`${this.baseUrl}/Controllers/Usuario/getUser.php`, {
+      withCredentials: true
+    }).pipe(
+      map(response => {
+        if (response.status === 'OK' && response.data) {
+          const userData = response.data as User;
+          this.userDataSubject.next(userData);
+          return userData;
+        }
+        throw new Error('No se pudieron obtener los datos del usuario');
+      }),
+      catchError(error => {
+        console.error('Error al refrescar datos de usuario:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Llama a este método después de actualizar los datos del usuario
+  updateUserProfile(data: any): Observable<ServerResponse> {
+    return this.http.put<ServerResponse>(`${this.baseUrl}/Controllers/Usuario/updateUser.php`, data, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        if (response.status === 'OK') {
+          // Actualiza inmediatamente los datos locales
+          this.refreshUserData().subscribe();
+        }
+      })
+    );
+  }
+
+  // Método para obtener los datos actuales del usuario de forma sincrónica
+  getCurrentUserData(): any {
+    return this.userDataSubject.value;
   }
 }

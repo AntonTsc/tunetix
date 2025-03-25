@@ -83,7 +83,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Initialize subscriptions to null
   private authSubscription: Subscription | null = null;
   private userSubscription: Subscription | null = null;
-  private adminStatusSubscription: Subscription | null = null; // Nueva suscripción
+  private adminStatusSubscription: Subscription | null = null;
 
   // Declara isAdmin como BehaviorSubject para mantener su estado consistente
   private isAdminSubject = new BehaviorSubject<boolean>(false);
@@ -95,63 +95,71 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {
-    this.checkIfLoggedIn();
+    // Eliminamos la llamada a checkIfLoggedIn() del constructor
+    // ya que podría ejecutarse demasiado pronto
   }
 
   ngOnInit(): void {
-    console.log("Header ngOnInit - isAdmin inicial:", this.isAdmin);
+    // PRIMERO: Verificar el estado de autenticación actual de forma sincrónica
+    this.isAuthenticated = this.authService.isAuthenticated();
+    this.isLoggedOut = !this.isAuthenticated;
 
-    // Suscripción existente a cambios de autenticación
+    // Si el usuario está autenticado, cargar datos inmediatamente de forma proactiva
+    if (this.isAuthenticated) {
+      this.loadUserDataImmediately();
+    }
+
+    // DESPUÉS: Configurar suscripciones para actualizaciones futuras
+
+    // Auth state subscription
     this.authSubscription = this.authService.authState$.subscribe(isAuthenticated => {
       this.isAuthenticated = isAuthenticated;
       this.isLoggedOut = !isAuthenticated;
 
+      // Check admin status when auth state changes
       if (isAuthenticated) {
-        this.loadUserData();
-        this.checkAdminStatus(); // Verificar si es admin cuando está autenticado
+        this.checkAdminStatus();
+        if (!this.user_data) {
+          this.loadUserData();
+        }
       } else {
-        this.userData = null;
+        // Reset admin status when logged out
+        this.isAdminSubject.next(false);
         this.user_data = null;
-        this.setIsAdmin(false); // Resetear estado de admin al cerrar sesión
+        this.userData = null;
+      }
+
+      this.cdr.detectChanges();
+    });
+
+    // Suscripción a datos de usuario del AuthService
+    this.authService.userData$.subscribe(userData => {
+      if (userData) {
+        this.userData = userData;
+        this.user_data = userData;
       }
     });
 
-    // Suscripción existente a cambios de datos de usuario
+    // User data subscription
     this.userSubscription = this.userService.userData$.subscribe(userData => {
       if (userData) {
-        this.user_data = {
-          id: userData.id,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          email: userData.email,
-          image_path: userData.image_path,
-          role: userData.role // Asegurarnos de capturar el rol
-        };
-        this.userData = this.user_data;
-
-        // Actualizar estado de admin basado en el rol del usuario
-        this.setIsAdmin(userData.role === 'admin');
+        this.userData = userData;
+        this.user_data = userData;
       }
     });
 
-    // Verificación inicial
+    // Admin status subscription
+    this.adminSubscription = this.authService.isAdmin$.subscribe(isAdmin => {
+      this.isAdminSubject.next(isAdmin);
+      this.cdr.detectChanges();
+    });
+
+    // Initial checks
     this.checkIfLoggedIn();
     if (this.isAuthenticated) {
       this.checkAdminStatus();
+      this.loadUserData();
     }
-
-    // Suscribirse al observable de admin
-    this.adminSubscription = this.authService.isAdmin$.subscribe(isAdmin => {
-      console.log("Header recibió actualización de admin:", isAdmin, "anterior:", this.isAdmin);
-
-      // Usar el método setter en lugar de asignar directamente
-      this.setIsAdmin(isAdmin);
-
-      console.log("Header isAdmin después de actualizar:", this.isAdmin);
-    });
-
-    // Verificar el estado inicial de admin
-    this.checkAdminStatus();
   }
 
   ngOnDestroy(): void {
@@ -170,10 +178,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Nuevo método para verificar si el usuario es administrador
-  // Añadir logs para depuración
+  // Simplify the admin status check
   checkAdminStatus(): void {
-    // Este método solo inicializa la verificación
     this.authService.checkAndUpdateAdminStatus().subscribe();
   }
 
@@ -197,33 +203,61 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isLoggedOut = !this.isAuthenticated;
 
     // If user is logged in but we don't have their data, load it
-    if (this.isAuthenticated) {
-      this.userDataInint();
-      if (!this.user_data) {
-        this.loadUserData();
-      }
-    }
-  }
-
-  userDataInint() {
-    const data = localStorage.getItem('user_data');
-    if (data) {
-      this.user_data = JSON.parse(data);
-      this.userData = this.user_data; // Keep both user data properties in sync
+    if (this.isAuthenticated && !this.user_data) {
+      this.loadUserData();
     }
   }
 
   loadUserData(): void {
-    if (this.isAuthenticated) {
-      this.userService.getUserProfile().subscribe({
-        next: () => {
-          // Data is updated automatically through the subscription
-        },
-        error: (error) => {
-          console.error('Error al cargar datos del usuario:', error);
-        }
-      });
+    if (!this.isAuthenticated) {
+      // No hay usuario autenticado, omitiendo carga de datos
+      return;
     }
+
+    this.userService.getUserProfile().subscribe({
+      next: (response) => {
+        if (response && response.status === 'OK' && response.data) {
+          // Manual update in addition to subscription
+          this.userData = response.data;
+          this.user_data = response.data;
+          this.cdr.detectChanges();
+        } else {
+          console.warn("Respuesta incompleta del servidor:", response);
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar datos del usuario:', error);
+      }
+    });
+  }
+
+  // Método para cargar datos de usuario de forma INMEDIATA sin esperar callbacks
+  loadUserDataImmediately(): void {
+    // 1. Intentar obtener datos desde el servicio de auth (podrían ya estar en memoria)
+    const currentUserData = this.authService.getCurrentUserData
+      ? this.authService.getCurrentUserData()
+      : null;
+
+    if (currentUserData) {
+      this.userData = currentUserData;
+      this.user_data = currentUserData;
+      this.cdr.detectChanges(); // Forzar actualización de la UI
+    }
+
+    // 2. Iniciar carga desde el servidor de forma proactiva
+    this.userService.getUserProfile().subscribe({
+      next: (response) => {
+        if (response && response.status === 'OK' && response.data) {
+          // La suscripción ya actualizará los datos, pero actualizamos manualmente también
+          this.userData = response.data;
+          this.user_data = response.data;
+          this.cdr.detectChanges(); // Crucial: forzar actualización de la UI
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando datos de usuario inmediatamente:', error);
+      }
+    });
   }
 
   // Variables para el menú de usuario
@@ -350,11 +384,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Añade getters para depuración
   get debugIsAdmin(): boolean {
     const value = this.isAdmin;
-    console.log("GETTER debugIsAdmin llamado:", value);
     return value;
   }
 
-  // Modifica el getter para usar el BehaviorSubject
+  // Use the BehaviorSubject for admin status
   get isAdmin(): boolean {
     return this.isAdminSubject.value;
   }
@@ -362,12 +395,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Cuando necesites actualizar el valor
   private setIsAdmin(value: boolean): void {
     if (this.isAdminSubject.value !== value) {
-      console.log("Actualizando isAdmin a:", value);
       this.isAdminSubject.next(value);
     }
   }
 
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  // Método para verificar correctamente si hay una imagen de perfil
+  hasProfileImage(): boolean {
+    // Esta implementación previene valores null, undefined o rutas vacías
+    return Boolean(
+      this.user_data &&
+      this.user_data.image_path &&
+      this.user_data.image_path.trim() !== '' &&
+      !this.user_data.image_path.includes('undefined') &&
+      !this.user_data.image_path.includes('null')
+    );
+  }
+
+  // Método para manejar errores de carga de imagen
+  handleImageError(event: Event): void {
+    console.warn('Error cargando imagen de perfil', event);
+    // Hacer que la imagen no se muestre
+    if (this.user_data) {
+      this.user_data.image_path = null;
+      this.cdr.detectChanges();
+    }
   }
 }

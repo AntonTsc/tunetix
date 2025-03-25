@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import Card from 'src/app/interfaces/Card';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { AuthService } from 'src/app/services/auth.service';
 import { CardService } from 'src/app/services/card.service';
 
 // Custom validator function
@@ -43,7 +44,14 @@ export class MetodosPagoComponent implements OnInit {
   months: string[] = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
   years: string[] = [];
 
-  constructor(private fb: FormBuilder, private _card: CardService) {
+  // Añadir userData para almacenar datos del usuario
+  userData: any = null;
+
+  constructor(
+    private fb: FormBuilder,
+    private _card: CardService,
+    private authService: AuthService  // Inyectar AuthService
+  ) {
     this.cardForm = this.fb.group({
       cardNumber: ['', [
         Validators.required,
@@ -89,11 +97,20 @@ export class MetodosPagoComponent implements OnInit {
       return;
     }
 
+    // Verificar si tenemos datos de usuario
+    if (!this.userData || !this.userData.email) {
+      this.serverResponse = {
+        status: 'ERROR',
+        message: 'No se pudo obtener la información del usuario. Por favor, inicia sesión nuevamente.'
+      };
+      return;
+    }
+
     const formValue = this.cardForm.value;
 
     const json = {
       type: formValue.cardType,
-      email: JSON.parse(localStorage.getItem('user_data') ?? '').email,
+      email: this.userData.email,
       owner: formValue.cardOwner,
       pan: formValue.cardNumber.replace(/\s/g, ""), // Quita todos los espacios del codigo PAN
       cvc: formValue.cvc,
@@ -132,6 +149,16 @@ export class MetodosPagoComponent implements OnInit {
 
   ngOnInit(): void {
     this.getAll();
+
+    // Suscribirse a los datos del usuario
+    this.authService.userData$.subscribe(userData => {
+      this.userData = userData;
+    });
+
+    // Si no hay datos de usuario, intentar obtenerlos
+    if (!this.userData) {
+      this.authService.fetchCurrentUserData().subscribe();
+    }
   }
 
   // Delete a card

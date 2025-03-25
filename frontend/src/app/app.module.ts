@@ -7,7 +7,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { AdminDashboardComponent } from './components/admin/dashboard/dashboard.component';
 import { AdminMessagesComponent } from './components/admin/messages/messages.component';
+import { AdminUsersComponent } from './components/admin/users/users.component';
 import { AlertComponent } from './components/alert/alert.component';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
@@ -27,8 +29,7 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
-import { AdminDashboardComponent } from './components/admin/dashboard/dashboard.component';
-import { AdminUsersComponent } from './components/admin/users/users.component';
+import { TokenService } from './services/token.service';
 
 @NgModule({
   declarations: [
@@ -69,6 +70,7 @@ import { AdminUsersComponent } from './components/admin/users/users.component';
   ],
   // Se registra el interceptor para poder usarlo en todo el proyecto
   providers: [
+    TokenService,
     {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true}
   ],
   bootstrap: [AppComponent]

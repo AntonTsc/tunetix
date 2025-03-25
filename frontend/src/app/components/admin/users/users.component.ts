@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { AuthService } from '../../../services/auth.service';
 import { UserService } from '../../../services/user.service';
 
 @Component({
@@ -14,7 +15,15 @@ export class AdminUsersComponent implements OnInit {
   serverResponse: ServerResponse | null = null;
   currentUser: any = null;
 
-  constructor(private userService: UserService) { }
+  // Alert properties
+  alertVisible = false;
+  alertType = '';
+  alertMessage = '';
+
+  constructor(
+    private userService: UserService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.loadCurrentUser();
@@ -22,9 +31,14 @@ export class AdminUsersComponent implements OnInit {
   }
 
   loadCurrentUser(): void {
-    const userData = localStorage.getItem('user_data');
-    if (userData) {
-      this.currentUser = JSON.parse(userData);
+    // Cargar datos del usuario actual con el servicio
+    this.authService.userData$.subscribe(userData => {
+      this.currentUser = userData;
+    });
+
+    // Si no hay datos todavía, forzar la carga desde el servidor
+    if (!this.currentUser) {
+      this.authService.fetchCurrentUserData().subscribe();
     }
   }
 
@@ -50,36 +64,41 @@ export class AdminUsersComponent implements OnInit {
   }
 
   updateUserRole(userId: number, newRole: string): void {
-    this.serverResponse = null;
-
-    this.userService.updateUserRole(userId, newRole).subscribe({
+    // Use the immediate method
+    this.userService.updateUserRoleImmediate(userId, newRole).subscribe({
       next: (response) => {
         if (response.status === 'OK') {
-          // Actualizar localmente el rol del usuario en la lista
-          const user = this.users.find(u => u.id === userId);
-          if (user) {
-            user.role = newRole;
-          }
+          // Success message
+          this.showAlert('success', 'Rol actualizado correctamente');
 
-          this.serverResponse = {
-            status: 'OK',
-            message: `Usuario actualizado a ${newRole} correctamente`
-          };
+          // Refresh the users list to show updated roles
+          this.loadUsers();
         } else {
-          this.serverResponse = {
-            status: 'ERROR',
-            message: response.message || 'Error al actualizar rol'
-          };
+          this.showAlert('error', response.message || 'Error al actualizar rol');
         }
       },
-      error: (err) => {
-        this.serverResponse = {
-          status: 'ERROR',
-          message: 'Error al actualizar rol de usuario'
-        };
-        console.error('Error actualizando rol:', err);
+      error: (error) => {
+        console.error('Error updating user role:', error);
+        this.showAlert('error', 'Error al actualizar rol');
       }
     });
+  }
+
+  // Method to show alerts
+  showAlert(type: string, message: string): void {
+    this.alertType = type;
+    this.alertMessage = message;
+    this.alertVisible = true;
+
+    // Auto-hide the alert after 5 seconds
+    setTimeout(() => {
+      this.alertVisible = false;
+    }, 5000);
+  }
+
+  // Method to hide alert
+  hideAlert(): void {
+    this.alertVisible = false;
   }
 
   // Método para saber si el usuario es el mismo que está logueado

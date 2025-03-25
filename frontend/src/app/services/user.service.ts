@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { AuthService } from './auth.service';
 
 export interface UserResponse {
   status: string;
@@ -28,28 +29,44 @@ export interface UpdateUserData {
 })
 export class UserService {
   private apiBaseUrl = 'http://localhost/tunetix/backend';
+  private authService: AuthService;
 
   // BehaviorSubject para mantener y emitir los datos actualizados del usuario
   private userDataSubject = new BehaviorSubject<any>(null);
   public userData$ = this.userDataSubject.asObservable();
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // Use dependency injection to get AuthService
+    this.authService = inject(AuthService);
+
+    // Suscribirse a cambios en los datos de usuario del AuthService
+    this.authService.userData$.subscribe(userData => {
+      if (userData) {
+        this.userDataSubject.next(userData);
+      }
+    });
+  }
 
   // Método para obtener datos del usuario
-  getUserProfile(): Observable<UserResponse> {
-    return this.http.get<UserResponse>(`${this.apiBaseUrl}/Controllers/Usuario/getUser.php`, {
+  getUserProfile(): Observable<any> {
+    return this.http.get<any>(`${this.apiBaseUrl}/Controllers/Usuario/getUser.php`, {
       withCredentials: true // Importante para incluir cookies en la solicitud
     }).pipe(
       tap((response) => {
-        if (response.status === 'OK' && response.data) {
+        // Esto es crucial: actualizar el subject para que las suscripciones se activen
+        if (response && response.status === 'OK' && response.data) {
           // Actualizar el BehaviorSubject con los nuevos datos
           this.userDataSubject.next(response.data);
         }
+      }),
+      catchError(error => {
+        console.error('Error fetching user profile:', error);
+        return throwError(() => error);
       })
     );
   }
 
-  // Nuevo método para actualizar datos del usuario
+  // Método para actualizar datos del usuario
   updateUserProfile(userData: UpdateUserData): Observable<UserResponse> {
     return this.http.post<UserResponse>(
       `${this.apiBaseUrl}/Controllers/Usuario/updateUser.php`,
@@ -112,5 +129,29 @@ export class UserService {
     }, {
       withCredentials: true
     });
+  }
+
+  /**
+   * Updates user role and forces immediate effect
+   */
+  updateUserRoleImmediate(userId: number, role: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiBaseUrl}/Controllers/Usuario/admin/updateUserRoleImmediate.php`,
+      {
+        userId,
+        role
+      },
+      {
+        withCredentials: true
+      }
+    ).pipe(
+      // If target user is the current user, refresh admin status
+      tap(response => {
+        if (response.status === 'OK') {
+          // Force re-check of admin status in the AuthService
+          this.authService.checkAndUpdateAdminStatus().subscribe();
+        }
+      })
+    );
   }
 }
