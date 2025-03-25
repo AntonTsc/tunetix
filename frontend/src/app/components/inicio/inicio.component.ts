@@ -12,13 +12,15 @@ export class InicioComponent implements OnInit{
   constructor(private _spotify : SpotifyService){}
 
   ngOnInit(): void {
+    if(!sessionStorage.getItem('topArtists')){
       this._spotify.getArtists().subscribe({
-        next: (data: any) => {
-          console.log(data);
+        next: (response: ServerResponse) => {
+            sessionStorage.setItem('topArtists', JSON.stringify(response.data));
         },
-        error: (err: any) => {
+        error: (err: ServerResponse) => {
           console.error(err);
         }
       })
+    }
   }
 }
