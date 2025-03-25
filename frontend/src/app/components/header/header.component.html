@@ -68,6 +68,7 @@
               [@dropdownAnimation]="explorarMenuOpen ? 'open' : 'closed'"
               class="dropdown-container absolute"
               style="top: calc(100% + 50px); left: 0; z-index: 100"
+              [style.overflow]="explorarMenuVisible ? 'visible' : 'hidden'"
             >
               <ul
                 *ngIf="explorarMenuVisible"
@@ -196,6 +197,7 @@
             class="user-menu-container"
             (mouseleave)="startCloseTimer()"
             style="z-index: 100"
+            [style.display]="menuVisible ? 'block' : 'none'"
           >
             <ul
               *ngIf="menuVisible"
@@ -372,14 +374,16 @@
         <ng-container *ngIf="!isLoggedOut; else mobileLoginButtons">
           <div class="cursor-pointer" (click)="toggleMobileUserMenu($event)">
             <div
-              class="w-[70px] h-[70px] rounded-full overflow-hidden border-2 border-gray-300 relative"
+              class="w-[70px] h-[70px] rounded-full border-2 border-gray-300 relative"
             >
-              <img
-                *ngIf="user_data?.image_path"
-                [src]="user_data.image_path"
-                alt="Foto de perfil"
-                class="w-full h-full object-cover"
-              />
+              <div class="rounded-full overflow-hidden">
+                <img
+                  *ngIf="user_data?.image_path"
+                  [src]="user_data.image_path"
+                  alt="Foto de perfil"
+                  class="w-full h-full object-cover"
+                />
+              </div>
               <svg
                 *ngIf="!user_data.image_path"
                 xmlns="http://www.w3.org/2000/svg"
@@ -391,23 +395,23 @@
                   d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
                 ></path>
               </svg>
-            </div>
-            <!-- Indicador de administrador en móvil -->
-            <div
-              *ngIf="isAdmin$ | async"
-              class="absolute bottom-0 right-0 bg-purple-600 rounded-full p-1 border-2 border-white shadow-md"
-              title="Cuenta de administrador"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-3 w-3 text-white"
-                viewBox="0 0 24 24"
-                fill="currentColor"
+              <!-- Indicador de administrador en móvil -->
+              <div
+                *ngIf="isAdmin$ | async"
+                class="absolute bottom-0 right-0 bg-purple-600 rounded-full p-1 border-2 border-white shadow-md"
+                title="Cuenta de administrador"
               >
-                <path
-                  d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
-                />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 text-white"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
           <!-- Nombre y correo del usuario -->

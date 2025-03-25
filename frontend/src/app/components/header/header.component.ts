@@ -14,32 +14,32 @@ import { UserService } from 'src/app/services/user.service';
     trigger('userMenuAnimation', [
       state('closed', style({
         opacity: 0,
-        transform: 'translateY(-20px)',
-        display: 'none'
+        transform: 'translateY(-10px)',
+        // display: 'none'
       })),
       state('open', style({
         opacity: 1,
         transform: 'translateY(0)',
-        display: 'block'
+        // display: 'block'
       })),
       transition('closed => open', [
-        style({ display: 'block' }),
+        // style({ display: 'block' }),
         animate('200ms ease-out')
       ]),
       transition('open => closed', [
         animate('200ms ease-in', style({
           opacity: 0,
-          transform: 'translateY(-20px)'
+          transform: 'translateY(-10px)'
         })),
-        style({ display: 'none' })
+        // style({ display: 'none' })
       ])
     ]),
     trigger('dropdownAnimation', [
       state('closed', style({
         opacity: 0,
-        transform: 'translateY(-20px) scale(0.95)',
+        transform: 'translateY(-10px) scale(0.95)',
         height: 0,
-        overflow: 'hidden'
+        // overflow: 'hidden'
       })),
       state('open', style({
         opacity: 1,
@@ -61,7 +61,7 @@ import { UserService } from 'src/app/services/user.service';
       })),
       state('open', style({
         opacity: 1,
-        maxHeight: '500px' // altura máxima suficiente para el contenido
+        maxHeight: '500px'
       })),
       transition('closed => open', [
         animate('300ms ease-out')
