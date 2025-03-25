@@ -9,11 +9,25 @@ import { UserService } from '../../../services/user.service';
   styleUrls: ['./users.component.css']
 })
 export class AdminUsersComponent implements OnInit {
-  users: any[] = [];
+  // Añadir Math como propiedad para usarlo en el template
+  math = Math;
+
+  allUsers: any[] = []; // Almacena todos los usuarios
+  filteredUsers: any[] = []; // Almacena usuarios después de aplicar filtros
+  users: any[] = []; // Almacena los usuarios de la página actual
   loading = false;
   error = '';
   serverResponse: ServerResponse | null = null;
   currentUser: any = null;
+
+  // Propiedades de paginación
+  currentPage = 1;
+  usersPerPage = 6; // 6 usuarios por página
+  totalPages = 1;
+  totalFilteredUsers = 0;
+
+  // Propiedades de filtrado
+  roleFilter: string = ''; // '', 'admin', 'user'
 
   // Alert properties
   alertVisible = false;
@@ -30,79 +44,118 @@ export class AdminUsersComponent implements OnInit {
     this.loadUsers();
   }
 
+  // Cargar el usuario actual
   loadCurrentUser(): void {
-    // Cargar datos del usuario actual con el servicio
-    this.authService.userData$.subscribe(userData => {
-      this.currentUser = userData;
-    });
-
-    // Si no hay datos todavía, forzar la carga desde el servidor
-    if (!this.currentUser) {
-      this.authService.fetchCurrentUserData().subscribe();
-    }
+    this.currentUser = this.authService.getCurrentUserData();
   }
 
+  // Verificar si un usuario es el usuario actual
+  isSelf(userId: number): boolean {
+    return this.currentUser && this.currentUser.id === userId;
+  }
+
+  // Cargar todos los usuarios
   loadUsers(): void {
     this.loading = true;
     this.error = '';
 
     this.userService.getAllUsers().subscribe({
       next: (response) => {
-        if (response.status === 'OK') {
-          this.users = response.data;
+        if (response && response.status === 'OK') {
+          this.allUsers = response.data || [];
+          this.applyFilter(); // Aplicar filtro y paginación
         } else {
-          this.error = response.message || 'Error al cargar usuarios';
+          this.error = response?.message || 'Error al cargar usuarios';
         }
         this.loading = false;
       },
       error: (err) => {
-        this.error = 'Error al cargar usuarios';
+        this.error = 'Error de conexión al obtener usuarios';
+        console.error('Error al cargar usuarios:', err);
         this.loading = false;
-        console.error('Error cargando usuarios:', err);
       }
     });
   }
 
+  // Aplicar filtros a la lista de usuarios
+  applyFilter(): void {
+    // Filtrar por rol si hay un filtro seleccionado
+    if (this.roleFilter) {
+      this.filteredUsers = this.allUsers.filter(user => user.role === this.roleFilter);
+    } else {
+      this.filteredUsers = [...this.allUsers]; // Sin filtro, mostrar todos
+    }
+
+    this.totalFilteredUsers = this.filteredUsers.length;
+    this.calculateTotalPages();
+    this.currentPage = 1; // Resetear a primera página cuando cambia el filtro
+    this.applyPagination();
+  }
+
+  // Actualizar el rol de un usuario
   updateUserRole(userId: number, newRole: string): void {
-    // Use the immediate method
-    this.userService.updateUserRoleImmediate(userId, newRole).subscribe({
-      next: (response) => {
-        if (response.status === 'OK') {
-          // Success message
-          this.showAlert('success', 'Rol actualizado correctamente');
+    this.loading = true;
+    this.serverResponse = null;
 
-          // Refresh the users list to show updated roles
-          this.loadUsers();
-        } else {
-          this.showAlert('error', response.message || 'Error al actualizar rol');
+    this.userService.updateUserRole(userId, newRole).subscribe({
+      next: (response) => {
+        this.serverResponse = response;
+        if (response.status === 'OK') {
+          // Actualizar el rol localmente
+          const userIndex = this.allUsers.findIndex(user => user.id === userId);
+          if (userIndex !== -1) {
+            this.allUsers[userIndex].role = newRole;
+            this.applyFilter(); // Reaplica filtros y paginación
+          }
         }
+        this.loading = false;
       },
-      error: (error) => {
-        console.error('Error updating user role:', error);
-        this.showAlert('error', 'Error al actualizar rol');
+      error: (err) => {
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Error de conexión al actualizar rol'
+        };
+        console.error('Error al actualizar rol:', err);
+        this.loading = false;
       }
     });
   }
 
-  // Method to show alerts
-  showAlert(type: string, message: string): void {
-    this.alertType = type;
-    this.alertMessage = message;
-    this.alertVisible = true;
+  // Calcular el número total de páginas
+  calculateTotalPages(): void {
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.usersPerPage);
+    if (this.totalPages === 0) this.totalPages = 1;
+  }
 
-    // Auto-hide the alert after 5 seconds
+  // Aplicar paginación
+  applyPagination(): void {
+    const startIndex = (this.currentPage - 1) * this.usersPerPage;
+    const endIndex = startIndex + this.usersPerPage;
+    this.users = this.filteredUsers.slice(startIndex, endIndex);
+  }
+
+  // Cambiar de página
+  changePage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.applyPagination();
+
+    // Scroll al inicio de la tabla con una comprobación más segura
     setTimeout(() => {
-      this.alertVisible = false;
-    }, 5000);
+      const tableElement = document.querySelector('.users-table-container');
+      if (tableElement) {
+        const topPosition = tableElement.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({
+          top: topPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   }
 
-  // Method to hide alert
-  hideAlert(): void {
-    this.alertVisible = false;
-  }
-
-  // Método para saber si el usuario es el mismo que está logueado
-  isSelf(userId: number): boolean {
-    return this.currentUser && this.currentUser.id === userId;
+  // Cambiar el filtro de rol
+  setRoleFilter(role: string): void {
+    this.roleFilter = role;
+    this.applyFilter();
   }
 }
