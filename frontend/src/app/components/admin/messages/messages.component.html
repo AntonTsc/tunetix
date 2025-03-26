@@ -45,7 +45,7 @@
           <select
             [(ngModel)]="statusFilter"
             (change)="applyFilter()"
-            class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md appearance-none"
+            class="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md appearance-none"
           >
             <option [ngValue]="''">Todos</option>
             <option value="nuevo">Nuevos</option>
@@ -155,7 +155,7 @@
             <!-- Vista móvil de mensajes (versión tarjeta con márgenes mejorados) -->
             <div
               *ngIf="!loading && !error && messages.length > 0"
-              class="divide-y-0 divide-transparent sm:hidden px-4"
+              class="sm:hidden px-4"
             >
               <div
                 *ngFor="let message of messages"
@@ -376,9 +376,7 @@
                             overflow: hidden;
                             text-overflow: ellipsis;
                           "
-                        >
-                          {{ formatMessageText(message.message) }}
-                        </div>
+                        ></div>
                       </div>
                       <div
                         class="col-span-2 px-6 py-4 whitespace-nowrap text-sm text-gray-500"
