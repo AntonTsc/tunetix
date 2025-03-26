@@ -1,24 +1,16 @@
 <?php
 
-use BcMath\Number;
-
     include_once __DIR__ . '/../../../../dotenv.php';
-    include_once __DIR__ . '/../Auth/SpotifyAuth.php';
+    include_once __DIR__ . '/../../auth/Auth.php';
 
     class Artist{
-
-        function __construct()
-        {
-
-        }
-
         private static $baseUrl = "https://api.spotify.com/v1";
 
         private static function getTopGlobalArtistIds($limit)
-        {   $limit = $limit-1;
-            $token = SpotifyAuth::getAccessToken();
+        {   
+            $token = Auth::getAccessToken();
             $ch = curl_init();
-            // TOP 50 GLOBAL ARTIST IDS
+            // TOP 100 GLOBAL ARTIST IDS
             $url = Artist::$baseUrl . "/playlists/0Hm1tCeFv45CJkNeIAtrfF/tracks?limit=$limit";
 
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -80,7 +72,7 @@ use BcMath\Number;
         {
             $artistIds = Artist::getTopGlobalArtistIds($limit);
             $artistIds = array_slice($artistIds, 0, $limit);
-            $token = SpotifyAuth::getAccessToken();
+            $token = Auth::getAccessToken();
             $artists = [];
             $ch = curl_init();
             $url = Artist::$baseUrl . "/artists?ids=" . implode(",", $artistIds);
@@ -130,6 +122,11 @@ use BcMath\Number;
                         ];
                     }
                 }
+        
+                // Ordenar los artistas por popularidad de mayor a menor
+                usort($artists, function ($a, $b) {
+                    return $b['popularity'] <=> $a['popularity'];
+                });
         
                 header("Content-Type: application/json");
                 echo json_encode([

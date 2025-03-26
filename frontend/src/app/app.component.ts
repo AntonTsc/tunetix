@@ -1,4 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { SpotifyService } from './services/spotify.service';
+import Artist from './interfaces/Artist';
+import ServerResponse from './interfaces/ServerResponse';
+import { ArtistService } from './services/artist.service';
 // import { AfterViewInit, OnInit } from '@angular/core';
 // import { NavigationEnd, Router } from '@angular/router';
 // import { AuthService } from './services/auth.service';
@@ -9,34 +13,24 @@ import { Component } from '@angular/core';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent{
+export class AppComponent implements OnInit{
+  constructor(private _spotify : SpotifyService, private _artists : ArtistService){}
 
-  // isRouteAllowed: boolean = false;
+  ngOnInit(): void {
+    this.loadArtists();
+  }
 
-  // El header no sera visible en las rutas /login y /register
-  // routes: string[] = ['/login', '/register'];
-
-  // constructor(private _auth: AuthService, private router: Router){
-  //   this.router.events.subscribe(() => {
-  //     this.isRouteAllowed = !this.routes.some(route => this.router.url.includes(route))
-  //     console.log(this.isRouteAllowed)
-  //   })
-  // }
-  // Para paginas que requirean tener una sesion activa //
-  //
-  // validateToken(){
-  //   this._auth.validateToken().subscribe({
-  //     next: (response: ServerResponse) => {
-  //       console.log(response);
-
-  //       if(response.status === 'ERROR'){
-  //         this.router.navigate(['/login']);
-  //       }
-  //     }
-  //   });
-  // }
-
-  // ngAfterViewInit(): void {
-  //   this.validateToken();
-  // }
+  loadArtists(){
+    this._spotify.getArtists().subscribe({
+      next: (response: ServerResponse) => {
+        if(response.status === "OK"){
+          this._artists.set(response.data as Artist[])
+        }else{
+          console.error(response.message);
+        }
+      },error: (error : ServerResponse) => {
+        console.error(error.message)
+      }
+    })
+  }
 }

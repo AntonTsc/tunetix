@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import Artist from 'src/app/interfaces/Artist';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { ArtistService } from 'src/app/services/artist.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { SpotifyService } from 'src/app/services/spotify.service';
 
@@ -9,18 +11,16 @@ import { SpotifyService } from 'src/app/services/spotify.service';
   styleUrls: ['./inicio.component.css']
 })
 export class InicioComponent implements OnInit{
-  constructor(private _spotify : SpotifyService){}
+
+  constructor(private _artists : ArtistService){}
+  artists!: Artist[]
 
   ngOnInit(): void {
-    if(!sessionStorage.getItem('topArtists')){
-      this._spotify.getArtists().subscribe({
-        next: (response: ServerResponse) => {
-            sessionStorage.setItem('topArtists', JSON.stringify(response.data));
-        },
-        error: (err: ServerResponse) => {
-          console.error(err);
-        }
-      })
-    }
+    this._artists.artists.subscribe({
+      next: (artists : Artist[]) => {
+        this.artists = artists;
+        console.log(this.artists)
+      }
+    })
   }
 }

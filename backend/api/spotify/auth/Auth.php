@@ -1,5 +1,5 @@
 <?php
-    class SpotifyAuth {
+    class Auth {
         private static $authUrl = "https://accounts.spotify.com/api/token";
 
         public static function getAccessToken() {
