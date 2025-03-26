@@ -22,8 +22,33 @@
 }
 
 .animate-item {
-  transform-origin: top left;
-  backface-visibility: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Efecto hover para las filas de mensajes */
@@ -130,5 +155,51 @@ tr.archived-message:hover {
   100% {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* Nuevas clases para transiciones y animaciones como en Users */
+.message-list-transition {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.message-list-transition.loading {
+  opacity: 0.6;
+}
+
+/* Hacer que las tarjetas de mensajes tengan mejor estilo en móvil */
+.message-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.message-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Animaciones para los controles de paginación */
+.pagination-button {
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Para el indicador de página actual */
+.page-indicator {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(79, 70, 229, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
   }
 }

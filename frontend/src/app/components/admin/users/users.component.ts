@@ -9,7 +9,7 @@ import { UserService } from '../../../services/user.service';
   styleUrls: ['./users.component.css']
 })
 export class AdminUsersComponent implements OnInit {
-  // Añadir Math como propiedad para usarlo en el template
+  // Para usar Math en el template
   math = Math;
 
   allUsers: any[] = []; // Almacena todos los usuarios
@@ -20,19 +20,24 @@ export class AdminUsersComponent implements OnInit {
   serverResponse: ServerResponse | null = null;
   currentUser: any = null;
 
+  // Búsqueda
+  searchTerm: string = '';
+
   // Propiedades de paginación
   currentPage = 1;
   usersPerPage = 6; // 6 usuarios por página
   totalPages = 1;
   totalFilteredUsers = 0;
+  isChangingPage = false;
 
   // Propiedades de filtrado
   roleFilter: string = ''; // '', 'admin', 'user'
 
-  // Alert properties
-  alertVisible = false;
-  alertType = '';
-  alertMessage = '';
+  // Modal de confirmación
+  showConfirmModal = false;
+  confirmModalClosing = false;
+  selectedConfirmUser: any = null;
+  confirmNewRole: string = '';
 
   constructor(
     private userService: UserService,
@@ -79,17 +84,54 @@ export class AdminUsersComponent implements OnInit {
 
   // Aplicar filtros a la lista de usuarios
   applyFilter(): void {
-    // Filtrar por rol si hay un filtro seleccionado
+    // Aplicar filtro de rol
+    let filtered = [...this.allUsers];
+
     if (this.roleFilter) {
-      this.filteredUsers = this.allUsers.filter(user => user.role === this.roleFilter);
-    } else {
-      this.filteredUsers = [...this.allUsers]; // Sin filtro, mostrar todos
+      filtered = filtered.filter(user => user.role === this.roleFilter);
     }
 
+    // Aplicar búsqueda
+    if (this.searchTerm) {
+      const search = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(user =>
+        user.first_name?.toLowerCase().includes(search) ||
+        user.last_name?.toLowerCase().includes(search) ||
+        user.email?.toLowerCase().includes(search)
+      );
+    }
+
+    this.filteredUsers = filtered;
     this.totalFilteredUsers = this.filteredUsers.length;
     this.calculateTotalPages();
     this.currentPage = 1; // Resetear a primera página cuando cambia el filtro
     this.applyPagination();
+  }
+
+  // Mostrar modal de confirmación para cambiar rol
+  showRoleConfirm(user: any, newRole: string): void {
+    this.selectedConfirmUser = user;
+    this.confirmNewRole = newRole;
+    this.showConfirmModal = true;
+    this.confirmModalClosing = false;
+  }
+
+  // Cancelar cambio de rol
+  cancelRoleConfirm(): void {
+    this.confirmModalClosing = true;
+    setTimeout(() => {
+      this.showConfirmModal = false;
+      this.selectedConfirmUser = null;
+      this.confirmNewRole = '';
+    }, 300); // Tiempo para la animación
+  }
+
+  // Confirmar cambio de rol
+  confirmRoleChange(): void {
+    if (!this.selectedConfirmUser || !this.confirmNewRole) return;
+
+    this.updateUserRole(this.selectedConfirmUser.id, this.confirmNewRole);
+    this.cancelRoleConfirm();
   }
 
   // Actualizar el rol de un usuario
@@ -134,11 +176,18 @@ export class AdminUsersComponent implements OnInit {
     this.users = this.filteredUsers.slice(startIndex, endIndex);
   }
 
-  // Cambiar de página
+  // Cambiar de página con animación
   changePage(page: number): void {
     if (page < 1 || page > this.totalPages) return;
+
+    this.isChangingPage = true;
     this.currentPage = page;
     this.applyPagination();
+
+    // Simular transición suave
+    setTimeout(() => {
+      this.isChangingPage = false;
+    }, 300);
 
     // Scroll al inicio de la tabla con una comprobación más segura
     setTimeout(() => {

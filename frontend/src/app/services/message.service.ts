@@ -32,17 +32,20 @@ export class MessageService {
   /**
    * Obtiene todos los mensajes con paginación y filtrado opcional
    */
-  getMessagesWithParams(page = 1, limit = 10, status = ''): Observable<any> {
+  getMessagesWithParams(page: number = 1, perPage: number = 10, status: string = '', searchTerm: string = ''): Observable<MessageResponse> {
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('limit', limit.toString());
+      .set('per_page', perPage.toString());
 
     if (status) {
       params = params.set('status', status);
     }
 
-    return this.http.get(`${this.apiUrl}/Controllers/Messages/getMessages.php`,
-      { params, withCredentials: true });
+    if (searchTerm) {
+      params = params.set('search', searchTerm);
+    }
+
+    return this.http.get<MessageResponse>(`${this.apiUrl}/Controllers/Messages/getMessages.php`, { params });
   }
 
   /**
@@ -78,7 +81,7 @@ export class MessageService {
       withCredentials: true
     }).pipe(
       catchError(error => {
-        console.error('Error al obtener estadísticas de mensajes:', error);
+        // console.error('Error al obtener estadísticas de mensajes:', error);
         // Devolvemos datos de fallback para que la UI no se rompa
         return of({
           status: 'OK',

@@ -69,6 +69,12 @@ export class AdminMessagesComponent implements OnInit {
   responseText: string = '';
   respondLoading: boolean = false;
 
+  // Nueva propiedad para búsqueda
+  searchTerm: string = '';
+
+  // Nuevo indicador para animaciones durante cambio de página
+  isChangingPage: boolean = false;
+
   // Nuevas propiedades para el modal de confirmación
   showConfirmModal: boolean = false;
   confirmModalClosing: boolean = false;
@@ -99,22 +105,28 @@ export class AdminMessagesComponent implements OnInit {
 
   loadMessages(): void {
     this.loading = true;
-    this.messageService.getMessagesWithParams(this.currentPage, this.messagesPerPage, this.statusFilter)
-      .subscribe({
-        next: (response: MessageResponse) => {
-          console.log('Mensajes cargados:', response);
-          this.messages = response.data;
-          this.totalMessages = response.pagination.total;
-          this.totalPages = response.pagination.totalPages;
-          this.newMessagesCount = response.pagination.new_count || 0;
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Error loading messages:', err);
-          this.error = 'No se pudieron cargar los mensajes. Inténtalo de nuevo más tarde.';
-          this.loading = false;
-        }
-      });
+
+    // Añadir searchTerm a los parámetros de la petición
+    this.messageService.getMessagesWithParams(
+      this.currentPage,
+      this.messagesPerPage,
+      this.statusFilter,
+      this.searchTerm
+    ).subscribe({
+      next: (response: MessageResponse) => {
+        // console.log('Mensajes cargados:', response);
+        this.messages = response.data;
+        this.totalMessages = response.pagination.total;
+        this.totalPages = response.pagination.totalPages;
+        this.newMessagesCount = response.pagination.new_count || 0;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading messages:', err);
+        this.error = 'No se pudieron cargar los mensajes. Inténtalo de nuevo más tarde.';
+        this.loading = false;
+      }
+    });
   }
 
   countNewMessages(messages: any[]): number {
@@ -291,11 +303,33 @@ export class AdminMessagesComponent implements OnInit {
     // });
   }
 
+  // Método mejorado de cambio de página con animación
   changePage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
+    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+
+    this.isChangingPage = true;
+    this.currentPage = page;
+
+    // Agregar un pequeño delay para que la animación sea visible
+    setTimeout(() => {
       this.loadMessages();
-    }
+      // Scroll al inicio de la tabla con una comprobación más segura
+      setTimeout(() => {
+        const tableElement = document.querySelector('.message-table-container');
+        if (tableElement) {
+          const topPosition = tableElement.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({
+            top: topPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }, 300);
+
+    // Restaurar el estado después de cargar
+    setTimeout(() => {
+      this.isChangingPage = false;
+    }, 600);
   }
 
   applyFilter(): void {
