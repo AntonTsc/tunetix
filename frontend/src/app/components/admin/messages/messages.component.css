@@ -203,3 +203,53 @@ tr.archived-message:hover {
     box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
   }
 }
+
+/* Estilos para imágenes de perfil */
+.rounded-full.object-cover {
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.rounded-full.object-cover:hover {
+  transform: scale(1.05);
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+/* En caso de que la imagen no cargue correctamente */
+.rounded-full.object-cover:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f3f4f6;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+/* Tooltip para mostrar texto completo en hover */
+.hover-tooltip {
+  position: relative;
+  cursor: pointer;
+}
+
+.hover-tooltip:hover::after {
+  content: attr(data-full-text);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 50;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: normal;
+  max-width: 300px;
+  min-width: 200px;
+  word-break: break-word;
+  font-size: 12px;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}

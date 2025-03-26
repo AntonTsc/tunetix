@@ -30,8 +30,8 @@ try {
     // Calcular offset
     $offset = ($page - 1) * $limit;
 
-    // Construir la consulta base
-    $query = "SELECT cm.*, u.nombre as user_name, u.apellido as user_lastname, u.correo as user_email 
+    // Construir la consulta base - MODIFICADA PARA INCLUIR IMAGE_PATH
+    $query = "SELECT cm.*, u.nombre as user_name, u.apellido as user_lastname, u.correo as user_email, u.image_path as user_image 
               FROM contact_messages cm
               LEFT JOIN usuario u ON cm.user_id = u.id";
     $countQuery = "SELECT COUNT(*) as total FROM contact_messages";
@@ -93,7 +93,8 @@ try {
             'subject' => $row['subject'],
             'message' => $row['message'],
             'status' => $row['status'] ?? 'nuevo',
-            'created_at' => $row['date_created']
+            'created_at' => $row['date_created'],
+            'user_image' => $row['user_image'] // Añadimos el campo de imagen
         );
     }
 

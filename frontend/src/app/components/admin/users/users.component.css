@@ -79,3 +79,73 @@
 .user-card:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
+/* Estilos para texto truncado */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tooltip para mostrar texto completo en hover */
+.hover-tooltip {
+  position: relative;
+  cursor: pointer;
+}
+
+.hover-tooltip:hover::after {
+  content: attr(data-full-text);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 50;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: normal;
+  max-width: 300px;
+  min-width: 200px;
+  word-break: break-word;
+  font-size: 12px;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+/* Ajuste para evitar que los nombres largos rompan el layout */
+.max-w-name {
+  max-width: 120px;
+}
+
+.max-w-email {
+  max-width: 140px;
+}
+
+/* Asegurarse que las celdas de tabla tengan buen comportamiento de overflow */
+.table-cell-ellipsis {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Media queries para ajustar anchos en diferentes tamaños de pantalla */
+@media (min-width: 640px) {
+  .max-w-name {
+    max-width: 160px;
+  }
+
+  .max-w-email {
+    max-width: 180px;
+  }
+}
+
+@media (min-width: 768px) {
+  .max-w-name {
+    max-width: 200px;
+  }
+
+  .max-w-email {
+    max-width: 220px;
+  }
+}

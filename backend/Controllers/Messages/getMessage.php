@@ -39,8 +39,11 @@ try {
     // Sanitizar el ID
     $id = (int)$_GET['id'];
 
-    // Preparar la consulta
-    $query = "SELECT * FROM contact_messages WHERE id = ?";
+    // Preparar la consulta - MODIFICADA PARA INCLUIR IMAGE_PATH
+    $query = "SELECT cm.*, u.nombre as user_name, u.apellido as user_lastname, u.correo as user_email, u.image_path as user_image 
+              FROM contact_messages cm 
+              LEFT JOIN usuario u ON cm.user_id = u.id 
+              WHERE cm.id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $id);
 
@@ -53,16 +56,27 @@ try {
         $row = $result->fetch_assoc();
 
         // Sanitizar los datos antes de devolverlos
-        $row['name'] = htmlspecialchars($row['name']);
-        $row['email'] = htmlspecialchars($row['email']);
-        $row['subject'] = htmlspecialchars($row['subject']);
-        $row['message'] = htmlspecialchars($row['message']);
+        $name = $row['user_name'] ? $row['user_name'] . ' ' . ($row['user_lastname'] ?? '') : 'Usuario ' . $row['user_id'];
+        $email = $row['user_email'] ?? 'Sin correo';
+
+        // Crear objeto de respuesta con datos adicionales del usuario
+        $messageData = [
+            'id' => $row['id'],
+            'user_id' => $row['user_id'],
+            'name' => $name,
+            'email' => $email,
+            'subject' => htmlspecialchars($row['subject']),
+            'message' => htmlspecialchars($row['message']),
+            'status' => $row['status'] ?? 'nuevo',
+            'created_at' => $row['date_created'],
+            'user_image' => $row['user_image'] // Añadimos el campo de imagen
+        ];
 
         http_response_code(200);
         echo json_encode(array(
             "status" => "OK",
             "message" => "Mensaje recuperado con éxito",
-            "data" => $row
+            "data" => $messageData
         ));
     } else {
         http_response_code(404);
