@@ -61,7 +61,7 @@ export class AdminMessagesComponent implements OnInit {
   loading: boolean = true;
   error: string = '';
   currentPage: number = 1;
-  messagesPerPage: number = 10;
+  messagesPerPage: number = 6;
   totalMessages: number = 0;
   totalPages: number = 1;
   statusFilter: string = '';
