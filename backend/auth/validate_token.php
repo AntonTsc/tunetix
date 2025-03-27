@@ -6,15 +6,13 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 
-// SOLUCIÓN RADICAL: Definir la clave secreta directamente en este archivo
-// sin depender de las variables de entorno
-$secret_key = 'F-!5W30#s5#?7y=Oc(FV<%pi0GWm1b:gE`W^N:cR"{/eVdr.vw';
+$secret_key = $_ENV['SECRET'];
 
 // Función para verificar un token
 function verifyToken($token)
 {
     // IMPORTANTE: Usamos una clave definitiva en lugar de la global
-    $hardcoded_key = 'F-!5W30#s5#?7y=Oc(FV<%pi0GWm1b:gE`W^N:cR"{/eVdr.vw';
+    $hardcoded_key = $_ENV['SECRET'];
 
     if (empty($token)) {
         return false;

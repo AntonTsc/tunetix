@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import { ServerResponse, User } from '../interfaces/User';
 import { TokenService } from './token.service';
 
@@ -20,7 +21,7 @@ export class AuthService {
     }
   }
 
-  baseUrl = 'http://localhost/tunetix/backend';
+  baseUrl = environment.apiUrl;
   headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
   cookies: any = null;
 

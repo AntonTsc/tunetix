@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import { AuthService } from './auth.service';
 
 export interface UserResponse {
@@ -28,17 +29,17 @@ export interface UpdateUserData {
   providedIn: 'root'
 })
 export class UserService {
-  private apiBaseUrl = 'http://localhost/tunetix/backend';
-  private authService: AuthService;
+  private apiBaseUrl = environment.apiUrl;
 
   // BehaviorSubject para mantener y emitir los datos actualizados del usuario
   private userDataSubject = new BehaviorSubject<any>(null);
   public userData$ = this.userDataSubject.asObservable();
 
-  constructor(private http: HttpClient) {
-    // Use dependency injection to get AuthService
-    this.authService = inject(AuthService);
-
+  // Corregimos la inyección de dependencias usando el constructor
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
     // Suscribirse a cambios en los datos de usuario del AuthService
     this.authService.userData$.subscribe(userData => {
       if (userData) {

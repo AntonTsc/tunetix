@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 export interface MessageResponse {
   status: string;
@@ -20,7 +21,7 @@ export interface MessageResponse {
   providedIn: 'root'
 })
 export class MessageService {
-  private apiUrl = 'http://localhost/tunetix/backend';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
