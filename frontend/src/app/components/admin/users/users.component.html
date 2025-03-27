@@ -56,7 +56,7 @@
             [(ngModel)]="searchTerm"
             (ngModelChange)="applyFilter()"
             placeholder="Buscar por nombre o email"
-            class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 sm:text-sm border-gray-300 rounded-md transition-all duration-300"
+            class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 sm:text-sm border border-gray-300 rounded-md transition-all duration-300"
           />
         </div>
       </div>
@@ -183,6 +183,7 @@
                 [class.border-blue-300]="isSelf(user.id)"
                 [style.animation-delay]="i * 0.05 + 's'"
               >
+                <!-- Vista móvil, asegurar que email y ID se muestran correctamente -->
                 <div class="flex items-center mb-2">
                   <div class="flex-shrink-0 h-10 w-10 mr-3">
                     <img
@@ -194,12 +195,12 @@
                     />
                     <div
                       *ngIf="!user.image_path"
-                      class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center border-2"
+                      class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center border-2"
                       [class.border-blue-400]="isSelf(user.id)"
                       [class.border-gray-200]="!isSelf(user.id)"
                     >
                       <svg
-                        class="h-5 w-5 text-gray-400"
+                        class="h-4 w-4 text-indigo-600"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -219,21 +220,21 @@
                       class="text-sm font-medium text-gray-900 flex items-center"
                     >
                       <span
-                        class="truncate max-w-[120px] hover-tooltip"
-                        [attr.data-full-text]="
-                          user.first_name + ' ' + user.last_name
-                        "
-                        >{{ user.first_name }} {{ user.last_name }}</span
+                        class="truncate max-w-[120px]"
+                        [appTooltip]="user.first_name + ' ' + user.last_name"
                       >
+                        {{ user.first_name }} {{ user.last_name }}
+                      </span>
                       <span
                         *ngIf="isSelf(user.id)"
                         class="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
-                        >Tú</span
                       >
+                        Tú
+                      </span>
                     </div>
                     <div
-                      class="text-xs text-gray-500 truncate max-w-[140px] hover-tooltip"
-                      [attr.data-full-text]="user.email"
+                      class="text-xs text-gray-500 truncate max-w-[140px]"
+                      [appTooltip]="user.email"
                     >
                       {{ user.email }}
                     </div>
@@ -398,8 +399,8 @@
                           class="text-sm font-medium text-gray-900 flex items-center"
                         >
                           <span
-                            class="truncate max-w-[120px] hover-tooltip"
-                            [attr.data-full-text]="
+                            class="truncate max-w-[120px]"
+                            [appTooltip]="
                               user.first_name + ' ' + user.last_name
                             "
                             >{{ user.first_name }} {{ user.last_name }}</span
@@ -410,20 +411,18 @@
                             >Tú</span
                           >
                         </div>
-                        <div
-                          class="text-xs text-gray-500 truncate max-w-[140px] hover-tooltip"
-                          [attr.data-full-text]="user.email"
-                        >
-                          {{ user.email }}
-                        </div>
-                        <div class="text-sm text-gray-500 truncate">
+                        <div class="text-sm text-gray-500">
                           ID: {{ user.id }}
                         </div>
                       </div>
                     </div>
                   </td>
+                  <!-- Mejorar la columna de Email (alrededor de línea 450) -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900 truncate max-w-[200px]">
+                    <div
+                      class="text-sm text-gray-900 truncate max-w-[200px]"
+                      [appTooltip]="user.email"
+                    >
                       {{ user.email }}
                     </div>
                   </td>

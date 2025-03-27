@@ -30,6 +30,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { TokenService } from './services/token.service';
+import { TooltipDirective } from './directives/tooltip.directive';
 
 @NgModule({
   declarations: [
@@ -57,6 +58,7 @@ import { TokenService } from './services/token.service';
     AdminUsersComponent,
     AdminDashboardComponent,
     AdminUsersComponent,
+    TooltipDirective
   ],
   imports: [
     BrowserModule,
