@@ -444,32 +444,68 @@
                   <td
                     class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
                   >
-                    <!-- Botón para promover a admin (visible solo si el usuario no es admin) -->
-                    <button
-                      *ngIf="user.role !== 'admin'"
-                      (click)="showRoleConfirm(user, 'admin')"
-                      [disabled]="isSelf(user.id)"
-                      class="text-indigo-600 hover:text-indigo-900 mr-4 transition-all duration-200"
-                      [ngClass]="{
-                        'opacity-50 cursor-not-allowed': isSelf(user.id)
-                      }"
-                    >
-                      Promover a Admin
-                    </button>
+                    <!-- Contenedor de botones mejorado -->
+                    <div class="flex items-center justify-end space-x-2">
+                      <!-- Botón para promover a admin (visible solo si el usuario no es admin) -->
+                      <button
+                        *ngIf="user.role !== 'admin'"
+                        (click)="showRoleConfirm(user, 'admin')"
+                        [disabled]="isSelf(user.id)"
+                        class="inline-flex items-center px-3 py-1.5 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-all duration-200"
+                        [ngClass]="{
+                          'opacity-50 cursor-not-allowed': isSelf(user.id)
+                        }"
+                        [title]="
+                          isSelf(user.id)
+                            ? 'No puedes modificar tu propio rol'
+                            : 'Dar permisos de administrador'
+                        "
+                      >
+                        <svg
+                          class="h-4 w-4 mr-1.5 text-indigo-600"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Promover a Admin
+                      </button>
 
-                    <!-- Botón para degradar a usuario (visible solo si el usuario es admin y no es el usuario actual) -->
-                    <button
-                      *ngIf="user.role === 'admin' && !isSelf(user.id)"
-                      (click)="showRoleConfirm(user, 'user')"
-                      class="text-red-600 hover:text-red-900 transition-all duration-200"
-                    >
-                      Quitar Admin
-                    </button>
+                      <!-- Botón para degradar a usuario (visible solo si el usuario es admin y no es el usuario actual) -->
+                      <button
+                        *ngIf="user.role === 'admin' && !isSelf(user.id)"
+                        (click)="showRoleConfirm(user, 'user')"
+                        class="inline-flex items-center px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-all duration-200"
+                        title="Quitar permisos de administrador"
+                      >
+                        <svg
+                          class="h-4 w-4 mr-1.5 text-red-600"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Quitar Admin
+                      </button>
 
-                    <!-- Mensaje si es el usuario actual -->
-                    <span *ngIf="isSelf(user.id)" class="text-gray-500 italic">
-                      (Tú)
-                    </span>
+                      <!-- Mensaje si es el usuario actual -->
+                      <span
+                        *ngIf="isSelf(user.id)"
+                        class="text-gray-500 italic px-2"
+                      >
+                        (Tu cuenta)
+                      </span>
+                    </div>
                   </td>
                 </tr>
               </tbody>
