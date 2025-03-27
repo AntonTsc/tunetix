@@ -70,7 +70,7 @@
               <select
                 [(ngModel)]="searchType"
                 (ngModelChange)="applyFilter()"
-                class="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-sm rounded-r-md focus:ring-indigo-500 focus:border-indigo-500"
+                class="h-full py-0 pl-2 pr-7 border-l bg-transparent text-gray-500 sm:text-sm rounded-r-md focus:ring-indigo-500 focus:border-indigo-500 z-1"
                 aria-label="Tipo de búsqueda"
               >
                 <option value="all">Todos</option>
@@ -373,7 +373,7 @@
             <!-- Tabla para escritorio con animación (oculta en móvil) -->
             <table
               *ngIf="!loading && !error && messages.length > 0"
-              class="min-w-full divide-y divide-gray-200 hidden sm:table message-list-transition"
+              class="min-w-full divide-y border border-gray-200 divide-gray-200 hidden sm:table message-list-transition"
               [class.loading]="isChangingPage"
             >
               <thead class="bg-gray-50">
