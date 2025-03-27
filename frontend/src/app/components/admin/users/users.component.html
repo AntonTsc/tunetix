@@ -33,7 +33,7 @@
 
       <!-- Campo de búsqueda -->
       <div class="mt-4 md:mt-0">
-        <div class="relative rounded-md shadow-sm">
+        <div class="relative rounded-md shadow-sm w-full md:w-80">
           <div
             class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
           >
@@ -55,6 +55,7 @@
             type="text"
             [(ngModel)]="searchTerm"
             (ngModelChange)="applyFilter()"
+            (keyup)="applyFilter()"
             placeholder="Buscar por nombre o email"
             class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 sm:text-sm border border-gray-300 rounded-md transition-all duration-300"
           />
@@ -374,12 +375,12 @@
                         />
                         <div
                           *ngIf="!user.image_path"
-                          class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center border-2"
+                          class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center border-2"
                           [class.border-blue-400]="isSelf(user.id)"
                           [class.border-gray-200]="!isSelf(user.id)"
                         >
                           <svg
-                            class="h-6 w-6 text-gray-400"
+                            class="h-4 w-4 text-indigo-600"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -785,10 +786,10 @@
                 />
                 <div
                   *ngIf="!selectedConfirmUser?.image_path"
-                  class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center"
+                  class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center"
                 >
                   <svg
-                    class="h-5 w-5 text-gray-400"
+                    class="h-4 w-4 text-indigo-600"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"

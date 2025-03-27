@@ -72,6 +72,9 @@ export class AdminMessagesComponent implements OnInit {
   // Nueva propiedad para búsqueda
   searchTerm: string = '';
 
+  // Añadir la propiedad searchType
+  searchType: string = 'all';  // 'all' | 'subject' | 'user'
+
   // Nuevo indicador para animaciones durante cambio de página
   isChangingPage: boolean = false;
 
@@ -103,28 +106,42 @@ export class AdminMessagesComponent implements OnInit {
     this.isStatusDropdownOpen = !this.isStatusDropdownOpen;
   }
 
+  // Añadir método para obtener el placeholder dependiendo del tipo de búsqueda
+  getSearchPlaceholder(): string {
+    switch (this.searchType) {
+      case 'subject':
+        return 'Buscar por asunto...';
+      case 'user':
+        return 'Buscar usuario...';
+      default:
+        return 'Buscar...';
+    }
+  }
+
+  // Actualizar el método loadMessages para incluir searchType
   loadMessages(): void {
     this.loading = true;
 
-    // Añadir searchTerm a los parámetros de la petición
     this.messageService.getMessagesWithParams(
       this.currentPage,
       this.messagesPerPage,
       this.statusFilter,
-      this.searchTerm
+      this.searchTerm,
+      this.searchType  // Añadir el tipo de búsqueda
     ).subscribe({
       next: (response: MessageResponse) => {
-        // console.log('Mensajes cargados:', response);
         this.messages = response.data;
         this.totalMessages = response.pagination.total;
         this.totalPages = response.pagination.totalPages;
         this.newMessagesCount = response.pagination.new_count || 0;
         this.loading = false;
+        this.isChangingPage = false;
       },
       error: (err) => {
         console.error('Error loading messages:', err);
         this.error = 'No se pudieron cargar los mensajes. Inténtalo de nuevo más tarde.';
         this.loading = false;
+        this.isChangingPage = false;
       }
     });
   }
@@ -333,6 +350,12 @@ export class AdminMessagesComponent implements OnInit {
   }
 
   applyFilter(): void {
+    // Eliminar espacios al principio y al final del término de búsqueda
+    if (this.searchTerm) {
+      this.searchTerm = this.searchTerm.trim();
+    }
+
+    // Reiniciar a la primera página al aplicar un filtro
     this.currentPage = 1;
     this.loadMessages();
   }

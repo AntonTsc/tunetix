@@ -33,17 +33,27 @@ export class MessageService {
   /**
    * Obtiene todos los mensajes con paginación y filtrado opcional
    */
-  getMessagesWithParams(page: number = 1, perPage: number = 10, status: string = '', searchTerm: string = ''): Observable<MessageResponse> {
+  getMessagesWithParams(
+    page: number = 1,
+    limit: number = 10,
+    status: string = '',
+    search: string = '',
+    searchType: string = 'all'
+  ): Observable<MessageResponse> {
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('per_page', perPage.toString());
+      .set('limit', limit.toString()); // Cambiado de per_page a limit
 
     if (status) {
       params = params.set('status', status);
     }
 
-    if (searchTerm) {
-      params = params.set('search', searchTerm);
+    if (search) {
+      params = params.set('search', search);
+
+      if (searchType) {
+        params = params.set('searchType', searchType);
+      }
     }
 
     return this.http.get<MessageResponse>(`${this.apiUrl}/Controllers/Messages/getMessages.php`, { params });

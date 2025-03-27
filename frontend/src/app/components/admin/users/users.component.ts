@@ -82,7 +82,7 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
-  // Aplicar filtros a la lista de usuarios
+  // Modificar la función applyFilter() para eliminar espacios en blanco
   applyFilter(): void {
     // Aplicar filtro de rol
     let filtered = [...this.allUsers];
@@ -91,14 +91,19 @@ export class AdminUsersComponent implements OnInit {
       filtered = filtered.filter(user => user.role === this.roleFilter);
     }
 
-    // Aplicar búsqueda
+    // Aplicar búsqueda - limpiando espacios en blanco
     if (this.searchTerm) {
-      const search = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(user =>
-        user.first_name?.toLowerCase().includes(search) ||
-        user.last_name?.toLowerCase().includes(search) ||
-        user.email?.toLowerCase().includes(search)
-      );
+      // Eliminar espacios al principio y al final del término de búsqueda
+      const search = this.searchTerm.trim().toLowerCase();
+
+      // Solo continuar si hay algo que buscar después de eliminar espacios
+      if (search) {
+        filtered = filtered.filter(user =>
+          (user.first_name || '').toLowerCase().includes(search) ||
+          (user.last_name || '').toLowerCase().includes(search) ||
+          (user.email || '').toLowerCase().includes(search)
+        );
+      }
     }
 
     this.filteredUsers = filtered;
