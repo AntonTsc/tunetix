@@ -15,23 +15,20 @@ import { UserService } from 'src/app/services/user.service';
       state('closed', style({
         opacity: 0,
         transform: 'translateY(-10px)',
-        // display: 'none'
+        height: 0,
+        overflow: 'hidden'
       })),
       state('open', style({
         opacity: 1,
         transform: 'translateY(0)',
-        // display: 'block'
+        height: '*',
+        overflow: 'visible'
       })),
       transition('closed => open', [
-        // style({ display: 'block' }),
-        animate('200ms ease-out')
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)') // Curva de aceleración más suave
       ]),
       transition('open => closed', [
-        animate('200ms ease-in', style({
-          opacity: 0,
-          transform: 'translateY(-10px)'
-        })),
-        // style({ display: 'none' })
+        animate('250ms cubic-bezier(0.4, 0.0, 0.2, 1)')
       ])
     ]),
     trigger('dropdownAnimation', [
@@ -279,15 +276,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileUserMenuOpen = false;
 
   // Métodos para el menú de usuario (ya existentes)
-  toggleUserMenu(event: Event) {
-    event.stopPropagation();
+  toggleUserMenu(event: MouseEvent) {
+    event.stopPropagation(); // Evita que el clic se propague
+    this.isUserMenuOpen = !this.isUserMenuOpen;
+    this.menuVisible = this.isUserMenuOpen;
 
+    // Si cerramos el menú, asegúrate de que no queden efectos residuales
     if (!this.isUserMenuOpen) {
-      this.cancelCloseTimer();
-      this.menuVisible = true;
-      this.isUserMenuOpen = true;
-    } else {
-      this.closeUserMenu();
+      // Resetear cualquier efecto visual o estado cuando se cierra
+      // No es necesario hacer nada más ya que el ngClass se encargará
     }
   }
 
@@ -369,8 +366,46 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   toggleMobileUserMenu(event: Event): void {
-    event.stopPropagation(); // Evitar que el evento se propague al padre
+    // Detener la propagación del evento para evitar cerrar accidentalmente menús padres
+    event.stopPropagation();
+
+    // Toggle del estado del menú de usuario móvil
     this.isMobileUserMenuOpen = !this.isMobileUserMenuOpen;
+
+    // Si estamos abriendo el menú de usuario, cerrar otros menús relacionados
+    if (this.isMobileUserMenuOpen) {
+      // Cerrar el menú de explorar si está abierto
+      this.explorarMenuOpen = false;
+      this.explorarMenuVisible = false;
+
+      // Cerrar el submenú si está abierto
+      this.isMobileSubmenuOpen = false;
+
+      // Cerrar el menú de admin si está abierto
+      this.showAdminMenu = false;
+
+      // Forzar la detección de cambios para actualizar la UI
+      this.cdr.detectChanges();
+    }
+
+    // Aplicar efectos visuales al avatar
+    // La clase profile-active se aplicará con [ngClass] en la plantilla
+
+    // Añadir una animación sutil
+    const profileElement = event.currentTarget as HTMLElement;
+    if (profileElement && profileElement.parentElement) {
+      if (this.isMobileUserMenuOpen) {
+        // Pequeña animación de pulso cuando se abre
+        profileElement.parentElement.classList.add('pulse-animation');
+
+        // Quitar la clase después de la animación
+        setTimeout(() => {
+          if (profileElement && profileElement.parentElement) {
+            profileElement.parentElement.classList.remove('pulse-animation');
+          }
+        }, 600);
+      }
+    }
   }
 
   // Para el menú móvil, agregar esta variable:

@@ -19,3 +19,104 @@
   z-index: 150; /* Valor aún más alto para que aparezca por encima de todo */
   position: absolute;
 }
+
+/* Estilos para imágenes de perfil en el header - versión de escritorio */
+.w-\[85px\].h-\[85px\].rounded-full {
+  transition: border-color 0.3s ease;
+  position: relative;
+}
+
+.w-\[85px\].h-\[85px\].rounded-full:hover {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Estilos para imágenes de perfil en el header - versión móvil */
+.w-\[70px\].h-\[70px\].rounded-full {
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  position: relative;
+}
+
+/* Estilo para el avatar activo en móvil */
+.profile-active {
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); /* Transición más suave */
+}
+
+/* Efecto adicional cuando el menú está abierto */
+.border-indigo-500 {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Estilo para la imagen dentro del contenedor */
+.rounded-full img,
+.rounded-full svg {
+  transition: all 0.2s ease;
+}
+
+.rounded-full:hover img,
+.rounded-full:hover svg,
+.profile-active img,
+.profile-active svg {
+  transform: scale(1.05);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* En caso de que la imagen no cargue correctamente */
+.rounded-full img:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f3f4f6;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+/* Transición para el menú desplegable en móvil */
+.mobile-menu-animation-container {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform-origin: top center;
+  will-change: transform, opacity;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  animation: menuAppear 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+/* Animación para el menú de usuario en móvil */
+@keyframes smoothAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de entrada para el menú de usuario móvil */
+@keyframes menuAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mobile-user-menu-open {
+  animation: smoothAppear 0.3s ease-in-out forwards;
+}
+
+/* Asegurar que el menú tiene una transición suave para todos los elementos */
+.mt-3.bg-gray-50.w-\[80\%\].mx-auto.rounded-lg.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  transform-origin: top center;
+  animation: menuAppear 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
