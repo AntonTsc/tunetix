@@ -67,7 +67,8 @@
             <div
               [@dropdownAnimation]="explorarMenuOpen ? 'open' : 'closed'"
               class="dropdown-container absolute"
-              style="top: calc(100% + 50px); left: 0; z-index: 10"
+              style="top: calc(100% + 50px); left: 0; z-index: 100"
+              [style.overflow]="explorarMenuVisible ? 'visible' : 'hidden'"
             >
               <ul
                 *ngIf="explorarMenuVisible"
@@ -147,23 +148,46 @@
             <div
               class="w-[85px] h-[85px] rounded-full overflow-hidden border-2 border-gray-300"
             >
-              <img
-                *ngIf="user_data?.image_path"
-                [src]="user_data.image_path"
-                alt="Foto de perfil"
-                class="w-full h-full object-cover"
-              />
-              <svg
-                *ngIf="!user_data?.image_path"
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-full h-full"
-                viewBox="0 0 24 24"
-                fill="rgb(122, 122, 122)"
+              <ng-container *ngIf="isAuthenticated">
+                <!-- Mostrar imagen solo si hasProfileImage() es true -->
+                <img
+                  *ngIf="hasProfileImage()"
+                  [src]="user_data?.image_path"
+                  alt="Foto de perfil"
+                  class="w-full h-full object-cover"
+                  (error)="handleImageError($event)"
+                />
+                <!-- Avatar por defecto -->
+                <svg
+                  *ngIf="!hasProfileImage()"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-full h-full"
+                  viewBox="0 0 24 24"
+                  fill="rgb(122, 122, 122)"
+                >
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
+                  ></path>
+                </svg>
+              </ng-container>
+
+              <!-- Indicador de administrador - nota la clase "absolute" para posicionarlo -->
+              <div
+                *ngIf="isAdmin$ | async"
+                class="absolute bottom-0 right-0 bg-purple-600 rounded-full p-1 border-2 border-white shadow-md"
+                title="Cuenta de administrador"
               >
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
-                ></path>
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-white"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -172,10 +196,12 @@
             [@userMenuAnimation]="isUserMenuOpen ? 'open' : 'closed'"
             class="user-menu-container"
             (mouseleave)="startCloseTimer()"
+            style="z-index: 100"
+            [style.display]="menuVisible ? 'block' : 'none'"
           >
             <ul
               *ngIf="menuVisible"
-              class="absolute bg-white shadow-lg z-10 right-0"
+              class="absolute bg-white shadow-lg z-50 right-0"
               style="
                 top: calc(100% + 20px);
                 min-width: 200px;
@@ -188,14 +214,16 @@
               <li class="px-6 py-3 border-b border-gray-100">
                 <div class="">
                   <p
-                    class="text-gray-800 font-bold text-lg"
+                    class="text-gray-800 font-bold text-lg truncate max-w-[180px]"
                     *ngIf="user_data && isLoggedOut === false"
+                    title="{{ user_data.first_name }} {{ user_data.last_name }}"
                   >
                     {{ user_data.first_name }} {{ user_data.last_name }}
                   </p>
                   <p
-                    class="text-gray-500 text-sm"
+                    class="text-gray-500 text-sm truncate max-w-[180px]"
                     *ngIf="user_data && isLoggedOut === false"
+                    title="{{ user_data.email }}"
                   >
                     {{ user_data.email }}
                   </p>
@@ -219,6 +247,27 @@
                     ></path>
                   </svg>
                   Perfil
+                </a>
+              </li>
+              <li
+                *ngIf="isAdmin$ | async"
+                class="hover:bg-gray-100 hover:cursor-pointer"
+              >
+                <a
+                  routerLink="/admin"
+                  class="flex items-center px-6 py-3 text-gray-800 text-lg font-semibold w-full"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 mr-3"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
+                    />
+                  </svg>
+                  Panel Admin
                 </a>
               </li>
               <li
@@ -292,7 +341,7 @@
       <div class="logo w-[50px] h-[50px]">
         <a routerLink="/inicio" (click)="closeMobileMenu()">
           <img
-            src="https://framerusercontent.com/images/d1InuqGQUB7dMCx1jcmBwRlFKU.webp"
+            src="../../../assets/imgs/logo.webp"
             alt="Logo"
             class="w-full h-full object-cover"
           />
@@ -325,16 +374,18 @@
         <ng-container *ngIf="!isLoggedOut; else mobileLoginButtons">
           <div class="cursor-pointer" (click)="toggleMobileUserMenu($event)">
             <div
-              class="w-[70px] h-[70px] rounded-full overflow-hidden border-2 border-gray-300"
+              class="w-[70px] h-[70px] rounded-full border-2 border-gray-300 relative"
             >
-              <img
-                *ngIf="user_data?.image_path"
-                [src]="user_data.image_path"
-                alt="Foto de perfil"
-                class="w-full h-full object-cover"
-              />
+              <div class="rounded-full overflow-hidden">
+                <img
+                  *ngIf="user_data?.image_path"
+                  [src]="user_data.image_path"
+                  alt="Foto de perfil"
+                  class="w-full h-full object-cover"
+                />
+              </div>
               <svg
-                *ngIf="!user_data?.image_path"
+                *ngIf="!user_data.image_path"
                 xmlns="http://www.w3.org/2000/svg"
                 class="w-full h-full"
                 viewBox="0 0 24 24"
@@ -344,13 +395,36 @@
                   d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"
                 ></path>
               </svg>
+              <!-- Indicador de administrador en móvil -->
+              <div
+                *ngIf="isAdmin$ | async"
+                class="absolute bottom-0 right-0 bg-purple-600 rounded-full p-1 border-2 border-white shadow-md"
+                title="Cuenta de administrador"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 text-white"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
           <!-- Nombre y correo del usuario -->
-          <h3 class="text-xl font-bold mt-2">
+          <h3
+            class="text-xl font-bold mt-2 truncate max-w-[300px] text-center"
+            title="{{ user_data.first_name }} {{ user_data.last_name }}"
+          >
             {{ user_data.first_name }} {{ user_data.last_name }}
           </h3>
-          <p class="text-gray-500 text-sm">
+          <p
+            class="text-gray-500 text-sm truncate max-w-[300px] text-center"
+            title="{{ user_data.email }}"
+          >
             {{ user_data.email }}
           </p>
         </ng-container>
@@ -383,7 +457,7 @@
         class="mt-3 bg-gray-50 w-[80%] mx-auto rounded-lg shadow-md"
       >
         <ul>
-          <li class="border-b border-gray-100">
+          <li class="hover:bg-gray-100 border-b border-gray-100">
             <a
               routerLink="/perfil/datos-personales"
               class="flex items-center px-6 py-2 text-gray-800 font-semibold w-full"
@@ -400,6 +474,28 @@
                 ></path>
               </svg>
               Perfil
+            </a>
+          </li>
+          <li
+            class="hover:bg-gray-100 border-b border-gray-100"
+            *ngIf="isAdmin$ | async"
+          >
+            <a
+              routerLink="/admin"
+              class="flex items-center px-6 py-2 text-gray-800 font-semibold w-full"
+              (click)="closeMobileMenu()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 mr-3"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"
+                />
+              </svg>
+              Panel Admin
             </a>
           </li>
           <li class="hover:bg-gray-100 cursor-pointer" (click)="logout()">

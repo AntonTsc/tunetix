@@ -1,0 +1,261 @@
+.panel-with-effects {
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
+  border-left: 1px solid rgba(229, 231, 235, 1);
+  transition: all 0.3s cubic-bezier(0.35, 0, 0.25, 1);
+  border-top-left-radius: 0.75rem;     /* corresponde a rounded-l-xl */
+  border-bottom-left-radius: 0.75rem;  /* corresponde a rounded-l-xl */
+  overflow: hidden;                     /* asegura que el contenido respete los bordes */
+}
+
+/* También aseguramos que el borde blanco tenga el mismo contorno */
+.panel-with-effects::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: rgba(229, 231, 235, 1);
+  border-top-left-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
+  pointer-events: none;
+}
+
+.animate-item {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Efecto hover para las filas de mensajes */
+tr.hover\:bg-gray-50:hover {
+  background-color: rgba(249, 250, 251, 0.8);
+  transition: background-color 0.15s ease-in-out;
+}
+
+/* Mejorar el efecto visual del panel deslizante */
+.w-screen.max-w-md {
+  border-radius: 12px 0 0 12px;
+  overflow: hidden;
+}
+
+/* Mejorar la visualización de los mensajes */
+.whitespace-pre-line.bg-gray-50 {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  transition: all 0.2s ease;
+}
+
+.whitespace-pre-line.bg-gray-50:hover {
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Efecto visual para los badges de estado */
+span.rounded-full {
+  transition: all 0.3s ease;
+}
+
+span.rounded-full:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.panel-shadow-custom {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Agregar un estilo para indicar visualmente la sección archivados */
+.archived-section {
+  background-color: rgba(249, 250, 251, 0.8);
+}
+
+/* Estilos para las pestañas */
+.tab-active {
+  color: #4f46e5;
+  border-color: #4f46e5;
+  border-bottom-width: 2px;
+}
+
+/* Asegurar que el z-index de los elementos del header sea correcto */
+.header-dropdown {
+  z-index: 50;
+}
+
+/* Para animar los mensajes cuando se archivan */
+.archiving-animation {
+  animation: fade-slide-out 0.5s ease-in-out forwards;
+}
+
+@keyframes fade-slide-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Estilo para mensajes archivados */
+tr.archived-message {
+  background-color: rgba(249, 250, 251, 0.6);
+}
+
+tr.archived-message:hover {
+  background-color: rgba(249, 250, 251, 0.9);
+}
+
+/* Estilos para el botón de desarchivar */
+.unarchive-button {
+  transition: all 0.2s ease;
+}
+
+.unarchive-button:hover {
+  background-color: rgba(236, 253, 245, 0.8);
+}
+
+/* Añadimos animación para desarchivar */
+.unarchiving-animation {
+  animation: fade-slide-in 0.5s ease-in-out forwards;
+}
+
+@keyframes fade-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Nuevas clases para transiciones y animaciones como en Users */
+.message-list-transition {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.message-list-transition.loading {
+  opacity: 0.6;
+}
+
+/* Hacer que las tarjetas de mensajes tengan mejor estilo en móvil */
+.message-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.message-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Animaciones para los controles de paginación */
+.pagination-button {
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Para el indicador de página actual */
+.page-indicator {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(79, 70, 229, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+}
+
+/* Estilos para imágenes de perfil */
+.rounded-full.object-cover {
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.rounded-full.object-cover:hover {
+  transform: scale(1.05);
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+/* En caso de que la imagen no cargue correctamente */
+.rounded-full.object-cover:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f3f4f6;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+/* Añadir estos estilos para el selector de tipo de búsqueda */
+.search-container {
+  position: relative;
+}
+
+select.search-type {
+  appearance: none;
+  padding-right: 20px;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+}
+
+/* Añadir una pequeña animación cuando el tipo de búsqueda cambia */
+.search-type-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+.search-type-transition:hover {
+  background-color: #f9fafb;
+}
+
+/* Mejorar la visualización en móvil */
+@media (max-width: 640px) {
+  select.search-type {
+    padding-right: 25px;
+    font-size: 0.75rem;
+  }
+}

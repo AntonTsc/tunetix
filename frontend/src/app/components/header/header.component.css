@@ -1,0 +1,21 @@
+.header {
+  position: relative;
+  z-index: 100; /* Valor alto para que esté por encima de la alerta */
+}
+
+.user-menu-container,
+.dropdown-container {
+  z-index: 100; /* Valor alto para que esté por encima de la alerta */
+}
+
+/* El menú móvil también con z-index alto */
+.lg\:hidden.fixed {
+  z-index: 100;
+}
+
+/* Asegurar que los contenidos desplegables tengan un z-index aún mayor */
+.dropdown-menu,
+.user-menu {
+  z-index: 150; /* Valor aún más alto para que aparezca por encima de todo */
+  position: absolute;
+}

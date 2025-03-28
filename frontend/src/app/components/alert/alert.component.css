@@ -1,0 +1,9 @@
+:host {
+  z-index: 10; /* Valor bajo para que quede por debajo de otros elementos */
+  position: relative;
+}
+
+/* Estilos adicionales para los iconos */
+svg {
+  min-width: 24px;
+}

@@ -1,8 +1,8 @@
 .alert-container {
     position: sticky;
-    top: 20px; /* Ajusta este valor según sea necesario */
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     width: fit-content;
-    z-index: 1000; /* Asegúrate de que el alert esté por encima de otros elementos */
+    z-index: 10; /* Aumentamos significativamente el z-index para que esté por encima de todo */
 }

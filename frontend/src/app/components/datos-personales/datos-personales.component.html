@@ -1,4 +1,12 @@
 <div class="space-y-8">
+  <!-- Alerta para mensajes (añadir en la parte superior) -->
+  <ng-container *ngIf="serverResponse">
+    <app-alert
+      class="alert-container"
+      [serverResponse]="serverResponse"
+    ></app-alert>
+  </ng-container>
+
   <!-- Profile Header with Photo and Name -->
   <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
     <div class="flex flex-col items-center">
@@ -106,35 +114,76 @@
           </svg>
         </button>
       </div>
-      <!-- Modificado para mostrar nombre y apellido juntos -->
+
+      <!-- Mostrar nombre y apellido -->
       <div *ngIf="!editingField.name" class="text-gray-800 text-lg">
         {{ userData.name }} {{ userData.lastName }}
       </div>
-      <div
+
+      <!-- Form para edición del nombre -->
+      <form
         *ngIf="editingField.name"
+        [formGroup]="nameForm"
         class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2"
       >
-        <input
-          type="text"
-          class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
-          placeholder="Nombre"
-          [(ngModel)]="userData.name"
-        />
-        <input
-          type="text"
-          class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
-          placeholder="Apellido"
-          [(ngModel)]="userData.lastName"
-        />
+        <div class="flex-grow">
+          <input
+            type="text"
+            formControlName="name"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder="Nombre"
+          />
+          <!-- Mensajes de error para el nombre -->
+          <div
+            *ngIf="
+              nameForm.get('name')?.touched && nameForm.get('name')?.errors
+            "
+            class="text-red-500 text-sm mt-1"
+          >
+            <span *ngIf="nameForm.get('name')?.errors?.['required']"
+              >El nombre es obligatorio</span
+            >
+            <span *ngIf="nameForm.get('name')?.errors?.['minlength']"
+              >El nombre debe tener al menos 2 caracteres</span
+            >
+          </div>
+        </div>
+
+        <div class="flex-grow">
+          <input
+            type="text"
+            formControlName="lastName"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder="Apellido"
+          />
+          <!-- Mensajes de error para el apellido -->
+          <div
+            *ngIf="
+              nameForm.get('lastName')?.touched &&
+              nameForm.get('lastName')?.errors
+            "
+            class="text-red-500 text-sm mt-1"
+          >
+            <span *ngIf="nameForm.get('lastName')?.errors?.['required']"
+              >El apellido es obligatorio</span
+            >
+            <span *ngIf="nameForm.get('lastName')?.errors?.['minlength']"
+              >El apellido debe tener al menos 2 caracteres</span
+            >
+          </div>
+        </div>
+
         <div class="flex space-x-2 mt-2 sm:mt-0">
           <button
+            type="button"
             class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-            [disabled]="updateLoading"
+            [disabled]="updateLoading || nameForm.invalid"
             (click)="saveProfile('name')"
           >
             {{ updateLoading ? "Guardando..." : "Guardar" }}
           </button>
           <button
+            type="button"
             class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
             [disabled]="updateLoading"
             (click)="toggleEdit('name')"
@@ -142,7 +191,7 @@
             Cancelar
           </button>
         </div>
-      </div>
+      </form>
     </div>
 
     <!-- Email Field -->
@@ -165,30 +214,62 @@
           </svg>
         </button>
       </div>
+
+      <!-- Mostrar email -->
       <div *ngIf="!editingField.email" class="text-gray-800 text-lg">
         {{ userData.email }}
       </div>
-      <div *ngIf="editingField.email" class="flex space-x-2">
-        <input
-          type="email"
-          class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
-          [(ngModel)]="userData.email"
-        />
-        <button
-          class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-          [disabled]="updateLoading"
-          (click)="saveProfile('email')"
-        >
-          {{ updateLoading ? "Guardando..." : "Guardar" }}
-        </button>
-        <button
-          class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-          [disabled]="updateLoading"
-          (click)="toggleEdit('email')"
-        >
-          Cancelar
-        </button>
-      </div>
+
+      <!-- Form para edición del email -->
+      <form
+        *ngIf="editingField.email"
+        [formGroup]="emailForm"
+        class="flex space-x-2"
+      >
+        <div class="flex-grow">
+          <input
+            type="email"
+            formControlName="email"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder="Correo electrónico"
+          />
+          <!-- Mensajes de error para el email -->
+          <div
+            *ngIf="
+              emailForm.get('email')?.touched && emailForm.get('email')?.errors
+            "
+            class="text-red-500 text-sm mt-1"
+          >
+            <span *ngIf="emailForm.get('email')?.errors?.['required']"
+              >El correo electrónico es obligatorio</span
+            >
+            <span
+              *ngIf="emailForm.get('email')?.errors?.['email'] || emailForm.get('email')?.errors?.['pattern']"
+            >
+              Introduce un correo electrónico válido
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+            [disabled]="updateLoading || emailForm.invalid"
+            (click)="saveProfile('email')"
+          >
+            {{ updateLoading ? "Guardando..." : "Guardar" }}
+          </button>
+          <button
+            type="button"
+            class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 ml-2"
+            [disabled]="updateLoading"
+            (click)="toggleEdit('email')"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
     </div>
 
     <!-- Password Field -->
@@ -211,43 +292,104 @@
           </svg>
         </button>
       </div>
+
+      <!-- Mostrar contraseña oculta -->
       <div *ngIf="!editingField.password" class="text-gray-800 text-lg">
         ••••••••••
       </div>
-      <div *ngIf="editingField.password" class="space-y-3">
-        <div class="flex space-x-2">
+
+      <!-- Form para cambio de contraseña -->
+      <form
+        *ngIf="editingField.password"
+        [formGroup]="passwordForm"
+        class="space-y-3"
+      >
+        <div>
           <input
             type="password"
-            class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            formControlName="currentPassword"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Contraseña actual"
-            [(ngModel)]="passwordData.currentPassword"
           />
+          <!-- Mensajes de error -->
+          <div
+            *ngIf="
+              passwordForm.get('currentPassword')?.touched &&
+              passwordForm.get('currentPassword')?.errors
+            "
+            class="text-red-500 text-sm mt-1"
+          >
+            <span
+              *ngIf="passwordForm.get('currentPassword')?.errors?.['required']"
+              >La contraseña actual es obligatoria</span
+            >
+            <span
+              *ngIf="passwordForm.get('currentPassword')?.errors?.['minlength']"
+            >
+              La contraseña debe tener al menos 6 caracteres
+            </span>
+          </div>
         </div>
-        <div class="flex space-x-2">
+
+        <div>
           <input
             type="password"
-            class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            formControlName="newPassword"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Nueva contraseña"
-            [(ngModel)]="passwordData.newPassword"
           />
+          <!-- Mensajes de error -->
+          <div
+            *ngIf="
+              passwordForm.get('newPassword')?.touched &&
+              passwordForm.get('newPassword')?.errors
+            "
+            class="text-red-500 text-sm mt-1"
+          >
+            <span *ngIf="passwordForm.get('newPassword')?.errors?.['required']"
+              >La nueva contraseña es obligatoria</span
+            >
+            <span
+              *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']"
+            >
+              La nueva contraseña debe tener al menos 6 caracteres
+            </span>
+          </div>
         </div>
-        <div class="flex space-x-2">
+
+        <div>
           <input
             type="password"
-            class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            formControlName="confirmPassword"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Confirmar nueva contraseña"
-            [(ngModel)]="passwordData.confirmPassword"
           />
+          <!-- Mensajes de error -->
+          <div
+            *ngIf="passwordForm.get('confirmPassword')?.touched && (passwordForm.get('confirmPassword')?.errors || passwordForm.errors?.['notSame'])"
+            class="text-red-500 text-sm mt-1"
+          >
+            <span
+              *ngIf="passwordForm.get('confirmPassword')?.errors?.['required']"
+              >La confirmación es obligatoria</span
+            >
+            <span *ngIf="passwordForm.errors?.['notSame']"
+              >Las contraseñas no coinciden</span
+            >
+          </div>
         </div>
+
         <div class="flex space-x-2">
           <button
+            type="button"
             class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-            [disabled]="updateLoading"
+            [disabled]="updateLoading || passwordForm.invalid"
             (click)="updatePassword()"
           >
             {{ updateLoading ? "Actualizando..." : "Actualizar contraseña" }}
           </button>
           <button
+            type="button"
             class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
             [disabled]="updateLoading"
             (click)="toggleEdit('password')"
@@ -255,17 +397,7 @@
             Cancelar
           </button>
         </div>
-      </div>
+      </form>
     </div>
-  </div>
-
-  <!-- Mensaje de actualización -->
-  <div *ngIf="updateMessage" class="mt-4 text-green-600 font-medium">
-    {{ updateMessage }}
-  </div>
-
-  <!-- Mensaje de error -->
-  <div *ngIf="error" class="mt-4 text-red-600 font-medium">
-    {{ error }}
   </div>
 </div>
