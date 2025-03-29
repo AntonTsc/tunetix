@@ -4,5 +4,5 @@ export default interface Artist{
     genres: string[];
     popularity: number;
     followers: number;
-    images: {url: string}[]
+    images: { url: string; height: number; width: number }[]
 }

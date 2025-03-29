@@ -4,9 +4,7 @@
 
     class Track{
         private static $baseUrl = "https://api.spotify.com/v1";
-        
         public static function getTopGlobalTracks($limit){
-            $limit--;
             $token = Auth::getAccessToken();
             $ch = curl_init();
             // TOP 100 GLOBAL TRACK IDS
@@ -42,11 +40,24 @@
                     return;
                 }
 
+                // Ordenar canciones por popularidad
+                $data = json_decode($response, true);
+                
+                $tracks = $data['items'];
+
+                usort($tracks, function($a, $b){
+                    return $b['track']['popularity'] <=> $a['track']['popularity'];
+                });
+
+                $tracks = array_map(function($item){
+                    return $item['track'];
+                }, $tracks);
+
                 header("Content-Type: application/json");
                 echo json_encode([
                     "status" => "OK",
                     "message" => "Top $limit tracks obtenidos exitosamente.",
-                    "data" => json_decode($response, true)
+                    "data" => $tracks
                 ]);
             }catch(Exception $e){
                 echo $e->getMessage();

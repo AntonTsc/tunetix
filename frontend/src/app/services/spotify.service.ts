@@ -19,4 +19,12 @@ export class SpotifyService {
 
     return this.http.get(`${this.baseUrl}/artists/getAll.php`);
   }
+
+  getTracks(limit?: number): Observable<any>{
+    if(limit){
+      return this.http.get(`${this.baseUrl}/tracks/getAll.php?limit=${limit}`)
+    }
+
+    return this.http.get(`${this.baseUrl}/tracks/getAll.php`);
+  }
 }
