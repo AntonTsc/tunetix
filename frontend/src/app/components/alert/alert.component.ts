@@ -9,7 +9,7 @@ import ServerResponse from 'src/app/interfaces/ServerResponse';
 export class AlertComponent{
   @Input() serverResponse!: ServerResponse;
   statusStyleColors: Map<string, string> = new Map([
-    ['OK', 'text-green-800 bg-green-50 dark:bg-green-600'],
-    ['ERROR', 'text-red-800 bg-red-50 dark:bg-red-600']
+    ['OK', 'bg-green-50 border-green-500 text-green-700'],
+    ['ERROR', 'bg-red-50 border-red-500 text-red-700']
   ])
 }

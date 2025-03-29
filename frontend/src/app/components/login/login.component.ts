@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
 
@@ -14,7 +14,11 @@ export class LoginComponent {
 
   @ViewChild('form') form!: ElementRef<HTMLFormElement>;
 
-  constructor(private _auth: AuthService, private router: Router) {}
+  constructor(
+    private _auth: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   login() {
     const fd = new FormData(this.form.nativeElement);
@@ -49,11 +53,10 @@ export class LoginComponent {
 
         if (response.status === 'OK') {
           this.serverResponse = response;
-          localStorage.setItem('user_data', JSON.stringify(response.data));
 
-          setTimeout(() => {
-            this.router.navigate(['/inicio']);
-          }, 500);
+          // ELIMINADO: No almacenar datos del usuario en localStorage
+          // Use the defined method for login success
+          this.onLoginSuccess(response);
         } else {
           this.serverResponse = response;
         }
@@ -70,5 +73,18 @@ export class LoginComponent {
         };
       }
     });
+  }
+
+  onLoginSuccess(response: any) {
+    if (response.status === 'OK') {
+      // Force role check from database
+      this._auth.checkAndUpdateAdminStatus().subscribe(isAdmin => {
+        console.log("Login completado, estado admin:", isAdmin);
+
+        // Correctly access query parameters using ActivatedRoute
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/inicio';
+        this.router.navigateByUrl(returnUrl);
+      });
+    }
   }
 }

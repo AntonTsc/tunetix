@@ -2,13 +2,8 @@
 include_once '../../db.php';
 include_once '../../utils/cardValidations.php';
 include_once '../../auth/validate_token.php';
+include_once '../../auth/global_headers.php';
 
-// Add CORS headers
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: http://localhost:4200');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-header('Access-Control-Allow-Credentials: true');
 
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -59,19 +54,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // // Card validations
-        // if (function_exists('validatePan') && !validatePan($pan)) {
-        //     echo json_encode(["status" => "ERROR", "message" => "Número de tarjeta inválido"]);
-        //     exit;
-        // }
+        // Remove any non-numeric characters (spaces, dashes, etc.) from PAN
+        $pan = preg_replace('/\D/', '', $pan);
 
+        // Validate CVC
         if (function_exists('validateCvc') && !validateCvc($cvc)) {
             echo json_encode(["status" => "ERROR", "message" => "Código CVC inválido"]);
             exit;
         }
 
+        // Validate expiration date
         if (function_exists('validateExpirationDate') && !validateExpirationDate($fecha_expiracion)) {
             echo json_encode(["status" => "ERROR", "message" => "Fecha de expiración inválida"]);
+            exit;
+        }
+
+        // Verificar si el usuario ya tiene esta tarjeta registrada
+        $checkDuplicate = $conn->prepare("SELECT id FROM metodo_pago WHERE id_usuario = ? AND pan = ?");
+        $checkDuplicate->bind_param("is", $user_id, $pan);
+        $checkDuplicate->execute();
+        $result = $checkDuplicate->get_result();
+
+        if ($result->num_rows > 0) {
+            echo json_encode(["status" => "ERROR", "message" => "Ya tienes esta tarjeta registrada"]);
             exit;
         }
 
