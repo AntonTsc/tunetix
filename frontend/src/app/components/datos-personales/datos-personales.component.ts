@@ -36,9 +36,9 @@ export class DatosPersonalesComponent implements OnInit {
   };
 
   // Formularios para validación
-  nameForm: FormGroup;
-  emailForm: FormGroup;
-  passwordForm: FormGroup;
+  nameForm: FormGroup = new FormGroup({});
+  emailForm: FormGroup = new FormGroup({});
+  passwordForm: FormGroup = new FormGroup({});
 
   loading = false;
   updateLoading = false;
@@ -66,17 +66,47 @@ export class DatosPersonalesComponent implements OnInit {
     private tokenService: TokenService,
     private cdr: ChangeDetectorRef
   ) {
-    // Inicializar formularios con validadores
+    // Inicializar userData con valores vacíos para evitar errores
+    this.userData = {
+      name: '',
+      lastName: '',
+      email: '',
+      profileImage: null,
+      id: 0,
+      createdAt: '',
+      updatedAt: ''
+    };
+
+    this.initForms();
+  }
+
+  // Método para inicializar los formularios
+  initForms() {
     this.nameForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]]
+      name: [
+        this.userData?.name || '', // Valor por defecto para evitar null/undefined
+        [
+          Validators.required,
+          Validators.minLength(2),
+          Validators.maxLength(50)
+        ]
+      ],
+      lastName: [
+        this.userData?.lastName || '', // Valor por defecto para evitar null/undefined
+        [
+          Validators.required,
+          Validators.minLength(2),
+          Validators.maxLength(50)
+        ]
+      ]
     });
 
     this.emailForm = this.fb.group({
-      email: ['', [
+      email: [this.userData?.email || '', [
         Validators.required,
         Validators.email,
-        Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$')
+        Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'),
+        Validators.maxLength(100)
       ]]
     });
 

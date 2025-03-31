@@ -141,8 +141,8 @@
     <div class="text-center sm:text-left">
       <!-- Modificado para mostrar nombre y apellido -->
       <h1
-      class="text-3xl font-bold text-gray-800 sm:truncate max-w-xl"
-      [appTooltip]="userData.name + ' ' + userData.lastName"
+        class="text-3xl font-bold text-gray-800 sm:truncate max-w-xl"
+        [appTooltip]="userData.name + ' ' + userData.lastName"
       >
         {{ userData.name }} {{ userData.lastName }}
       </h1>
@@ -152,7 +152,7 @@
     </div>
   </div>
 
-  <!-- Confirmación de eliminación de imagen - Modal (trasladar al app.component.html o añadir con appended to body) -->
+  <!-- Confirmación de eliminación de imagen - Modal -->
   <div
     *ngIf="showDeleteConfirmModal"
     class="fixed inset-0 flex items-center justify-center z-[9999]"
@@ -254,12 +254,19 @@
             "
             class="text-red-500 text-sm mt-1"
           >
-            <span *ngIf="nameForm.get('name')?.errors?.['required']"
-              >El nombre es obligatorio</span
-            >
-            <span *ngIf="nameForm.get('name')?.errors?.['minlength']"
-              >El nombre debe tener al menos 2 caracteres</span
-            >
+            <span *ngIf="nameForm.get('name')?.errors?.['required']">
+              El nombre es obligatorio
+            </span>
+            <span *ngIf="nameForm.get('name')?.errors?.['minlength']">
+              El nombre debe tener al menos 2 caracteres
+            </span>
+            <span *ngIf="nameForm.get('name')?.errors?.['maxlength']">
+              El nombre no puede tener más de 50 caracteres
+            </span>
+          </div>
+          <!-- Añadir debajo del input del nombre -->
+          <div class="flex justify-end text-xs text-gray-500 mt-1">
+            {{ nameForm.get("name")?.value?.length || 0 }}/50
           </div>
         </div>
 
@@ -278,12 +285,19 @@
             "
             class="text-red-500 text-sm mt-1"
           >
-            <span *ngIf="nameForm.get('lastName')?.errors?.['required']"
-              >El apellido es obligatorio</span
-            >
-            <span *ngIf="nameForm.get('lastName')?.errors?.['minlength']"
-              >El apellido debe tener al menos 2 caracteres</span
-            >
+            <span *ngIf="nameForm.get('lastName')?.errors?.['required']">
+              El apellido es obligatorio
+            </span>
+            <span *ngIf="nameForm.get('lastName')?.errors?.['minlength']">
+              El apellido debe tener al menos 2 caracteres
+            </span>
+            <span *ngIf="nameForm.get('lastName')?.errors?.['maxlength']">
+              El apellido no puede tener más de 50 caracteres
+            </span>
+          </div>
+          <!-- Añadir debajo del input del apellido -->
+          <div class="flex justify-end text-xs text-gray-500 mt-1">
+            {{ nameForm.get("lastName")?.value?.length || 0 }}/50
           </div>
         </div>
 
@@ -362,6 +376,13 @@
             >
               Introduce un correo electrónico válido
             </span>
+            <span *ngIf="emailForm.get('email')?.errors?.['maxlength']">
+              El correo electrónico no puede tener más de 100 caracteres
+            </span>
+          </div>
+          <!-- Añadir el contador de caracteres -->
+          <div class="flex justify-end text-xs text-gray-500 mt-1">
+            {{ emailForm.get("email")?.value?.length || 0 }}/100
           </div>
         </div>
 
