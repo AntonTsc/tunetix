@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from '../../services/auth.service';
@@ -58,6 +58,9 @@ export class DatosPersonalesComponent implements OnInit {
   // Propiedades para eliminación de foto de perfil
   showDeleteConfirmModal = false;
   deletingImage = false;
+
+  // Propiedad para controlar la visibilidad del menú
+  showPhotoMenu = false;
 
   constructor(
     private userService: UserService,
@@ -122,6 +125,7 @@ export class DatosPersonalesComponent implements OnInit {
   // Método para abrir el modal de confirmación de eliminación
   confirmDeleteImage(): void {
     this.showDeleteConfirmModal = true;
+    this.showPhotoMenu = false; // Cerrar el menú al confirmar eliminación
   }
 
   // Método para cancelar la eliminación
@@ -459,6 +463,9 @@ export class DatosPersonalesComponent implements OnInit {
 
       // Limpiar cualquier mensaje de error previo
       this.serverResponse = null;
+
+      // Cerrar el menú desplegable después de seleccionar un archivo
+      this.showPhotoMenu = false;
     }
   }
 
@@ -534,5 +541,35 @@ export class DatosPersonalesComponent implements OnInit {
   // Helper method to get full name
   getFullName(): string {
     return `${this.userData.name} ${this.userData.lastName}`.trim();
+  }
+
+  // Método para alternar la visibilidad del menú
+  togglePhotoMenu(event?: Event): void {
+    if (event) {
+      event.stopPropagation(); // Evitar que el clic se propague al documento
+    }
+    this.showPhotoMenu = !this.showPhotoMenu;
+  }
+
+  // Manejador de clic para cerrar el menú cuando se haga clic fuera
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event): void {
+    // Solo actuar si el menú está abierto
+    if (this.showPhotoMenu) {
+      const clickedElement = event.target as HTMLElement;
+      const photoMenu = document.querySelector('.menu-opciones-foto');
+      const photoButton = document.querySelector('[title="Opciones de foto"]');
+
+      // Si se hizo clic fuera del menú y del botón
+      if (
+        photoButton &&
+        !photoButton.contains(clickedElement) &&
+        photoMenu &&
+        !photoMenu.contains(clickedElement)
+      ) {
+        this.showPhotoMenu = false;
+        this.cdr.detectChanges();
+      }
+    }
   }
 }

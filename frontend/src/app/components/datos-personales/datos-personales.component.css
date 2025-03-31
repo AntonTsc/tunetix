@@ -1,0 +1,37 @@
+/* Animaciones para el menú de opciones de foto */
+.menu-animation {
+  animation: slideFromLeft 0.3s ease forwards;
+  transform-origin: left center;
+}
+
+@keyframes slideFromLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Estilo para mejorar la experiencia visual */
+.menu-opciones-foto {
+  position: absolute;
+  z-index: 5;
+  bottom: 0;
+  left: 100%;
+}
+
+/* Estilo para cuando el menú está abierto */
+.menu-opciones-foto button,
+.menu-opciones-foto label {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.menu-opciones-foto button:hover,
+.menu-opciones-foto label:hover {
+  transform: scale(1.1);
+}
