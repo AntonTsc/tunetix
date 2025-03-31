@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { AuthService } from '../../services/auth.service';
+import { TokenService } from '../../services/token.service';
 import { UpdateUserData, UserService } from '../../services/user.service';
 
 @Component({
@@ -27,7 +29,7 @@ export class DatosPersonalesComponent implements OnInit {
     name: '',
     lastName: '',
     email: '',
-    profileImage: null as string | null, // Allow both string and null
+    profileImage: null as string | null,
     id: 0,
     createdAt: '',
     updatedAt: ''
@@ -51,8 +53,19 @@ export class DatosPersonalesComponent implements OnInit {
 
   // For file uploads
   selectedFile: File | null = null;
+  previewImage: string | null = null;
 
-  constructor(private userService: UserService, private fb: FormBuilder) {
+  // Propiedades para eliminación de foto de perfil
+  showDeleteConfirmModal = false;
+  deletingImage = false;
+
+  constructor(
+    private userService: UserService,
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private tokenService: TokenService,
+    private cdr: ChangeDetectorRef
+  ) {
     // Inicializar formularios con validadores
     this.nameForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
@@ -73,6 +86,67 @@ export class DatosPersonalesComponent implements OnInit {
       confirmPassword: ['', Validators.required]
     }, {
       validator: this.checkPasswords
+    });
+  }
+
+  // Método para abrir el modal de confirmación de eliminación
+  confirmDeleteImage(): void {
+    this.showDeleteConfirmModal = true;
+  }
+
+  // Método para cancelar la eliminación
+  cancelDeleteImage(): void {
+    this.showDeleteConfirmModal = false;
+  }
+
+  // Método para eliminar la imagen
+  deleteImage(): void {
+    this.deletingImage = true;
+
+    this.userService.deleteProfileImage().subscribe({
+      next: (response) => {
+        if (response.status === 'OK') {
+          // Actualizar userData con la imagen eliminada
+          this.userData.profileImage = null;
+
+          // Mostrar mensaje de éxito
+          this.serverResponse = {
+            status: 'OK',
+            message: response.message || 'La imagen de perfil ha sido eliminada correctamente'
+          };
+
+          // Actualizar también el AuthService para que refleje los cambios en la sesión actual
+          // sin usar localStorage, solo la instancia en memoria
+          const currentUser = this.authService.getCurrentUserData();
+          if (currentUser) {
+            currentUser.image_path = null;
+            // No usar TokenService.saveUser ya que eso guardaría en localStorage
+            // En lugar de eso, actualizar directamente el servicio de autenticación
+            this.authService.updateSessionUserData(currentUser);
+          }
+        } else {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: response.message || 'Error al eliminar la imagen'
+          };
+        }
+
+        // Cerrar el modal y resetear el estado
+        this.showDeleteConfirmModal = false;
+        this.deletingImage = false;
+
+        // Forzar detección de cambios
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al eliminar la imagen de perfil:', err);
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Error al eliminar la imagen: ' + (err.message || 'Error desconocido')
+        };
+        this.deletingImage = false;
+        this.showDeleteConfirmModal = false;
+      }
     });
   }
 
@@ -334,52 +408,92 @@ export class DatosPersonalesComponent implements OnInit {
     });
   }
 
+  // Método para manejar la selección de archivos
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
 
-      // Create a preview
+    if (input.files && input.files.length) {
+      this.selectedFile = input.files[0];
+      console.log('Archivo seleccionado:', this.selectedFile.name, this.selectedFile.type);
+
+      // Crear una vista previa de la imagen seleccionada
       const reader = new FileReader();
-      reader.onload = () => {
-        this.userData.profileImage = reader.result as string;
+      reader.onload = (e) => {
+        // Aquí es donde actualizamos la vista previa
+        this.previewImage = e.target?.result as string;
+
+        // NO actualizamos userData.profileImage aquí para no confundir al usuario
+        // Solo usamos previewImage para mostrar la vista previa
       };
       reader.readAsDataURL(this.selectedFile);
+
+      // Limpiar cualquier mensaje de error previo
+      this.serverResponse = null;
     }
   }
 
+  // Método para subir la imagen seleccionada
   uploadImage(): void {
-    if (this.selectedFile) {
-      this.updateLoading = true;
-      this.serverResponse = null;
+    if (!this.selectedFile) {
+      this.serverResponse = {
+        status: 'ERROR',
+        message: 'No se ha seleccionado ninguna imagen'
+      };
+      return;
+    }
 
-      this.userService.updateProfileImage(this.selectedFile).subscribe({
-        next: (response) => {
-          if (response.status === 'OK') {
-            this.serverResponse = {
-              status: 'OK',
-              message: 'Imagen de perfil actualizada correctamente'
-            };
-            this.userData.profileImage = response.data.image_path;
-            this.selectedFile = null;
-          } else {
-            this.serverResponse = {
-              status: 'ERROR',
-              message: response.message || 'Error al actualizar imagen'
-            };
+    this.updateLoading = true;
+
+    const formData = new FormData();
+    formData.append('image', this.selectedFile);
+
+    console.log('FormData creado:', this.selectedFile.name, this.selectedFile.type, this.selectedFile.size);
+
+    this.userService.updateProfileImage(formData).subscribe({
+      next: (response) => {
+        console.log('Respuesta del servidor:', response);
+
+        if (response.status === 'OK') {
+          // Actualizar el perfil con la nueva imagen
+          this.userData.profileImage = response.data.image_path;
+
+          // Mostrar mensaje de éxito
+          this.serverResponse = {
+            status: 'OK',
+            message: 'Imagen de perfil actualizada correctamente'
+          };
+
+          // Actualizar el AuthService
+          const currentUser = this.authService.getCurrentUserData();
+          if (currentUser) {
+            currentUser.image_path = response.data.image_path;
+            this.authService.updateSessionUserData(currentUser);
           }
-          this.updateLoading = false;
-        },
-        error: (err) => {
+
+          // Resetear el archivo seleccionado y la vista previa
+          this.selectedFile = null;
+          this.previewImage = null;
+        } else {
           this.serverResponse = {
             status: 'ERROR',
-            message: 'Error al subir imagen: ' + (err.message || 'Error desconocido')
+            message: response.message || 'Error al actualizar la imagen'
           };
-          this.updateLoading = false;
-          console.error('Error al subir imagen:', err);
         }
-      });
-    }
+
+        this.updateLoading = false;
+
+        // Forzar detección de cambios
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error completo:', err);
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Error al subir imagen: ' + (err.message || 'Error desconocido')
+        };
+        this.updateLoading = false;
+      }
+    });
   }
 
   // Helper method to check if user has a profile image

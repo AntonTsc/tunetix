@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import ServerResponse from '../interfaces/ServerResponse';
 import { AuthService } from './auth.service';
 
 export interface UserResponse {
@@ -93,20 +94,49 @@ export class UserService {
   }
 
   // Método para actualizar la imagen de perfil
-  updateProfileImage(imageFile: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-
-    return this.http.post<any>(
+  updateProfileImage(formData: FormData): Observable<ServerResponse> {
+    return this.http.post<ServerResponse>(
       `${this.apiBaseUrl}/Controllers/Usuario/updateProfileImage.php`,
       formData,
+      { withCredentials: true }  // Añadir esta opción para incluir las cookies de sesión
+    ).pipe(
+      tap((response) => {
+        // Si la actualización es exitosa, actualizar los datos del usuario en el BehaviorSubject
+        if (response.status === 'OK' && response.data) {
+          const currentData = this.userDataSubject.getValue();
+          if (currentData) {
+            this.userDataSubject.next({
+              ...currentData,
+              image_path: response.data.image_path
+            });
+          }
+        }
+      }),
+      catchError(error => {
+        console.error('Error en updateProfileImage:', error);
+        return throwError(() => new Error('Error al actualizar la imagen de perfil'));
+      })
+    );
+  }
+
+  // Método para eliminar la imagen de perfil (solo mediante base de datos)
+  deleteProfileImage(): Observable<any> {
+    return this.http.delete<any>(
+      `${this.apiBaseUrl}/Controllers/Usuario/deleteProfileImage.php`,
       { withCredentials: true }
     ).pipe(
       tap((response) => {
-        if (response.status === 'OK' && response.data) {
-          // Actualizar el BehaviorSubject con los nuevos datos
-          this.userDataSubject.next(response.data);
+        if (response.status === 'OK') {
+          // Actualizar el BehaviorSubject con los nuevos datos del usuario sin imagen
+          this.userDataSubject.next({
+            ...this.userDataSubject.getValue(),
+            image_path: null
+          });
         }
+      }),
+      catchError(error => {
+        console.error('Error al eliminar imagen de perfil:', error);
+        return throwError(() => new Error('Error al eliminar la imagen de perfil'));
       })
     );
   }

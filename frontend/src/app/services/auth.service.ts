@@ -313,4 +313,15 @@ export class AuthService {
   getCurrentUserData(): any {
     return this.userDataSubject.value;
   }
+
+  /**
+   * Actualiza los datos del usuario en la sesión actual sin usar localStorage
+   * @param userData Datos actualizados del usuario
+   */
+  updateSessionUserData(userData: any): void {
+    // Actualizar la instancia local
+    this.userDataSubject.next(userData);
+
+    // No se actualiza localStorage, solo los datos en memoria
+  }
 }
