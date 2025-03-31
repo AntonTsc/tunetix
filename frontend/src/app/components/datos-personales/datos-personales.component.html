@@ -140,7 +140,10 @@
     <!-- Rest of your profile content -->
     <div class="text-center sm:text-left">
       <!-- Modificado para mostrar nombre y apellido -->
-      <h1 class="text-3xl font-bold text-gray-800">
+      <h1
+      class="text-3xl font-bold text-gray-800 sm:truncate max-w-xl"
+      [appTooltip]="userData.name + ' ' + userData.lastName"
+      >
         {{ userData.name }} {{ userData.lastName }}
       </h1>
       <p class="text-gray-500">
