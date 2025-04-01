@@ -5,4 +5,5 @@ export default interface Artist{
     popularity: number;
     followers: number;
     images: { url: string; height: number; width: number }[]
+    isArtist: boolean;
 }

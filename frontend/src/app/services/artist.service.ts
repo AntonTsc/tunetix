@@ -6,13 +6,23 @@ import Artist from '../interfaces/Artist';
   providedIn: 'root'
 })
 export class ArtistService {
+  private _artists = new BehaviorSubject<Artist[]>([]);
+  private _loading = new BehaviorSubject<boolean>(true);
 
-  constructor() { }
+  get artists() {
+    return this._artists.asObservable();
+  }
 
-  private artistsStorage = new BehaviorSubject<Artist[]>([]);
-  artists = this.artistsStorage.asObservable();
+  get loading() {
+    return this._loading.asObservable();
+  }
 
-  set(artists: Artist[]): void{
-    this.artistsStorage.next(artists);
+  set(artists: Artist[]) {
+    this._artists.next(artists);
+    this._loading.next(false);
+  }
+
+  setLoading(state: boolean) {
+    this._loading.next(state);
   }
 }

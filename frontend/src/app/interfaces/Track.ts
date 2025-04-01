@@ -12,4 +12,5 @@ export default interface Track {
     popularity: number; 
     duration_ms: number; 
     preview_url: string | null; 
+    isTrack: boolean;
 }

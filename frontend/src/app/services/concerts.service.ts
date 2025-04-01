@@ -1,15 +1,29 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConcertsService {
-
-  constructor(private http: HttpClient) { }
-
-  getConcerts(): Observable<any> {
-    return this.http.get(`https://app.ticketmaster.com/discovery/v2/events.json?apikey=zvEQbLHmIkutZ9hAmAMN87HacZPm2MRo&classificationName=music&sort=relevance,desc`)
+  private _concerts = new BehaviorSubject<any[]>([]);
+  private _loading = new BehaviorSubject<boolean>(true);
+  
+  get concerts() {
+    return this._concerts.asObservable();
   }
+  
+  get loading() {
+    return this._loading.asObservable();
+  }
+  
+  set(concerts: any[]) {
+      this._concerts.next(concerts);
+      this._loading.next(false);
+  }
+
+  setLoading(state: boolean) {
+    this._loading.next(state);
+  }
+
 }

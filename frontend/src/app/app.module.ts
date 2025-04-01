@@ -31,6 +31,7 @@ import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { TokenService } from './services/token.service';
 import { TooltipDirective } from './directives/tooltip.directive';
+import { CardComponent } from './components/card/card.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +59,8 @@ import { TooltipDirective } from './directives/tooltip.directive';
     AdminUsersComponent,
     AdminDashboardComponent,
     AdminUsersComponent,
-    TooltipDirective
+    TooltipDirective,
+    CardComponent
   ],
   imports: [
     BrowserModule,

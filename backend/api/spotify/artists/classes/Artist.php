@@ -46,17 +46,14 @@
                 // Procesar la respuesta para obtener los IDs únicos de los artistas
                 $data = json_decode($response, true);
                 $artistIds = [];
-
                 foreach ($data['items'] as $item) {
                     if (isset($item['track']['artists'])) {
                         foreach ($item['track']['artists'] as $artist) {
-                            $artistId = $artist['id'];
-                            if (!in_array($artistId, $artistIds)) {
-                                $artistIds[] = $artistId; // Agregar solo IDs únicos
-                            }
+                            $artistIds[$artist['id']] = true; // Usar como clave
                         }
                     }
                 }
+                $artistIds = array_keys($artistIds); // Obtener solo las claves
                 return $artistIds;
             } catch (Exception $e) {
                 header("Content-Type: application/json");
@@ -74,21 +71,31 @@
             $artistIds = array_slice($artistIds, 0, $limit);
             $token = Auth::getAccessToken();
             $artists = [];
-            $ch = curl_init();
-            $url = Artist::$baseUrl . "/artists?ids=" . implode(",", $artistIds);
 
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Authorization: Bearer " . $token,
-                "Content-Type: application/json"
-            ]);
+            $multiCurl = [];
+            $mh = curl_multi_init();
 
-            try {
-                $response = curl_exec($ch);
+            foreach ($artistIds as $id) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, Artist::$baseUrl . "/artists/$id");
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "Authorization: Bearer " . $token,
+                    "Content-Type: application/json"
+                ]);
+                curl_multi_add_handle($mh, $ch);
+                $multiCurl[] = $ch;
+            }
+
+            do {
+                curl_multi_exec($mh, $running);
+            } while ($running > 0);
+
+            foreach ($multiCurl as $ch) {
+                $response = curl_multi_getcontent($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
-        
+                curl_multi_remove_handle($mh, $ch);
+
                 if ($httpCode === 404) {
                     header("Content-Type: application/json");
                     echo json_encode([
@@ -103,45 +110,36 @@
                     echo json_encode([
                         "status" => "ERROR",
                         "message" => "Error al obtener los datos de los artistas.",
-                        "endpoint" => $url
                     ]);
                     return;
                 }
-        
-                // Procesar la respuesta para obtener información de los artistas
+
                 $data = json_decode($response, true);
-                if (isset($data['artists'])) {
-                    foreach ($data['artists'] as $artist) {
-                        $artists[] = [
-                            "id" => $artist['id'],
-                            "name" => $artist['name'],
-                            "genres" => $artist['genres'],
-                            "popularity" => $artist['popularity'],
-                            "followers" => $artist['followers']['total'],
-                            "images" => $artist['images']
-                        ];
-                    }
+                if (isset($data)) {
+                    $artists[] = [
+                        "id" => $data['id'],
+                        "name" => $data['name'],
+                        "genres" => $data['genres'],
+                        "popularity" => $data['popularity'],
+                        "followers" => $data['followers']['total'],
+                        "images" => $data['images']
+                    ];
                 }
-        
-                // Ordenar los artistas por popularidad de mayor a menor
-                usort($artists, function ($a, $b) {
-                    return $b['popularity'] <=> $a['popularity'];
-                });
-        
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "OK",
-                    "message" => "Información de artistas obtenida",
-                    "data" => $artists,
-                ]);
-            } catch (Exception $e) {
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "ERROR",
-                    "message" => "Error al obtener los artistas",
-                    "data" => $e->getMessage(),
-                ]);
             }
+
+            curl_multi_close($mh);
+
+            // Ordenar los artistas por popularidad de mayor a menor
+            usort($artists, function ($a, $b) {
+                return $b['popularity'] <=> $a['popularity'];
+            });
+        
+            header("Content-Type: application/json");
+            echo json_encode([
+                "status" => "OK",
+                "message" => "Información de artistas obtenida",
+                "data" => $artists,
+            ]);
         }
     }
 ?>

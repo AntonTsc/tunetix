@@ -6,6 +6,7 @@ import { ArtistService } from './services/artist.service';
 import { TrackService } from './services/track.service';
 import Track from './interfaces/Track';
 import { ConcertsService } from './services/concerts.service';
+import { TicketmasterService } from './services/ticketmaster.service';
 // import { AfterViewInit, OnInit } from '@angular/core';
 // import { NavigationEnd, Router } from '@angular/router';
 // import { AuthService } from './services/auth.service';
@@ -21,51 +22,66 @@ export class AppComponent implements OnInit{
   (private _spotify: SpotifyService, 
     private _artists: ArtistService,
     private _tracks: TrackService,
+    private _ticketmaster: TicketmasterService,
     private _concerts: ConcertsService
   ){}
 
   ngOnInit(): void {
-    this.loadArtists();
-    this.loadTracks();
-    this.loadConcerts();
+    this.setArtists();
+    this.setTracks();
+    this.setConcerts();
   }
 
-  loadArtists(){
-    this._spotify.getArtists().subscribe({
+  setArtists(){
+    this._artists.setLoading(true);
+    this._spotify.getArtists(6).subscribe({
       next: (response: ServerResponse) => {
         if(response.status === "OK"){
           this._artists.set(response.data as Artist[])
         }else{
           console.error(response.message);
+          this._artists.setLoading(false);
         }
-      },error: (error : ServerResponse) => {
+      },
+      error: (error : ServerResponse) => {
         console.error(error.message)
+        this._artists.setLoading(false);
       }
     })
   }
 
-  loadTracks(){
-    this._spotify.getTracks().subscribe({
+  setTracks(){
+    this._tracks.setLoading(true);
+    this._spotify.getTracks(6).subscribe({
       next: (response: ServerResponse) => {
         if(response.status === "OK"){
           this._tracks.set(response.data as Track[]);
         }else{
           console.error(response.message);
+          this._tracks.setLoading(false);
         }
       },
       error: (error: ServerResponse) => {
         console.error(error.message);
+        this._tracks.setLoading(false);
       }
     })
   }
 
-  loadConcerts(){
-    this._concerts.getConcerts().subscribe({
-      next: (response: any) => {
-        console.log(response._embedded.events)
+  setConcerts(){
+    this._concerts.setLoading(true);
+    this._ticketmaster.getConcerts(6, "", "ES").subscribe({
+      next: (response: ServerResponse) => {
+        if(response.status === "OK"){
+          this._concerts.set(response.data as any[])
+        }else{
+          console.error(response.message);
+          this._concerts.setLoading(false);
+        }
       },
       error: (error: any) => {
-        console.error(error)
+        console.error(error);
+        this._concerts.setLoading(false);
       }
     })
   }

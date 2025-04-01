@@ -23,6 +23,10 @@ SET time_zone = "+00:00";
 
 -- --------------------------------------------------------
 
+DROP DATABASE IF EXISTS `tunetix_db`;
+CREATE DATABASE `tunetix_db`;
+USE `tunetix_db`;
+
 --
 -- Estructura de tabla para la tabla `contact_messages`
 --

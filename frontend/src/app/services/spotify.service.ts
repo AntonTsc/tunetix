@@ -1,30 +1,32 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SpotifyService {
-  
-  constructor(private http : HttpClient) {}
+  private baseUrl = 'http://localhost/tunetix/backend/api/spotify';
 
-  baseUrl = 'http://localhost/backend/api/spotify';
-  top20ArtistasGlobal = '330902b30f904885'
+  constructor(private http: HttpClient) {}
 
-  getArtists(limit?: number): Observable<any>{
-    if(limit){
-      return this.http.get(`${this.baseUrl}/artists/getAll.php?limit=${limit}`);
-    }
-
-    return this.http.get(`${this.baseUrl}/artists/getAll.php`);
+  getArtists(limit?: number): Observable<any> {
+    const url = limit
+      ? `${this.baseUrl}/artists/getAll.php?limit=${limit}`
+      : `${this.baseUrl}/artists/getAll.php`;
+    return this.http.get(url).pipe(catchError(this.handleError));
   }
 
-  getTracks(limit?: number): Observable<any>{
-    if(limit){
-      return this.http.get(`${this.baseUrl}/tracks/getAll.php?limit=${limit}`)
-    }
+  getTracks(limit?: number): Observable<any> {
+    const url = limit
+      ? `${this.baseUrl}/tracks/getAll.php?limit=${limit}`
+      : `${this.baseUrl}/tracks/getAll.php`;
+    return this.http.get(url).pipe(catchError(this.handleError));
+  }
 
-    return this.http.get(`${this.baseUrl}/tracks/getAll.php`);
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    console.error('Error en la solicitud:', error.message);
+    return throwError(() => new Error('Error en la solicitud HTTP'));
   }
 }
