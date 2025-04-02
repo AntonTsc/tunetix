@@ -1,20 +1,88 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from './services/auth.service';
+import { SpotifyService } from './services/spotify.service';
+import Artist from './interfaces/Artist';
+import ServerResponse from './interfaces/ServerResponse';
+import { ArtistService } from './services/artist.service';
+import { TrackService } from './services/track.service';
+import Track from './interfaces/Track';
+import { ConcertsService } from './services/concerts.service';
+import { TicketmasterService } from './services/ticketmaster.service';
+// import { AfterViewInit, OnInit } from '@angular/core';
+// import { NavigationEnd, Router } from '@angular/router';
+// import { AuthService } from './services/auth.service';
+// import ServerResponse from './interfaces/ServerResponse';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
-  constructor(private authService: AuthService) {}
+export class AppComponent implements OnInit{
+  constructor
+  (private _spotify: SpotifyService, 
+    private _artists: ArtistService,
+    private _tracks: TrackService,
+    private _ticketmaster: TicketmasterService,
+    private _concerts: ConcertsService
+  ){}
 
-  ngOnInit() {
-    // Inicializar el estado de admin al cargar la aplicación
-    if (this.authService.isAuthenticated()) {
-      this.authService.checkAndUpdateAdminStatus().subscribe(
-        isAdmin => console.log("App inicializada con estado admin:", isAdmin)
-      );
-    }
+  ngOnInit(): void {
+    this.setArtists();
+    this.setTracks();
+    this.setConcerts();
+  }
+
+  setArtists(){
+    this._artists.setLoading(true);
+    this._spotify.getArtists(6).subscribe({
+      next: (response: ServerResponse) => {
+        if(response.status === "OK"){
+          this._artists.set(response.data as Artist[])
+        }else{
+          console.error(response.message);
+          this._artists.setLoading(false);
+        }
+      },
+      error: (error : ServerResponse) => {
+        console.error(error.message)
+        this._artists.setLoading(false);
+      }
+    })
+  }
+
+  setTracks(){
+    this._tracks.setLoading(true);
+    this._spotify.getTracks(6).subscribe({
+      next: (response: ServerResponse) => {
+        if(response.status === "OK"){
+          this._tracks.set(response.data as Track[]);
+        }else{
+          console.error(response.message);
+          this._tracks.setLoading(false);
+        }
+      },
+      error: (error: ServerResponse) => {
+        console.error(error.message);
+        this._tracks.setLoading(false);
+      }
+    })
+  }
+
+  setConcerts(){
+    this._concerts.setLoading(true);
+    this._ticketmaster.getConcerts(6, "", "ES").subscribe({
+      next: (response: ServerResponse) => {
+        if(response.status === "OK"){
+          this._concerts.set(response.data as any[])
+        }else{
+          console.error(response.message);
+          this._concerts.setLoading(false);
+        }
+      },
+      error: (error: any) => {
+        console.error(error);
+        this._concerts.setLoading(false);
+      }
+    })
   }
 }
