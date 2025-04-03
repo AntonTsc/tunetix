@@ -1,12 +1,12 @@
 <ng-container *ngIf="!loading; else loadingTpl">
-  <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer">
+  <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:border-purple-600 hover:bg-purple-100 hover:text-purple-600 border transition-colors cursor-pointer group">
     <img
       [src]="getUrlImage()"
-      class="w-12 h-12 bg-gray-300 rounded-full"
+      class="w-16 h-16 bg-gray-300 rounded-full object-cover flex-shrink-0"
       alt="Imagen"
     />
-    <div>
-      <span class="font-semibold text-gray-700">
+    <div class="min-w-0 flex-1">
+      <span class="font-semibold text-gray-700 transition-colors group-hover:text-purple-600 text-lg truncate block">
         {{ data?.name }}
       </span>
     </div>
@@ -14,8 +14,8 @@
 </ng-container>
 
 <ng-template #loadingTpl>
-  <div class="animate-pulse flex items-center space-x-4 p-4 bg-gray-100 rounded-lg">
-    <div class="w-12 h-12 bg-gray-300 rounded-full"></div>
+  <div class="animate-pulse flex items-center space-x-4 p-4 bg-gray-100 rounded-lg border border-transparent">
+    <div class="w-16 h-16 bg-gray-300 rounded-full"></div>
     <div class="flex-1 space-y-2">
       <div class="h-4 bg-gray-300 rounded w-3/4"></div>
     </div>
