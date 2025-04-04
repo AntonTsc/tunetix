@@ -27,7 +27,7 @@ try {
 }
 
 // Definir variables predeterminadas si no se pudieron cargar desde .env
-if (!isset($_ENV['SECRET']) || empty($_ENV['SECRET'])) {
-    $_ENV['SECRET'] = 'F-!5W30#s5#?7y=Oc(FV<%pi0GWm1b:gE`W^N:cR"{/eVdr.vw';
-    error_log('AVISO: Usando valor predeterminado para SECRET en dotenv.php');
-}
+// if (!isset($_ENV['SECRET']) || empty($_ENV['SECRET'])) {
+//     $_ENV['SECRET'] = 'F-!5W30#s5#?7y=Oc(FV<%pi0GWm1b:gE`W^N:cR"{/eVdr.vw';
+//     error_log('AVISO: Usando valor predeterminado para SECRET en dotenv.php');
+// }
