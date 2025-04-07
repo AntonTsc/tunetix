@@ -5,17 +5,39 @@ class Concert
 {
     private static $baseUrl = 'https://app.ticketmaster.com/discovery/v2';
 
-    public static function getAll($limit = 0, $keyword = "", $countryCode = "")
+    public static function getAll($limit = 0, $keyword = "", $countryCode = "", $page = 0, $sort = "date_desc")
     {
         $ch = curl_init();
+
+        // Obtener la fecha actual en formato YYYY-MM-DD
+        $today = date('Y-m-d');
 
         // Construir la URL con todos los parámetros necesarios
         $params = [
             'apikey' => $_ENV['TICKETMASTER_API_KEY'],
-            'sort' => 'relevance,desc',
             'classificationName' => 'music',
-            'locale' => '*', // Añadir locale
+            'locale' => '*',
+            'page' => $page,
+            'startDateTime' => $today . 'T00:00:00Z' // Añadir filtro de fecha desde hoy
         ];
+
+        // Añadir el orden según el parámetro sort
+        switch ($sort) {
+            case 'date_asc':
+                $params['sort'] = 'date,asc';
+                break;
+            case 'date_desc':
+                $params['sort'] = 'date,desc';
+                break;
+            case 'name_asc':
+                $params['sort'] = 'name,asc';
+                break;
+            case 'name_desc':
+                $params['sort'] = 'name,desc';
+                break;
+            default:
+                $params['sort'] = 'date,asc'; // Cambiado a asc por defecto para mostrar los más cercanos
+        }
 
         if ($limit > 0 && $limit <= 100) {
             $params['size'] = $limit;
@@ -25,7 +47,7 @@ class Concert
             $params['keyword'] = $keyword;
         }
 
-        if (isset($countryCode)) {
+        if (isset($countryCode) && $countryCode !== "") {
             $params['countryCode'] = $countryCode;
         }
 
@@ -63,12 +85,24 @@ class Concert
                 return;
             }
 
-            $concerts = json_decode($response, true);
-            if (isset($concerts['_embedded']['events'])) {
-                $concerts = $concerts['_embedded']['events'];
-                if ($limit > 0) {
-                    $concerts = array_slice($concerts, 0, $limit);
-                }
+            $data = json_decode($response, true);
+            if (isset($data['_embedded']['events'])) {
+                $concerts = $data['_embedded']['events'];
+                $page_info = [
+                    'number' => $page,
+                    'totalElements' => $data['page']['totalElements'] ?? count($concerts),
+                    'totalPages' => $data['page']['totalPages'] ?? ceil(count($concerts) / $limit),
+                    'size' => $limit
+                ];
+
+                header("Content-Type: application/json");
+                echo json_encode([
+                    "status" => "OK",
+                    "message" => "Información de conciertos obtenidos.",
+                    "data" => $concerts,
+                    "page" => $page_info
+                ]);
+                return;
             } else {
                 header("Content-Type: application/json");
                 echo json_encode([
@@ -77,13 +111,6 @@ class Concert
                 ]);
                 return;
             }
-
-            header("Content-Type: application/json");
-            echo json_encode([
-                "status" => "OK",
-                "message" => "Información de conciertos obtenidos.",
-                "data" => $concerts,
-            ]);
         } catch (Exception $e) {
             header("Content-Type: application/json");
             echo json_encode([

@@ -1,1 +1,301 @@
-<p>eventos works!</p>
+<div class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold text-gray-800 mb-6 text-center sm:text-left">
+      Eventos y Conciertos
+    </h1>
+
+    <!-- Modificar la sección de filtros -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+      <form [formGroup]="searchForm" class="grid grid-cols-12 gap-4 items-end">
+        <!-- Búsqueda - aumentar a 6 columnas -->
+        <div class="col-span-12 lg:col-span-6">
+          <label
+            for="keyword"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Buscar eventos
+          </label>
+          <div class="relative">
+            <input
+              type="text"
+              id="keyword"
+              formControlName="keyword"
+              placeholder="Nombre del artista, evento, concierto..."
+              class="block w-full px-4 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+            />
+            <button
+              *ngIf="searchForm.get('keyword')?.value"
+              (click)="clearSearch()"
+              type="button"
+              class="absolute inset-y-0 right-0 flex items-center pr-3"
+              aria-label="Limpiar búsqueda"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-gray-400 hover:text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- País - aumentar a 4 columnas -->
+        <div class="col-span-12 lg:col-span-4">
+          <label
+            for="country"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >
+            País
+          </label>
+          <select
+            id="country"
+            formControlName="country"
+            class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+          >
+            <option *ngFor="let country of countries" [value]="country.code">
+              {{ country.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Ordenar por - mantener en 2 columnas -->
+        <div class="col-span-12 lg:col-span-2">
+          <label
+            for="sortBy"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Ordenar por
+          </label>
+          <select
+            id="sortBy"
+            formControlName="sortBy"
+            class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
+          >
+            <option *ngFor="let option of sortOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+      </form>
+    </div>
+
+    <!-- Estado de carga -->
+    <div
+      *ngIf="isLoading"
+      class="flex flex-col items-center justify-center py-12"
+    >
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4"
+      ></div>
+      <p class="text-gray-600">Cargando eventos...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div
+      *ngIf="error && !isLoading"
+      class="bg-red-50 border-l-4 border-red-500 p-4 mb-8 rounded-md"
+    >
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg
+            class="h-5 w-5 text-red-500"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-700">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin resultados -->
+    <div
+      *ngIf="!isLoading && !error && events.length === 0"
+      class="bg-white rounded-xl p-12 text-center"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="mx-auto h-12 w-12 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+        />
+      </svg>
+      <h3 class="mt-2 text-lg font-medium text-gray-900">
+        No se encontraron eventos
+      </h3>
+      <p class="mt-1 text-sm text-gray-500">
+        Prueba a modificar los criterios de búsqueda para encontrar más
+        resultados.
+      </p>
+    </div>
+
+    <!-- Lista de eventos -->
+    <div
+      *ngIf="!isLoading && !error && events.length > 0"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      [@staggerAnimation]="events.length"
+    >
+      <div
+        *ngFor="let event of events"
+        class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full animate-item"
+      >
+        <div class="relative pb-[56.25%]">
+          <img
+            [src]="getImageUrl(event)"
+            [alt]="event.name"
+            class="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+            loading="lazy"
+            [ngClass]="{ 'opacity-0': !imageLoaded }"
+            (load)="imageLoaded = true"
+          />
+          <!-- Placeholder mientras carga la imagen -->
+          <div
+            *ngIf="!imageLoaded"
+            class="absolute inset-0 bg-gray-200 animate-pulse"
+          ></div>
+
+          <!-- Botón de favoritos -->
+          <button
+            class="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white transition-colors duration-200"
+            (click)="toggleFavorite(event)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              [class.text-red-500]="isFavorite(event)"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-4 flex flex-col flex-grow">
+          <!-- Título del evento -->
+          <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+            {{ event.name }}
+          </h3>
+
+          <!-- Fecha -->
+          <div class="flex items-center space-x-2 mb-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-gray-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <p class="text-sm text-gray-600">
+              {{ getEventDate(event) }}
+            </p>
+          </div>
+
+          <!-- Ubicación -->
+          <div class="flex items-start space-x-2 mb-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <p class="text-sm text-gray-600 line-clamp-2">
+              {{ getEventLocation(event) }}
+            </p>
+          </div>
+
+          <!-- Botón de detalles -->
+          <div class="mt-auto flex justify-end items-center">
+            <a
+              [href]="event.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sm font-medium text-purple-600 hover:text-purple-800 transition duration-200"
+            >
+              Ver detalles
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add this at the end of your events list container -->
+    <div
+      *ngIf="!isLoading && !error && events.length > 0"
+      class="flex justify-center mt-8 space-x-4"
+    >
+      <button
+        (click)="goToPreviousPage()"
+        [disabled]="!hasPreviousPage()"
+        [class.opacity-50]="!hasPreviousPage()"
+        class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+      >
+        Anterior
+      </button>
+
+      <div class="flex items-center text-gray-700">
+        Página {{ currentPage + 1 }} de {{ totalPages }}
+      </div>
+
+      <button
+        (click)="goToNextPage()"
+        [disabled]="!hasNextPage()"
+        [class.opacity-50]="!hasNextPage()"
+        class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+</div>
