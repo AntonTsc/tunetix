@@ -120,4 +120,65 @@ class Concert
             ]);
         }
     }
+
+    public static function getById($eventId)
+    {
+        $ch = curl_init();
+
+        $params = [
+            'apikey' => $_ENV['TICKETMASTER_API_KEY'],
+            'locale' => '*'
+        ];
+
+        $url = self::$baseUrl . '/events/' . $eventId . '?' . http_build_query($params);
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Accept: application/json',
+            'Content-Type: application/json'
+        ]);
+
+        try {
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode === 404) {
+                header("Content-Type: application/json");
+                echo json_encode([
+                    "status" => "ERROR",
+                    "message" => "Evento no encontrado."
+                ]);
+                return;
+            }
+
+            if ($httpCode !== 200) {
+                header("Content-Type: application/json");
+                echo json_encode([
+                    "status" => "ERROR",
+                    "message" => "Error al obtener los datos del evento."
+                ]);
+                return;
+            }
+
+            $data = json_decode($response, true);
+
+            header("Content-Type: application/json");
+            echo json_encode([
+                "status" => "OK",
+                "message" => "Información del evento obtenida.",
+                "data" => $data
+            ]);
+        } catch (Exception $e) {
+            header("Content-Type: application/json");
+            echo json_encode([
+                "status" => "ERROR",
+                "message" => "Error al obtener el evento.",
+                "error" => $e->getMessage()
+            ]);
+        }
+    }
 }

@@ -1,1 +1,604 @@
-<p>evento works!</p>
+<div class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Botón de regreso -->
+    <button
+      routerLink="/eventos"
+      class="flex items-center text-purple-600 hover:text-purple-800 mb-6 transition duration-200"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 mr-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
+      </svg>
+      Volver a eventos
+    </button>
+
+    <!-- Loader -->
+    <div
+      *ngIf="loading"
+      class="flex flex-col items-center justify-center py-12"
+    >
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4"
+      ></div>
+      <p class="text-gray-600">Cargando información del evento...</p>
+    </div>
+
+    <!-- Error message -->
+    <div
+      *ngIf="error"
+      class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-md"
+    >
+      <div class="flex items-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-10 w-10 text-red-500 mr-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <div>
+          <h3 class="text-lg font-semibold text-red-800">
+            Oops! Ha ocurrido un error
+          </h3>
+          <p class="text-red-700 mt-1">{{ error }}</p>
+          <button
+            routerLink="/eventos"
+            class="mt-3 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+          >
+            Volver a eventos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event details -->
+    <div *ngIf="event && !loading" class="space-y-6">
+      <!-- Event header/banner -->
+      <div class="relative rounded-xl overflow-hidden shadow-lg h-80">
+        <div
+          class="absolute inset-0 bg-cover bg-center"
+          [style.background-image]="'url(' + getMainImage() + ')'"
+        ></div>
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/80 to-black/30"
+        ></div>
+        <div class="absolute bottom-0 w-full p-6 text-white">
+          <h1 class="text-3xl md:text-4xl font-bold mb-2">{{ event.name }}</h1>
+          <div class="flex flex-wrap gap-2">
+            <span
+              *ngIf="event.dates?.status?.code === 'onsale'"
+              class="px-3 py-1 text-sm bg-green-500 rounded-full font-medium"
+            >
+              En venta
+            </span>
+            <span
+              *ngIf="event.dates?.status?.code === 'offsale'"
+              class="px-3 py-1 text-sm bg-yellow-500 rounded-full font-medium"
+            >
+              Venta cerrada
+            </span>
+            <span
+              *ngIf="event.dates?.status?.code === 'cancelled'"
+              class="px-3 py-1 text-sm bg-red-500 rounded-full font-medium"
+            >
+              Cancelado
+            </span>
+            <span
+              *ngIf="event._embedded?.attractions"
+              class="px-3 py-1 text-sm bg-blue-500 rounded-full font-medium flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                />
+              </svg>
+              {{ event._embedded.attractions[0]?.name }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event details grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left column - Event information -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Main info card -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+              Detalles del evento
+            </h2>
+
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <div class="bg-purple-100 p-3 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <strong class="text-gray-700 block">Fecha</strong>
+                  <p class="text-gray-600">
+                    {{ formatDate(event.dates?.start?.localDate) }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="bg-purple-100 p-3 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <strong class="text-gray-700 block">Hora</strong>
+                  <p class="text-gray-600">
+                    {{ formatTime(event.dates?.start?.localTime) }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="bg-purple-100 p-3 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <strong class="text-gray-700 block">Lugar</strong>
+                  <p class="text-gray-600">
+                    {{ event._embedded?.venues[0]?.name }}
+                  </p>
+                  <p class="text-gray-500 text-sm">
+                    {{ event._embedded?.venues[0]?.address?.line1 }},
+                    {{ event._embedded?.venues[0]?.city?.name }},
+                    {{ event._embedded?.venues[0]?.country?.name }}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="flex items-start"
+                *ngIf="
+                  event.classifications && event.classifications.length > 0
+                "
+              >
+                <div class="bg-purple-100 p-3 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <strong class="text-gray-700 block">Categoría</strong>
+                  <p class="text-gray-600">
+                    {{ event.classifications[0]?.segment?.name || "Música" }} -
+                    {{ event.classifications[0]?.genre?.name || "General" }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start" *ngIf="event.promoter">
+                <div class="bg-purple-100 p-3 rounded-full mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <strong class="text-gray-700 block">Promotor</strong>
+                  <p class="text-gray-600">{{ event.promoter?.name }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Artists card -->
+          <div
+            class="bg-white rounded-xl shadow-md p-6"
+            *ngIf="event._embedded?.attractions"
+          >
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+              Artistas
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div
+                class="p-4 bg-gray-50 rounded-lg hover:shadow-md transition duration-300"
+                *ngFor="let artist of event._embedded.attractions"
+              >
+                <div
+                  class="rounded-full overflow-hidden h-24 w-24 mx-auto mb-3"
+                >
+                  <img
+                    [src]="
+                      artist.images && artist.images.length > 0
+                        ? artist.images[0].url
+                        : 'assets/images/default-artist.jpg'
+                    "
+                    [alt]="artist.name"
+                    class="h-full w-full object-cover"
+                  />
+                </div>
+                <h3 class="text-center font-medium text-gray-800 mb-2">
+                  {{ artist.name }}
+                </h3>
+
+                <div
+                  class="flex justify-center space-x-2"
+                  *ngIf="artist.externalLinks"
+                >
+                  <a
+                    *ngIf="artist.externalLinks?.spotify"
+                    [href]="artist.externalLinks.spotify[0]?.url"
+                    target="_blank"
+                    class="text-green-500 hover:text-green-600 transition"
+                    title="Spotify"
+                  >
+                    <i class="fab fa-spotify text-lg"></i>
+                  </a>
+                  <a
+                    *ngIf="artist.externalLinks?.youtube"
+                    [href]="artist.externalLinks.youtube[0]?.url"
+                    target="_blank"
+                    class="text-red-500 hover:text-red-600 transition"
+                    title="YouTube"
+                  >
+                    <i class="fab fa-youtube text-lg"></i>
+                  </a>
+                  <a
+                    *ngIf="artist.externalLinks?.instagram"
+                    [href]="artist.externalLinks.instagram[0]?.url"
+                    target="_blank"
+                    class="text-pink-500 hover:text-pink-600 transition"
+                    title="Instagram"
+                  >
+                    <i class="fab fa-instagram text-lg"></i>
+                  </a>
+                  <a
+                    *ngIf="artist.externalLinks?.twitter"
+                    [href]="artist.externalLinks.twitter[0]?.url"
+                    target="_blank"
+                    class="text-blue-400 hover:text-blue-500 transition"
+                    title="Twitter"
+                  >
+                    <i class="fab fa-twitter text-lg"></i>
+                  </a>
+                  <a
+                    *ngIf="artist.externalLinks?.facebook"
+                    [href]="artist.externalLinks.facebook[0]?.url"
+                    target="_blank"
+                    class="text-blue-600 hover:text-blue-700 transition"
+                    title="Facebook"
+                  >
+                    <i class="fab fa-facebook text-lg"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column - Venue and tickets -->
+        <div class="space-y-6">
+          <!-- Venue card -->
+          <div class="bg-white rounded-xl shadow-md p-6 venue-card">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+              Ubicación
+            </h2>
+            <div
+              class="venue-details"
+              *ngIf="
+                event._embedded?.venues && event._embedded.venues.length > 0
+              "
+            >
+              <h3 class="text-lg font-medium text-gray-700 mb-2">
+                {{ event._embedded.venues[0]?.name }}
+              </h3>
+              <p class="text-gray-600 mb-1">
+                {{ event._embedded.venues[0]?.address?.line1 }}
+              </p>
+              <p class="text-gray-600">
+                {{ event._embedded.venues[0]?.city?.name }},
+                {{ event._embedded.venues[0]?.country?.name }}
+              </p>
+
+              <!-- Reemplaza el botón de Google Maps con este nuevo botón -->
+              <button
+                *ngIf="
+                  event._embedded.venues[0]?.location?.longitude &&
+                  event._embedded.venues[0]?.location?.latitude
+                "
+                (click)="showMap()"
+                class="inline-flex items-center px-4 py-2 mt-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                  />
+                </svg>
+                Ver en mapa
+              </button>
+            </div>
+          </div>
+
+          <!-- Buy tickets card -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">
+              Entradas
+            </h2>
+
+            <!-- Cuando hay información de precios -->
+            <div
+              class="space-y-6"
+              *ngIf="event?.priceRanges && event.priceRanges.length > 0"
+            >
+              <!-- Rango de precios -->
+              <div class="text-center">
+                <p class="text-sm text-gray-500">Rango de precios</p>
+                <p class="text-3xl font-bold text-gray-800">
+                  {{ event.priceRanges[0].min }}€ -
+                  {{ event.priceRanges[0].max }}€
+                </p>
+                <p class="text-sm text-gray-500 mt-2">
+                  {{ event.priceRanges[0].type }}
+                </p>
+              </div>
+
+              <!-- Selector de cantidad -->
+              <div class="flex items-center justify-center space-x-4">
+                <!-- ... existing quantity selector code ... -->
+                <button
+                  (click)="decreaseTickets()"
+                  [disabled]="ticketQuantity <= 1"
+                  class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M20 12H4"
+                    />
+                  </svg>
+                </button>
+
+                <div class="w-16 text-center">
+                  <input
+                    type="number"
+                    [(ngModel)]="ticketQuantity"
+                    (change)="validateTicketQuantity()"
+                    min="1"
+                    [max]="maxTickets"
+                    class="w-full text-center border rounded-md py-2"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Máx. {{ maxTickets }}
+                  </p>
+                </div>
+
+                <button
+                  (click)="increaseTickets()"
+                  [disabled]="ticketQuantity >= maxTickets"
+                  class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Total -->
+              <div class="text-center py-4 border-t border-b">
+                <p class="text-sm text-gray-600">Total estimado</p>
+                <p class="text-2xl font-bold text-gray-800">
+                  {{ calculateTotal() }}
+                </p>
+              </div>
+
+              <!-- Botones de acción con precios -->
+              <div class="space-y-3">
+                <button
+                  (click)="buyTickets()"
+                  class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition duration-200"
+                >
+                  Comprar {{ ticketQuantity }} entrada{{
+                    ticketQuantity !== 1 ? "s" : ""
+                  }}
+                </button>
+
+                <a
+                  [href]="event.url"
+                  target="_blank"
+                  class="block text-center text-sm text-gray-500 hover:text-purple-600"
+                >
+                  Ver en sitio oficial
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 inline ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            <!-- Cuando no hay información de precios -->
+            <div
+              class="space-y-6"
+              *ngIf="!event?.priceRanges || event.priceRanges.length === 0"
+            >
+              <div class="text-center py-4">
+                <p class="text-gray-600 mb-4">
+                  Los precios están disponibles en el sitio oficial del evento
+                </p>
+                <a
+                  [href]="event.url"
+                  target="_blank"
+                  class="inline-flex items-center justify-center w-full py-4 px-6 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition duration-200 text-lg"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                    />
+                  </svg>
+                  Ver entradas en Ticketmaster
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 ml-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Añade el modal al final del template -->
+<app-map-modal
+  *ngIf="showMapModal"
+  [longitude]="parseFloat(event._embedded.venues[0]?.location?.longitude)"
+  [latitude]="parseFloat(event._embedded.venues[0]?.location?.latitude)"
+  [title]="event._embedded.venues[0]?.name"
+  (close)="closeMap()"
+></app-map-modal>
