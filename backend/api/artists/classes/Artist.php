@@ -65,9 +65,13 @@
             // Intenta obtener los datos del caché
             $cachedData = Cache::get($cacheKey);
             if ($cachedData) {
-                // Si los datos están en el caché, aplica la ordenación y el filtro por keyword
                 $artists = $cachedData['artists'];
                 $pagination = $cachedData['pagination'];
+
+                // Limitar el número de páginas a 20
+                if ($pagination['totalPages'] > 20) {
+                    $pagination['totalPages'] = 20;
+                }
 
                 // Filtrar los artistas según el parámetro $keyword
                 if (!empty($keyword)) {
@@ -101,6 +105,11 @@
 
                 $pagination = $data['artists']['@attr'];
                 $artists = $data['artists']['artist'];
+
+                // Limitar el número de páginas a 20
+                if ($pagination['totalPages'] > 20) {
+                    $pagination['totalPages'] = 20;
+                }
 
                 // Filtrar los artistas según el parámetro $keyword
                 if (!empty($keyword)) {

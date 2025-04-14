@@ -48,7 +48,7 @@ class Cache
      */
     public static function delete($key)
     {
-        $filePath = self::$cacheDir . md5($key) . '.json';
+        $filePath = self::$cacheDir . $key . '.json';
 
         if (file_exists($filePath)) {
             unlink($filePath);

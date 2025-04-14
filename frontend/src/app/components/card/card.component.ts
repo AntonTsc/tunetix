@@ -1,6 +1,4 @@
 import { Component, Input } from '@angular/core';
-import Artist from 'src/app/interfaces/Artist';
-import Track from 'src/app/interfaces/Track';
 
 @Component({
   selector: 'app-card',
@@ -11,13 +9,19 @@ export class CardComponent {
   @Input() data: any = undefined;
   @Input() loading: boolean = false;
 
-  getUrlImage(){
-    if(!this.data) return '';
-    if('images' in this.data){
-      return this.data.images[0].url;
-    }else if('album' in this.data){
-      return this.data.album.images[0].url;
+  getUrlImage(imageUrl?: string): string {
+    if (imageUrl) {
+      return imageUrl; // Si se proporciona una URL, se utiliza directamente
     }
-    return '';
+
+    if ('image' in this.data && this.data.image.length > 0) {
+      // Manejar la estructura de imágenes de Last.fm
+      return this.data.image[3]?.['#text'];
+    } else if ('images' in this.data && this.data.images.length > 0) {
+      // Manejar la estructura de imágenes de Ticketmaster
+      return this.data.images[0]?.url || '';
+    }
+
+    return ''; // Imagen por defecto
   }
 }

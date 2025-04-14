@@ -100,7 +100,7 @@ export class UserService {
       formData,
       { withCredentials: true }  // Añadir esta opción para incluir las cookies de sesión
     ).pipe(
-      tap((response) => {
+      tap((response: ServerResponse) => {
         // Si la actualización es exitosa, actualizar los datos del usuario en el BehaviorSubject
         if (response.status === 'OK' && response.data) {
           const currentData = this.userDataSubject.getValue();

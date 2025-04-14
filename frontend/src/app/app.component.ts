@@ -20,34 +20,14 @@ import { TicketmasterService } from './services/ticketmaster.service';
 export class AppComponent implements OnInit{
   constructor
   (private _spotify: SpotifyService, 
-    private _artists: ArtistService,
     private _tracks: TrackService,
     private _ticketmaster: TicketmasterService,
     private _concerts: ConcertsService
   ){}
 
   ngOnInit(): void {
-    this.setArtists();
     this.setTracks();
     this.setConcerts();
-  }
-
-  setArtists(){
-    this._artists.setLoading(true);
-    this._spotify.getArtists(6).subscribe({
-      next: (response: ServerResponse) => {
-        if(response.status === "OK"){
-          this._artists.set(response.data as Artist[])
-        }else{
-          console.error(response.message);
-          this._artists.setLoading(false);
-        }
-      },
-      error: (error : ServerResponse) => {
-        console.error(error.message)
-        this._artists.setLoading(false);
-      }
-    })
   }
 
   setTracks(){

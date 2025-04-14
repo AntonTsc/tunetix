@@ -4,6 +4,7 @@ import Track from 'src/app/interfaces/Track';
 import { ArtistService } from 'src/app/services/artist.service';
 import { TrackService } from 'src/app/services/track.service';
 import { ConcertsService } from 'src/app/services/concerts.service';
+import { LastfmService } from 'src/app/services/lastfm.service';
 
 @Component({
   selector: 'app-inicio',
@@ -11,10 +12,9 @@ import { ConcertsService } from 'src/app/services/concerts.service';
   styleUrls: ['./inicio.component.css']
 })
 export class InicioComponent implements OnInit {
-  // Inicializar arrays con 6 elementos nulos para el skeleton
-  artists: Artist[] = new Array(6).fill(null);
-  tracks: Track[] = new Array(6).fill(null);
-  concerts: any[] = new Array(6).fill(null);
+  artists: Artist[] = [];
+  tracks: Track[] = [];
+  concerts: any[] = [];
 
   isLoadingArtists = true;
   isLoadingTracks = true;
@@ -22,19 +22,21 @@ export class InicioComponent implements OnInit {
 
   constructor(
     private _artists: ArtistService,
+    private _lastfm: LastfmService,
     private _tracks: TrackService,
     private _concerts: ConcertsService
   ) {}
 
   ngOnInit(): void {
-    this._artists.artists.subscribe(artists => {
-      if (artists.length > 0) {
-        this.artists = artists;
+    this._lastfm.getTopArtists(6, 1, "popularity_asc", "").subscribe({
+      next: (response: any) => {
+        this.artists = response.data?.artists || [];
+        this.isLoadingArtists = false;
+      },
+      error: (error) => {
+        console.error("Error fetching artists from Last.fm:", error);
+        this.isLoadingArtists = false;
       }
-    });
-
-    this._artists.loading.subscribe(loading => {
-      this.isLoadingArtists = loading;
     });
 
     this._tracks.tracks.subscribe(tracks => {
