@@ -2,17 +2,20 @@
 class Cache
 {
     private static $cacheDir = __DIR__ . '/'; // Directorio donde se almacenará el caché (misma ruta que Cache.php)
-    private static $cacheTime = 3600; // Tiempo de expiración del caché en segundos (1 hora)
+    private static $assetsDir = __DIR__ . '/../assets/'; // Directorio donde se almacenarán los assets
+    private static $cacheTime = 86400; // Tiempo de expiración del caché en segundos (24 horas)
 
     /**
      * Obtiene los datos del caché si existen y no han expirado.
      *
      * @param string $key La clave única para identificar el caché.
+     * @param bool $isAsset Indica si se trata de un asset.
      * @return mixed|null Los datos almacenados en el caché o null si no existen o han expirado.
      */
-    public static function get($key)
+    public static function get($key, $isAsset = false)
     {
-        $filePath = self::$cacheDir . $key . '.json';
+        $directory = $isAsset ? self::$assetsDir : self::$cacheDir;
+        $filePath = $directory . $key . '.json';
 
         // Verifica si el archivo existe y no ha expirado
         if (file_exists($filePath) && (time() - filemtime($filePath)) < self::$cacheTime) {
@@ -27,16 +30,19 @@ class Cache
      *
      * @param string $key La clave única para identificar el caché.
      * @param mixed $data Los datos que se almacenarán en el caché.
+     * @param bool $isAsset Indica si se trata de un asset.
      * @return void
      */
-    public static function set($key, $data)
+    public static function set($key, $data, $isAsset = false)
     {
-        // Asegúrate de que el directorio de caché exista
-        if (!is_dir(self::$cacheDir)) {
-            mkdir(self::$cacheDir, 0777, true);
+        $directory = $isAsset ? self::$assetsDir : self::$cacheDir;
+
+        // Asegúrate de que el directorio exista
+        if (!is_dir($directory)) {
+            mkdir($directory, 0777, true);
         }
 
-        $filePath = self::$cacheDir . $key . '.json';
+        $filePath = $directory . $key . '.json';
         file_put_contents($filePath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 

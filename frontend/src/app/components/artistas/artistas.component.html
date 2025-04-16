@@ -158,19 +158,20 @@
             {{ artist.name }}
           </h3>
           <div class="text-sm text-gray-600 mb-4">
-            <p>{{ artist.playcount | number }} reproducciones</p>
-            <p>{{ artist.listeners | number }} oyentes</p>
+            <p class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+              </svg>
+              <span class="font-semibold text-purple-600">{{ artist.playcount | number }}</span> reproducciones
+            </p>
+            <p class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+              <span class="font-semibold text-purple-600">{{ artist.listeners | number }}</span> oyentes
+            </p>
           </div>
-          <div class="mt-auto flex justify-end">
-            <a
-              [href]="artist.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-sm font-medium text-purple-600 hover:text-purple-800 transition duration-200"
-            >
-              Ver en Last.fm
-            </a>
-          </div>
+          
         </div>
       </div>
     </div>
