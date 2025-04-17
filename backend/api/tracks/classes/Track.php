@@ -6,8 +6,6 @@
     class Track {
         private static $apiKey;
         private static $baseUrl;
-        private static $mbBaseUrl = "https://musicbrainz.org/ws/2";
-        private static $wdBaseUrl = "https://www.wikidata.org/w/api.php";
 
         private static function initialize() {
             if (empty($_ENV['LASTFM_API_KEY'])) {
@@ -15,79 +13,6 @@
             }
             self::$apiKey = $_ENV['LASTFM_API_KEY'];
             self::$baseUrl = "https://ws.audioscrobbler.com/2.0/?api_key=" . self::$apiKey . "&format=json";
-        }
-
-        private static function getTrackWikidataUrl($mbid) {
-            usleep(1000000); // 1 segundo entre peticiones
-
-            $url = self::$mbBaseUrl . "/recording/" . $mbid . "?inc=url-rels&fmt=json";
-            
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'TunetixApp/1.0.0');
-            
-            $response = curl_exec($ch);
-            curl_close($ch);
-            
-            $data = json_decode($response, true);
-            
-            if (isset($data['relations'])) {
-                foreach ($data['relations'] as $relation) {
-                    if ($relation['type'] === 'wikidata' && isset($relation['url']['resource'])) {
-                        return $relation['url']['resource'];
-                    }
-                }
-            }
-            
-            return null;
-        }
-
-        private static function getTrackImage($wikidataUrl) {
-            if (empty($wikidataUrl)) return null;
-
-            $wikidataId = basename($wikidataUrl);
-            $url = self::$wdBaseUrl . "?action=wbgetclaims" .
-                   "&property=P18" .
-                   "&entity=" . $wikidataId .
-                   "&format=json";
-
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'TunetixApp/1.0.0');
-
-            $response = curl_exec($ch);
-            curl_close($ch);
-
-            $data = json_decode($response, true);
-
-            if (isset($data['claims']['P18'][0]['mainsnak']['datavalue']['value'])) {
-                $filename = $data['claims']['P18'][0]['mainsnak']['datavalue']['value'];
-                $baseUrl = "https://upload.wikimedia.org/wikipedia/commons/";
-                $cleanFilename = str_replace(' ', '_', $filename);
-                $md5 = md5($cleanFilename);
-                $hashPath = substr($md5, 0, 1) . '/' . substr($md5, 0, 2) . '/';
-
-                return [
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'small'
-                    ],
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'medium'
-                    ],
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'large'
-                    ],
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'extralarge'
-                    ]
-                ];
-            }
-
-            return null;
         }
 
         private static function getArtistImageFromCache($artistName) {
@@ -118,12 +43,13 @@
             self::initialize();
             $cacheKey = "top_tracks_$limit" . "_" . "$page";
 
+            // Intenta obtener los datos del caché
             $cachedData = Cache::get($cacheKey);
             if ($cachedData) {
                 $tracks = $cachedData['tracks'];
                 $pagination = $cachedData['pagination'];
 
-                // Solo actualizar imágenes usando el caché de artistas
+                // Obtener las imágenes de los artistas desde el caché
                 foreach ($tracks as $key => $track) {
                     if (isset($track['artist']['name'])) {
                         $artistImage = self::getArtistImageFromCache($track['artist']['name']);
@@ -133,6 +59,7 @@
                     }
                 }
 
+                // Aplicar filtros y ordenación a los datos en caché
                 if ($pagination['totalPages'] > 20) {
                     $pagination['totalPages'] = 20;
                 }
@@ -150,12 +77,12 @@
                 return;
             }
 
-            $url = self::$baseUrl . "&method=chart.gettoptracks&limit=$limit&page=$page";
-
-            $curl = curl_init($url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
+            // Si no hay datos en caché, realizar la solicitud a la API
             try {
+                $url = self::$baseUrl . "&method=chart.gettoptracks&limit=$limit&page=$page";
+                $curl = curl_init($url);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                
                 $response = curl_exec($curl);
                 curl_close($curl);
 
@@ -164,23 +91,15 @@
                     throw new Exception("Failed to fetch or parse data from API");
                 }
 
-                $pagination = $data['tracks']['@attr'];
                 $tracks = $data['tracks']['track'];
+                $pagination = $data['tracks']['@attr'];
 
+                // Obtener imágenes de los artistas para nuevas pistas
                 foreach ($tracks as $key => $track) {
                     if (isset($track['artist']['name'])) {
                         $artistImage = self::getArtistImageFromCache($track['artist']['name']);
                         if ($artistImage) {
                             $tracks[$key]['image'] = $artistImage;
-                        }
-                    } elseif (isset($track['mbid']) && !empty($track['mbid'])) {
-                        $wikidataUrl = self::getTrackWikidataUrl($track['mbid']);
-                        if ($wikidataUrl) {
-                            $tracks[$key]['wikidata_url'] = $wikidataUrl;
-                            $trackImages = self::getTrackImage($wikidataUrl);
-                            if ($trackImages) {
-                                $tracks[$key]['image'] = $trackImages;
-                            }
                         }
                     }
                 }
