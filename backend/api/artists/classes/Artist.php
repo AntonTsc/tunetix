@@ -148,7 +148,7 @@
             $cacheKey = "top_artists_$limit" . "_" . "$page";
 
             // Intenta obtener los datos del caché
-            $cachedData = Cache::get($cacheKey);
+            $cachedData = Cache::get($cacheKey, 'artist');
             if ($cachedData) {
                 $artists = $cachedData['artists'];
                 $pagination = $cachedData['pagination'];
@@ -157,8 +157,7 @@
                 foreach ($artists as $key => $artist) {
                     if (isset($artist['mbid']) && !empty($artist['mbid'])) {
                         // Intentar cargar la imagen desde el caché de assets
-                        $imageKey = "artist_image_" . md5($artist['name']);
-                        $cachedImage = Cache::get($imageKey, true); // true indica que busque en /assets
+                        $cachedImage = self::getArtistImageFromCache($artist['name']);
 
                         if ($cachedImage) {
                             // Si existe en caché, usar esa imagen
@@ -171,7 +170,7 @@
                                 if ($artistImages) {
                                     $artists[$key]['image'] = $artistImages;
                                     // Guardar en caché para futuras consultas (en /assets)
-                                    Cache::set($imageKey, $artistImages, true);
+                                    Cache::set("artist_image_" . md5($artist['name']), $artistImages, 'asset');
                                 }
                             }
                         }
@@ -250,13 +249,18 @@
                 $data = ["artists" => $artists, "pagination" => $pagination];
 
                 // Guarda los datos en el caché
-                Cache::set($cacheKey, $data);
+                Cache::set($cacheKey, $data, 'artist');
 
                 // Devuelve los datos al cliente
                 ServerResponse::success("Top artists fetched successfully", $data);
             } catch (Exception $e) {
                 ServerResponse::send($e->getCode(), $e->getMessage());
             }
+        }
+
+        private static function getArtistImageFromCache($artistName) {
+            $imageKey = "artist_image_" . md5($artistName);
+            return Cache::get($imageKey, 'asset');
         }
     }
 ?>

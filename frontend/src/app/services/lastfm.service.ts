@@ -23,4 +23,17 @@ export class LastfmService {
 
     return this.http.get(`${this.baseUrl}/api/artists/getTopArtists.php`, { params });
   }
+
+  getTopTracks(limit: number = 24, page: number = 1, sort: string = 'popularity_desc', keyword: string = ''): Observable<any> {
+    let params = new HttpParams()
+      .set('limit', limit.toString())
+      .set('page', page.toString())
+      .set('sort', sort);
+
+    if (keyword) {
+      params = params.set('keyword', keyword);
+    }
+
+    return this.http.get(`${this.baseUrl}/api/tracks/getTopTracks.php`, { params });
+  }
 }

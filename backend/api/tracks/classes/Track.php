@@ -17,7 +17,7 @@
 
         private static function getArtistImageFromCache($artistName) {
             $imageKey = "artist_image_" . md5($artistName);
-            return Cache::get($imageKey, true);
+            return Cache::get($imageKey, 'asset');
         }
 
         private static function sortTracks(array &$tracks, $sort) {
@@ -44,7 +44,7 @@
             $cacheKey = "top_tracks_$limit" . "_" . "$page";
 
             // Intenta obtener los datos del caché
-            $cachedData = Cache::get($cacheKey);
+            $cachedData = Cache::get($cacheKey, 'track');
             if ($cachedData) {
                 $tracks = $cachedData['tracks'];
                 $pagination = $cachedData['pagination'];
@@ -117,7 +117,7 @@
                 self::sortTracks($tracks, $sort);
 
                 $data = ["tracks" => $tracks, "pagination" => $pagination];
-                Cache::set($cacheKey, $data);
+                Cache::set($cacheKey, $data, 'track');
 
                 ServerResponse::success("Top tracks fetched successfully", $data);
             } catch (Exception $e) {
