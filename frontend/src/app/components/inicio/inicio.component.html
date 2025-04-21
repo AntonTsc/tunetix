@@ -44,7 +44,8 @@
           <ng-container *ngFor="let item of concerts">
             <app-card 
               [data]="item"
-              [loading]="isLoadingConcerts">
+              [loading]="isLoadingConcerts"
+              [routerLink]="['/evento', item.id]">
             </app-card>
           </ng-container>
         </div>
