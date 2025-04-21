@@ -14,6 +14,7 @@ import { AlertComponent } from './components/alert/alert.component';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
 import { CancionesComponent } from './components/canciones/canciones.component';
+import { CardComponent } from './components/card/card.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { CreditCardComponent } from './components/credit-card/credit-card.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
@@ -24,14 +25,15 @@ import { HeaderComponent } from './components/header/header.component';
 import { HistorialComprasComponent } from './components/historial-compras/historial-compras.component';
 import { InicioComponent } from './components/inicio/inicio.component';
 import { LoginComponent } from './components/login/login.component';
+import { MapModalComponent } from './components/map-modal/map-modal.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
-import { AuthInterceptor } from './interceptors/auth.interceptor';
-import { TokenService } from './services/token.service';
 import { TooltipDirective } from './directives/tooltip.directive';
-import { CardComponent } from './components/card/card.component';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { TicketService } from './services/ticket.service';
+import { TokenService } from './services/token.service';
 
 @NgModule({
   declarations: [
@@ -60,7 +62,8 @@ import { CardComponent } from './components/card/card.component';
     AdminDashboardComponent,
     AdminUsersComponent,
     TooltipDirective,
-    CardComponent
+    CardComponent,
+    MapModalComponent
   ],
   imports: [
     BrowserModule,
@@ -75,7 +78,8 @@ import { CardComponent } from './components/card/card.component';
   // Se registra el interceptor para poder usarlo en todo el proyecto
   providers: [
     TokenService,
-    {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true}
+    {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true},
+    TicketService
   ],
   bootstrap: [AppComponent]
 })

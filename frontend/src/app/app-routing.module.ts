@@ -27,7 +27,7 @@ const routes: Routes = [
   {path: 'artistas', component: ArtistasComponent},
   {path: 'artista', component: ArtistaComponent},
   {path: 'canciones', component: CancionesComponent},
-  {path: 'evento', component: EventoComponent},
+  {path: 'evento/:id', component: EventoComponent},
   {path: 'eventos', component: EventosComponent},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: RegisterComponent},
