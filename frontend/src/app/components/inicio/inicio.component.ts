@@ -28,7 +28,8 @@ export class InicioComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this._lastfm.getTopArtists(6, 1, "popularity_asc", "").subscribe({
+    // Cargar artistas top
+    this._lastfm.getTopArtists(6, 1, "popularity_desc", "").subscribe({
       next: (response: any) => {
         this.artists = response.data?.artists || [];
         this.isLoadingArtists = false;
@@ -39,16 +40,19 @@ export class InicioComponent implements OnInit {
       }
     });
 
-    this._tracks.tracks.subscribe(tracks => {
-      if (tracks.length > 0) {
-        this.tracks = tracks;
+    // Cargar tracks top
+    this._lastfm.getTopTracks(6, 1, "popularity_desc", "").subscribe({
+      next: (response: any) => {
+        this.tracks = response.data?.tracks || [];
+        this.isLoadingTracks = false;
+      },
+      error: (error) => {
+        console.error("Error fetching tracks from Last.fm:", error);
+        this.isLoadingTracks = false;
       }
     });
 
-    this._tracks.loading.subscribe(loading => {
-      this.isLoadingTracks = loading;
-    });
-
+    // Cargar conciertos
     this._concerts.concerts.subscribe(concerts => {
       if (concerts.length > 0) {
         this.concerts = concerts;
