@@ -36,4 +36,8 @@ export class TicketmasterService {
 
     return this.http.get(`${this.baseUrl}/api/ticketmaster/concerts/getAll.php`, { params });
   }
+
+  getEventById(id: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/api/ticketmaster/concerts/getById.php?id=${id}`);
+  }
 }
