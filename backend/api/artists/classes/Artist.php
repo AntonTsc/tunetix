@@ -18,42 +18,12 @@
             self::$baseUrl = "https://ws.audioscrobbler.com/2.0/?api_key=" . self::$apiKey . "&format=json";
         }
 
-        private static function getArtistWikidataUrl($mbid) {
-            // Añadir retraso para respetar el rate limit de MusicBrainz
-            usleep(1000000); // 1 segundo entre peticiones
-
-            $url = self::$mbBaseUrl . "/artist/" . $mbid . "?inc=url-rels&fmt=json";
-            
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'TunetixApp/1.0.0'); // Required by MusicBrainz API
-            
-            $response = curl_exec($ch);
-            curl_close($ch);
-            
-            $data = json_decode($response, true);
-            
-            if (isset($data['relations'])) {
-                foreach ($data['relations'] as $relation) {
-                    if ($relation['type'] === 'wikidata' && isset($relation['url']['resource'])) {
-                        return $relation['url']['resource'];
-                    }
-                }
-            }
-            
-            return null;
-        }
-
-        private static function getArtistImage($wikidataUrl) {
-            if (empty($wikidataUrl)) return null;
-
-            // Extraer el ID de Wikidata de la URL (Q12345)
-            $wikidataId = basename($wikidataUrl);
-
-            // Construir la URL para la API de Wikidata
-            $url = self::$wdBaseUrl . "?action=wbgetclaims" .
-                   "&property=P18" . // P18 es la propiedad para imágenes
-                   "&entity=" . $wikidataId .
+        private static function getArtistImage($artistName) {
+            // Buscar directamente en Wikidata por el nombre del artista
+            $url = self::$wdBaseUrl . "?action=wbsearchentities" .
+                   "&search=" . urlencode($artistName) .
+                   "&language=en" .
+                   "&type=item" .
                    "&format=json";
 
             $ch = curl_init($url);
@@ -65,37 +35,50 @@
 
             $data = json_decode($response, true);
 
-            if (isset($data['claims']['P18'][0]['mainsnak']['datavalue']['value'])) {
-                $filename = $data['claims']['P18'][0]['mainsnak']['datavalue']['value'];
+            if (isset($data['search'][0]['id'])) {
+                $wikidataId = $data['search'][0]['id'];
                 
-                // Construir las URLs de las imágenes usando el formato de Wikimedia Commons
-                $baseUrl = "https://upload.wikimedia.org/wikipedia/commons/";
-                
-                // Calcular el hash MD5 del nombre del archivo (sin espacios)
-                $cleanFilename = str_replace(' ', '_', $filename);
-                $md5 = md5($cleanFilename);
-                
-                // Obtener los primeros caracteres del hash
-                $hashPath = substr($md5, 0, 1) . '/' . substr($md5, 0, 2) . '/';
-                
-                return [
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'small'
-                    ],
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'medium'
-                    ],
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'large'
-                    ],
-                    [
-                        '#text' => $baseUrl . $hashPath . $cleanFilename,
-                        'size' => 'extralarge'
-                    ]
-                ];
+                // Obtener la imagen del artista
+                $imageUrl = self::$wdBaseUrl . "?action=wbgetclaims" .
+                           "&property=P18" .
+                           "&entity=" . $wikidataId .
+                           "&format=json";
+
+                $ch = curl_init($imageUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'TunetixApp/1.0.0');
+
+                $response = curl_exec($ch);
+                curl_close($ch);
+
+                $data = json_decode($response, true);
+
+                if (isset($data['claims']['P18'][0]['mainsnak']['datavalue']['value'])) {
+                    $filename = $data['claims']['P18'][0]['mainsnak']['datavalue']['value'];
+                    $baseUrl = "https://upload.wikimedia.org/wikipedia/commons/";
+                    $cleanFilename = str_replace(' ', '_', $filename);
+                    $md5 = md5($cleanFilename);
+                    $hashPath = substr($md5, 0, 1) . '/' . substr($md5, 0, 2) . '/';
+
+                    return [
+                        [
+                            '#text' => $baseUrl . $hashPath . $cleanFilename,
+                            'size' => 'small'
+                        ],
+                        [
+                            '#text' => $baseUrl . $hashPath . $cleanFilename,
+                            'size' => 'medium'
+                        ],
+                        [
+                            '#text' => $baseUrl . $hashPath . $cleanFilename,
+                            'size' => 'large'
+                        ],
+                        [
+                            '#text' => $baseUrl . $hashPath . $cleanFilename,
+                            'size' => 'extralarge'
+                        ]
+                    ];
+                }
             }
 
             return null;
@@ -155,24 +138,16 @@
 
                 // Actualizar las imágenes de los artistas
                 foreach ($artists as $key => $artist) {
-                    if (isset($artist['mbid']) && !empty($artist['mbid'])) {
-                        // Intentar cargar la imagen desde el caché de assets
-                        $cachedImage = self::getArtistImageFromCache($artist['name']);
+                    $imageKey = "artist_image_" . md5($artist['name']);
+                    $cachedImage = Cache::get($imageKey, 'asset');
 
-                        if ($cachedImage) {
-                            // Si existe en caché, usar esa imagen
-                            $artists[$key]['image'] = $cachedImage;
-                        } else {
-                            // Si no existe en caché, obtener de Wikidata
-                            $wikidataUrl = self::getArtistWikidataUrl($artist['mbid']);
-                            if ($wikidataUrl) {
-                                $artistImages = self::getArtistImage($wikidataUrl);
-                                if ($artistImages) {
-                                    $artists[$key]['image'] = $artistImages;
-                                    // Guardar en caché para futuras consultas (en /assets)
-                                    Cache::set("artist_image_" . md5($artist['name']), $artistImages, 'asset');
-                                }
-                            }
+                    if ($cachedImage) {
+                        $artists[$key]['image'] = $cachedImage;
+                    } else {
+                        $artistImages = self::getArtistImage($artist['name']);
+                        if ($artistImages) {
+                            $artists[$key]['image'] = $artistImages;
+                            Cache::set($imageKey, $artistImages, 'asset');
                         }
                     }
                 }
@@ -215,18 +190,18 @@
                 $pagination = $data['artists']['@attr'];
                 $artists = $data['artists']['artist'];
 
-                // Procesar cada artista para obtener su URL de Wikidata y su imagen
+                // Procesar cada artista para obtener su imagen
                 foreach ($artists as $key => $artist) {
-                    if (isset($artist['mbid']) && !empty($artist['mbid'])) {
-                        $wikidataUrl = self::getArtistWikidataUrl($artist['mbid']);
-                        if ($wikidataUrl) {
-                            $artists[$key]['wikidata_url'] = $wikidataUrl;
-                            
-                            // Intentar obtener la imagen desde Wikidata
-                            $artistImages = self::getArtistImage($wikidataUrl);
-                            if ($artistImages) {
-                                $artists[$key]['image'] = $artistImages;
-                            }
+                    $imageKey = "artist_image_" . md5($artist['name']);
+                    $cachedImage = Cache::get($imageKey, 'asset');
+
+                    if ($cachedImage) {
+                        $artists[$key]['image'] = $cachedImage;
+                    } else {
+                        $artistImages = self::getArtistImage($artist['name']);
+                        if ($artistImages) {
+                            $artists[$key]['image'] = $artistImages;
+                            Cache::set($imageKey, $artistImages, 'asset');
                         }
                     }
                 }
@@ -256,11 +231,6 @@
             } catch (Exception $e) {
                 ServerResponse::send($e->getCode(), $e->getMessage());
             }
-        }
-
-        private static function getArtistImageFromCache($artistName) {
-            $imageKey = "artist_image_" . md5($artistName);
-            return Cache::get($imageKey, 'asset');
         }
     }
 ?>
