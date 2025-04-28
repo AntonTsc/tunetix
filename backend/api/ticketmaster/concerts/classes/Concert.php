@@ -88,6 +88,20 @@ class Concert
                 $data = json_decode($response, true);
                 if (isset($data['_embedded']['events'])) {
                     $concerts = $data['_embedded']['events'];
+
+                    // Añadir precios aleatorios a cada concierto
+                    foreach ($concerts as &$concert) {
+                        if (!isset($concert['priceRanges'])) {
+                            $basePrice = mt_rand(30, 150); // Precio base entre 30€ y 150€
+                            $concert['priceRanges'] = [[
+                                'type' => 'Entrada general',
+                                'min' => $basePrice,
+                                'max' => $basePrice + mt_rand(20, 50),
+                                'currency' => 'EUR'
+                            ]];
+                        }
+                    }
+
                     $page_info = [
                         'number' => $page,
                         'totalElements' => $data['page']['totalElements'] ?? count($concerts),
@@ -141,10 +155,8 @@ class Concert
 
     public static function getById($eventId)
     {
-        // Crear una clave única para el caché
         $cacheKey = "concert_" . $eventId;
 
-        // Intentar obtener los datos del caché
         $cachedData = Cache::get($cacheKey);
         if ($cachedData) {
             header("Content-Type: application/json");
@@ -182,7 +194,18 @@ class Concert
             if ($httpCode === 200) {
                 $data = json_decode($response, true);
 
-                // Guardar en caché
+                // Asegurar que siempre haya un rango de precios
+                if (!isset($data['priceRanges']) || empty($data['priceRanges'])) {
+                    $basePrice = mt_rand(30, 150);
+                    $data['priceRanges'] = [[
+                        'type' => 'Entrada general',
+                        'min' => $basePrice,
+                        'max' => $basePrice + mt_rand(20, 50),
+                        'currency' => 'EUR'
+                    ]];
+                }
+
+                // Guardar en caché con los precios
                 Cache::set($cacheKey, $data);
 
                 header("Content-Type: application/json");

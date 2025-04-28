@@ -17,6 +17,7 @@ export class EventoComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
   showMapModal: boolean = false;
+  basePrice: number = 40; // Precio base por defecto
   ticketQuantity: number = 1;
   maxTickets: number = 6; // Límite máximo de tickets por compra
 
@@ -42,6 +43,8 @@ export class EventoComponent implements OnInit {
         next: (response) => {
           if (response.status === 'OK') {
             this.event = response.data;
+            // Generar precio aleatorio entre 30 y 150€
+            this.basePrice = Math.floor(Math.random() * (150 - 30 + 1)) + 30;
           } else {
             this.error = response.message;
           }
@@ -104,33 +107,31 @@ export class EventoComponent implements OnInit {
     }
   }
 
+  getPrice(): string {
+    return `${this.basePrice}€`;
+  }
+
   calculateTotal(): string {
-    if (!this.event?.priceRanges || this.event.priceRanges.length === 0) {
-      return 'Precio no disponible';
-    }
-    return `${this.event.priceRanges[0].min * this.ticketQuantity}€`;
+    return `${this.basePrice * this.ticketQuantity}€`;
   }
 
   async buyTickets(): Promise<void> {
-    if (!this.event?.priceRanges || this.event.priceRanges.length === 0) {
-      alert('Lo sentimos, los precios no están disponibles en este momento');
+    if (this.event.dates?.status?.code === 'cancelled') {
+      alert('Este evento ha sido cancelado y no se pueden vender entradas.');
       return;
     }
-
-    const minPrice = Math.min(...this.event.priceRanges.map((price: any) => price.min));
 
     try {
       const response = await this.ticketService.buyTickets({
         cantidad: this.ticketQuantity,
-        precio_individual: minPrice,
-        precio_total: minPrice * this.ticketQuantity,
+        precio_individual: this.basePrice,
+        precio_total: this.basePrice * this.ticketQuantity,
         ubicacion: this.event._embedded?.venues[0]?.name || 'No especificada',
         artista: this.event._embedded?.attractions[0]?.name || this.event.name
       }).toPromise();
 
       if (response.status === 'OK') {
         alert('¡Compra realizada con éxito!');
-        // Aquí podrías redirigir al historial de compras
       } else {
         alert('Error al procesar la compra: ' + response.message);
       }
