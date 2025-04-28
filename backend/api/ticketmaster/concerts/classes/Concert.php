@@ -1,5 +1,6 @@
 <?php
 include_once __DIR__ . '/../../../../dotenv.php';
+include_once __DIR__ . '/../../../../cache/Cache.php';
 
 class Concert
 {
@@ -7,6 +8,22 @@ class Concert
 
     public static function getAll($limit = 0, $keyword = "", $countryCode = "", $page = 0, $sort = "date_desc")
     {
+        // Crear una clave única para el caché basada en los parámetros
+        $cacheKey = "concerts_" . md5($limit . $keyword . $countryCode . $page . $sort);
+
+        // Intentar obtener los datos del caché
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData) {
+            header("Content-Type: application/json");
+            echo json_encode([
+                "status" => "OK",
+                "message" => "Información de conciertos obtenida (desde caché).",
+                "data" => $cachedData['concerts'],
+                "page" => $cachedData['page_info']
+            ]);
+            return;
+        }
+
         $ch = curl_init();
 
         // Obtener la fecha actual en formato YYYY-MM-DD
@@ -67,6 +84,34 @@ class Concert
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
+            if ($httpCode === 200) {
+                $data = json_decode($response, true);
+                if (isset($data['_embedded']['events'])) {
+                    $concerts = $data['_embedded']['events'];
+                    $page_info = [
+                        'number' => $page,
+                        'totalElements' => $data['page']['totalElements'] ?? count($concerts),
+                        'totalPages' => $data['page']['totalPages'] ?? ceil(count($concerts) / $limit),
+                        'size' => $limit
+                    ];
+
+                    // Guardar en caché
+                    Cache::set($cacheKey, [
+                        'concerts' => $concerts,
+                        'page_info' => $page_info
+                    ]);
+
+                    header("Content-Type: application/json");
+                    echo json_encode([
+                        "status" => "OK",
+                        "message" => "Información de conciertos obtenida.",
+                        "data" => $concerts,
+                        "page" => $page_info
+                    ]);
+                    return;
+                }
+            }
+
             if ($httpCode === 404) {
                 header("Content-Type: application/json");
                 echo json_encode([
@@ -84,33 +129,6 @@ class Concert
                 ]);
                 return;
             }
-
-            $data = json_decode($response, true);
-            if (isset($data['_embedded']['events'])) {
-                $concerts = $data['_embedded']['events'];
-                $page_info = [
-                    'number' => $page,
-                    'totalElements' => $data['page']['totalElements'] ?? count($concerts),
-                    'totalPages' => $data['page']['totalPages'] ?? ceil(count($concerts) / $limit),
-                    'size' => $limit
-                ];
-
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "OK",
-                    "message" => "Información de conciertos obtenidos.",
-                    "data" => $concerts,
-                    "page" => $page_info
-                ]);
-                return;
-            } else {
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "ERROR",
-                    "message" => "No se encontraron conciertos.",
-                ]);
-                return;
-            }
         } catch (Exception $e) {
             header("Content-Type: application/json");
             echo json_encode([
@@ -123,6 +141,21 @@ class Concert
 
     public static function getById($eventId)
     {
+        // Crear una clave única para el caché
+        $cacheKey = "concert_" . $eventId;
+
+        // Intentar obtener los datos del caché
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData) {
+            header("Content-Type: application/json");
+            echo json_encode([
+                "status" => "OK",
+                "message" => "Información del evento obtenida (desde caché).",
+                "data" => $cachedData
+            ]);
+            return;
+        }
+
         $ch = curl_init();
 
         $params = [
@@ -146,6 +179,21 @@ class Concert
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
+            if ($httpCode === 200) {
+                $data = json_decode($response, true);
+
+                // Guardar en caché
+                Cache::set($cacheKey, $data);
+
+                header("Content-Type: application/json");
+                echo json_encode([
+                    "status" => "OK",
+                    "message" => "Información del evento obtenida.",
+                    "data" => $data
+                ]);
+                return;
+            }
+
             if ($httpCode === 404) {
                 header("Content-Type: application/json");
                 echo json_encode([
@@ -163,15 +211,6 @@ class Concert
                 ]);
                 return;
             }
-
-            $data = json_decode($response, true);
-
-            header("Content-Type: application/json");
-            echo json_encode([
-                "status" => "OK",
-                "message" => "Información del evento obtenida.",
-                "data" => $data
-            ]);
         } catch (Exception $e) {
             header("Content-Type: application/json");
             echo json_encode([
