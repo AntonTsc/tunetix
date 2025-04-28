@@ -153,44 +153,13 @@
                 $artists = $cachedData['artists'];
                 $pagination = $cachedData['pagination'];
 
-                // Actualizar las imágenes de los artistas
-                foreach ($artists as $key => $artist) {
-                    if (isset($artist['mbid']) && !empty($artist['mbid'])) {
-                        // Intentar cargar la imagen desde el caché de assets
-                        $imageKey = "artist_image_" . md5($artist['name']);
-                        $cachedImage = Cache::get($imageKey, true); // true indica que busque en /assets
-
-                        if ($cachedImage) {
-                            // Si existe en caché, usar esa imagen
-                            $artists[$key]['image'] = $cachedImage;
-                        } else {
-                            // Si no existe en caché, obtener de Wikidata
-                            $wikidataUrl = self::getArtistWikidataUrl($artist['mbid']);
-                            if ($wikidataUrl) {
-                                $artistImages = self::getArtistImage($wikidataUrl);
-                                if ($artistImages) {
-                                    $artists[$key]['image'] = $artistImages;
-                                    // Guardar en caché para futuras consultas (en /assets)
-                                    Cache::set($imageKey, $artistImages, true);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Limitar el número de páginas a 20
-                if ($pagination['totalPages'] > 20) {
-                    $pagination['totalPages'] = 20;
-                }
-
-                // Filtrar los artistas según el parámetro $keyword
+                // Aplicar filtros y ordenación a los datos en caché
                 if (!empty($keyword)) {
                     $artists = array_filter($artists, function ($artist) use ($keyword) {
                         return stripos($artist['name'], $keyword) !== false;
                     });
                 }
 
-                // Ordenar los artistas según el parámetro $sort
                 self::sortArtists($artists, $sort);
 
                 $data = ["artists" => $artists, "pagination" => $pagination];
@@ -198,13 +167,12 @@
                 return;
             }
 
-            // Si no hay datos en el caché, realiza la solicitud a la API
-            $url = self::$baseUrl . "&method=chart.gettopartists&limit=$limit&page=$page";
-
-            $curl = curl_init($url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
+            // Si no hay datos en caché, realizar la solicitud a la API
             try {
+                $url = self::$baseUrl . "&method=chart.gettopartists&limit=$limit&page=$page";
+                $curl = curl_init($url);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                
                 $response = curl_exec($curl);
                 curl_close($curl);
 
@@ -213,46 +181,48 @@
                     throw new Exception("Failed to fetch or parse data from API");
                 }
 
-                $pagination = $data['artists']['@attr'];
                 $artists = $data['artists']['artist'];
+                $pagination = $data['artists']['@attr'];
 
-                // Procesar cada artista para obtener su URL de Wikidata y su imagen
+                // Procesar imágenes solo para nuevos artistas
                 foreach ($artists as $key => $artist) {
                     if (isset($artist['mbid']) && !empty($artist['mbid'])) {
-                        $wikidataUrl = self::getArtistWikidataUrl($artist['mbid']);
-                        if ($wikidataUrl) {
-                            $artists[$key]['wikidata_url'] = $wikidataUrl;
-                            
-                            // Intentar obtener la imagen desde Wikidata
-                            $artistImages = self::getArtistImage($wikidataUrl);
-                            if ($artistImages) {
-                                $artists[$key]['image'] = $artistImages;
+                        $imageKey = "artist_image_" . md5($artist['name']);
+                        $cachedImage = Cache::get($imageKey, true);
+
+                        if ($cachedImage) {
+                            // Usar imagen cacheada
+                            $artists[$key]['image'] = $cachedImage;
+                        } else {
+                            // Solo obtener nueva imagen si no está en caché
+                            $wikidataUrl = self::getArtistWikidataUrl($artist['mbid']);
+                            if ($wikidataUrl) {
+                                $artistImages = self::getArtistImage($wikidataUrl);
+                                if ($artistImages) {
+                                    $artists[$key]['image'] = $artistImages;
+                                    Cache::set($imageKey, $artistImages, true);
+                                }
                             }
                         }
                     }
                 }
 
-                // Limitar el número de páginas a 20
+                // Limitar páginas y aplicar filtros
                 if ($pagination['totalPages'] > 20) {
                     $pagination['totalPages'] = 20;
                 }
 
-                // Filtrar los artistas según el parámetro $keyword
                 if (!empty($keyword)) {
                     $artists = array_filter($artists, function ($artist) use ($keyword) {
                         return stripos($artist['name'], $keyword) !== false;
                     });
                 }
 
-                // Ordenar los artistas según el parámetro $sort
                 self::sortArtists($artists, $sort);
 
                 $data = ["artists" => $artists, "pagination" => $pagination];
-
-                // Guarda los datos en el caché
                 Cache::set($cacheKey, $data);
 
-                // Devuelve los datos al cliente
                 ServerResponse::success("Top artists fetched successfully", $data);
             } catch (Exception $e) {
                 ServerResponse::send($e->getCode(), $e->getMessage());
