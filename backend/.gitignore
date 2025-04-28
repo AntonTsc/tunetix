@@ -2,3 +2,4 @@ vendor
 .env
 cache/*.json
 !cache/*.php
+assets
