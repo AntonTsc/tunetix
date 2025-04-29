@@ -1,10 +1,21 @@
 <?php
 include_once __DIR__ . '/../../../../dotenv.php';
 include_once __DIR__ . '/../../../../cache/Cache.php';
+include_once __DIR__ . '/../../../../Controllers/PreciosEventos/create.php';
 
 class Concert
 {
     private static $baseUrl = 'https://app.ticketmaster.com/discovery/v2';
+    private static $preciosController;
+
+    private static function initPreciosController()
+    {
+        if (!self::$preciosController) {
+            $conn = require __DIR__ . '/../../../../db.php';
+            self::$preciosController = new PreciosEventosController($conn);
+        }
+        return self::$preciosController;
+    }
 
     public static function getAll($limit = 0, $keyword = "", $countryCode = "", $page = 0, $sort = "date_desc")
     {
@@ -14,11 +25,34 @@ class Concert
         // Intentar obtener los datos del caché
         $cachedData = Cache::get($cacheKey);
         if ($cachedData) {
+            $concerts = $cachedData['concerts'];
+            $preciosController = self::initPreciosController();
+
+            // Actualizar precios desde la base de datos incluso para datos en caché
+            foreach ($concerts as &$concert) {
+                try {
+                    $precio = $preciosController->getEventPrice($concert['id']);
+                    $concert['precio'] = $precio; // Un único precio fijo
+
+                    // Mantener priceRanges para compatibilidad con la API de Ticketmaster
+                    $concert['priceRanges'] = [[
+                        'type' => 'Entrada general',
+                        'min' => $precio,
+                        'max' => $precio, // Mismo valor min/max = precio fijo
+                        'currency' => 'EUR'
+                    ]];
+                } catch (Exception $e) {
+                    error_log($e->getMessage());
+                    $concert['precio'] = null;
+                    $concert['priceRanges'] = [];
+                }
+            }
+
             header("Content-Type: application/json");
             echo json_encode([
                 "status" => "OK",
                 "message" => "Información de conciertos obtenida (desde caché).",
-                "data" => $cachedData['concerts'],
+                "data" => $concerts,
                 "page" => $cachedData['page_info']
             ]);
             return;
@@ -88,17 +122,25 @@ class Concert
                 $data = json_decode($response, true);
                 if (isset($data['_embedded']['events'])) {
                     $concerts = $data['_embedded']['events'];
+                    $preciosController = self::initPreciosController();
 
-                    // Añadir precios aleatorios a cada concierto
+                    // Obtener precios de la base de datos
                     foreach ($concerts as &$concert) {
-                        if (!isset($concert['priceRanges'])) {
-                            $basePrice = mt_rand(30, 150); // Precio base entre 30€ y 150€
+                        try {
+                            $precio = $preciosController->getEventPrice($concert['id']);
+                            $concert['precio'] = $precio; // Un único precio fijo
+
+                            // Mantener priceRanges para compatibilidad con la API de Ticketmaster
                             $concert['priceRanges'] = [[
                                 'type' => 'Entrada general',
-                                'min' => $basePrice,
-                                'max' => $basePrice + mt_rand(20, 50),
+                                'min' => $precio,
+                                'max' => $precio, // Mismo valor min/max = precio fijo
                                 'currency' => 'EUR'
                             ]];
+                        } catch (Exception $e) {
+                            error_log($e->getMessage());
+                            $concert['precio'] = null;
+                            $concert['priceRanges'] = [];
                         }
                     }
 
@@ -159,6 +201,28 @@ class Concert
 
         $cachedData = Cache::get($cacheKey);
         if ($cachedData) {
+            $preciosController = self::initPreciosController();
+
+            try {
+                // Siempre obtener el precio actual de la base de datos
+                $precio = $preciosController->getEventPrice($eventId);
+                $cachedData['precio'] = $precio; // Un único precio fijo
+
+                // Mantener priceRanges para compatibilidad
+                $cachedData['priceRanges'] = [[
+                    'type' => 'Entrada general',
+                    'min' => $precio,
+                    'max' => $precio, // Mismo valor min/max = precio fijo
+                    'currency' => 'EUR'
+                ]];
+
+                // Actualizar el caché con los datos modificados
+                Cache::set($cacheKey, $cachedData);
+            } catch (Exception $e) {
+                error_log($e->getMessage());
+                $cachedData['priceRanges'] = [];
+            }
+
             header("Content-Type: application/json");
             echo json_encode([
                 "status" => "OK",
@@ -193,16 +257,22 @@ class Concert
 
             if ($httpCode === 200) {
                 $data = json_decode($response, true);
+                $preciosController = self::initPreciosController();
 
-                // Asegurar que siempre haya un rango de precios
-                if (!isset($data['priceRanges']) || empty($data['priceRanges'])) {
-                    $basePrice = mt_rand(30, 150);
+                try {
+                    $precio = $preciosController->getEventPrice($eventId);
+                    $data['precio'] = $precio; // Un único precio fijo
+
+                    // Mantener priceRanges para compatibilidad
                     $data['priceRanges'] = [[
                         'type' => 'Entrada general',
-                        'min' => $basePrice,
-                        'max' => $basePrice + mt_rand(20, 50),
+                        'min' => $precio,
+                        'max' => $precio, // Mismo valor min/max = precio fijo
                         'currency' => 'EUR'
                     ]];
+                } catch (Exception $e) {
+                    error_log($e->getMessage());
+                    $data['priceRanges'] = [];
                 }
 
                 // Guardar en caché con los precios

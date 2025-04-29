@@ -43,8 +43,17 @@ export class EventoComponent implements OnInit {
         next: (response) => {
           if (response.status === 'OK') {
             this.event = response.data;
-            // Generar precio aleatorio entre 30 y 150€
-            this.basePrice = Math.floor(Math.random() * (150 - 30 + 1)) + 30;
+
+            // Formatea el precio a 2 decimales en el momento en que lo recibes
+            this.basePrice = parseFloat(this.event.precio);
+
+            // También puedes formatear cualquier precio en las priceRanges
+            if (this.event.priceRanges && this.event.priceRanges.length > 0) {
+              this.event.priceRanges.forEach((range: any) => {
+                if (range.min) range.min = parseFloat(range.min).toFixed(2);
+                if (range.max) range.max = parseFloat(range.max).toFixed(2);
+              });
+            }
           } else {
             this.error = response.message;
           }
@@ -81,11 +90,12 @@ export class EventoComponent implements OnInit {
   }
 
   getMinPrice(): string {
-    if (!this.event?.priceRanges || this.event.priceRanges.length === 0) {
-      return 'Precio no disponible';
-    }
-    return `${this.event.priceRanges[0].min}€`;
+  if (!this.event?.priceRanges || this.event.priceRanges.length === 0) {
+    return 'Precio no disponible';
   }
+  // Formatea el precio mínimo a 2 decimales
+  return `${parseFloat(this.event.priceRanges[0].min).toFixed(2)}€`;
+}
 
   decreaseTickets(): void {
     if (this.ticketQuantity > 1) {
@@ -108,12 +118,14 @@ export class EventoComponent implements OnInit {
   }
 
   getPrice(): string {
-    return `${this.basePrice}€`;
-  }
+  // Formatea el precio base a 2 decimales
+  return `${this.basePrice.toFixed(2)}€`;
+}
 
   calculateTotal(): string {
-    return `${this.basePrice * this.ticketQuantity}€`;
-  }
+  // Formatea el precio total a 2 decimales
+  return `${(this.basePrice * this.ticketQuantity).toFixed(2)}€`;
+}
 
   async buyTickets(): Promise<void> {
     if (this.event.dates?.status?.code === 'cancelled') {

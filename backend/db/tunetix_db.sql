@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-03-2025 a las 12:33:57
+-- Tiempo de generación: 29-04-2025 a las 11:18:46
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -22,10 +22,6 @@ SET time_zone = "+00:00";
 --
 
 -- --------------------------------------------------------
-
-DROP DATABASE IF EXISTS `tunetix_db`;
-CREATE DATABASE `tunetix_db`;
-USE `tunetix_db`;
 
 --
 -- Estructura de tabla para la tabla `contact_messages`
@@ -57,6 +53,18 @@ CREATE TABLE `metodo_pago` (
   `divisa` varchar(20) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `precios_eventos`
+--
+
+CREATE TABLE `precios_eventos` (
+  `event_id` varchar(255) NOT NULL,
+  `precio` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -114,6 +122,12 @@ ALTER TABLE `metodo_pago`
   ADD KEY `id_usuario` (`id_usuario`);
 
 --
+-- Indices de la tabla `precios_eventos`
+--
+ALTER TABLE `precios_eventos`
+  ADD PRIMARY KEY (`event_id`);
+
+--
 -- Indices de la tabla `ticket`
 --
 ALTER TABLE `ticket`
@@ -135,13 +149,13 @@ ALTER TABLE `usuario`
 -- AUTO_INCREMENT de la tabla `contact_messages`
 --
 ALTER TABLE `contact_messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `metodo_pago`
 --
 ALTER TABLE `metodo_pago`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `ticket`
@@ -153,7 +167,7 @@ ALTER TABLE `ticket`
 -- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Restricciones para tablas volcadas
