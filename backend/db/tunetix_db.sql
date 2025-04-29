@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-04-2025 a las 11:18:46
+-- Tiempo de generación: 29-04-2025 a las 15:24:31
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -51,7 +51,8 @@ CREATE TABLE `metodo_pago` (
   `cvc` int(3) NOT NULL,
   `fecha_expiracion` char(5) NOT NULL,
   `divisa` varchar(20) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `active` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -80,6 +81,7 @@ CREATE TABLE `ticket` (
   `precio_total` float NOT NULL,
   `ubicacion` varchar(255) NOT NULL,
   `artista` varchar(255) NOT NULL,
+  `metodo_pago_id` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -132,7 +134,8 @@ ALTER TABLE `precios_eventos`
 --
 ALTER TABLE `ticket`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `id_usuario` (`id_usuario`);
+  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `fk_ticket_metodo_pago` (`metodo_pago_id`);
 
 --
 -- Indices de la tabla `usuario`
@@ -189,6 +192,7 @@ ALTER TABLE `metodo_pago`
 -- Filtros para la tabla `ticket`
 --
 ALTER TABLE `ticket`
+  ADD CONSTRAINT `fk_ticket_metodo_pago` FOREIGN KEY (`metodo_pago_id`) REFERENCES `metodo_pago` (`id`),
   ADD CONSTRAINT `ticket_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
 COMMIT;
 
