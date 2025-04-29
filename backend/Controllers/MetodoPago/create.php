@@ -85,10 +85,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $prep->bind_param("sisiiss", $tipo, $user_id, $titular, $pan, $cvc, $fecha_expiracion, $divisa);
 
         if ($prep->execute()) {
-            $id = $conn->insert_id;
-            echo json_encode(['status' => 'OK', 'message' => 'Se ha añadido un nuevo método de pago', 'id' => $id]);
+            // Obtener el ID de la tarjeta recién creada
+            $card_id = $conn->insert_id;
+
+            echo json_encode([
+                'status' => 'OK',
+                'message' => 'Método de pago registrado correctamente',
+                'data' => [
+                    'id' => $card_id,
+                    'tipo' => $tipo,
+                    'titular' => $titular,
+                    'pan' => $pan,
+                    'fecha_expiracion' => $fecha_expiracion,
+                    'divisa' => $divisa
+                ]
+            ]);
         } else {
-            echo json_encode(['status' => 'ERROR', 'message' => 'Error al guardar: ' . $prep->error]);
+            echo json_encode(['status' => 'ERROR', 'message' => 'No se ha podido registrar el método de pago']);
         }
     } catch (Exception $e) {
         echo json_encode(['status' => 'ERROR', 'message' => 'Error: ' . $e->getMessage()]);

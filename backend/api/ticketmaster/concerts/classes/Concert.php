@@ -1,12 +1,63 @@
 <?php
 include_once __DIR__ . '/../../../../dotenv.php';
+include_once __DIR__ . '/../../../../cache/Cache.php';
+include_once __DIR__ . '/../../../../Controllers/PreciosEventos/create.php';
 
 class Concert
 {
     private static $baseUrl = 'https://app.ticketmaster.com/discovery/v2';
+    private static $preciosController;
+
+    private static function initPreciosController()
+    {
+        if (!self::$preciosController) {
+            $conn = require __DIR__ . '/../../../../db.php';
+            self::$preciosController = new PreciosEventosController($conn);
+        }
+        return self::$preciosController;
+    }
 
     public static function getAll($limit = 0, $keyword = "", $countryCode = "", $page = 0, $sort = "date_desc")
     {
+        // Crear una clave única para el caché basada en los parámetros
+        $cacheKey = "concerts_" . md5($limit . $keyword . $countryCode . $page . $sort);
+
+        // Intentar obtener los datos del caché
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData) {
+            $concerts = $cachedData['concerts'];
+            $preciosController = self::initPreciosController();
+
+            // Actualizar precios desde la base de datos incluso para datos en caché
+            foreach ($concerts as &$concert) {
+                try {
+                    $precio = $preciosController->getEventPrice($concert['id']);
+                    $concert['precio'] = $precio; // Un único precio fijo
+
+                    // Mantener priceRanges para compatibilidad con la API de Ticketmaster
+                    $concert['priceRanges'] = [[
+                        'type' => 'Entrada general',
+                        'min' => $precio,
+                        'max' => $precio, // Mismo valor min/max = precio fijo
+                        'currency' => 'EUR'
+                    ]];
+                } catch (Exception $e) {
+                    error_log($e->getMessage());
+                    $concert['precio'] = null;
+                    $concert['priceRanges'] = [];
+                }
+            }
+
+            header("Content-Type: application/json");
+            echo json_encode([
+                "status" => "OK",
+                "message" => "Información de conciertos obtenida (desde caché).",
+                "data" => $concerts,
+                "page" => $cachedData['page_info']
+            ]);
+            return;
+        }
+
         $ch = curl_init();
 
         // Obtener la fecha actual en formato YYYY-MM-DD
@@ -67,6 +118,56 @@ class Concert
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
+            if ($httpCode === 200) {
+                $data = json_decode($response, true);
+                if (isset($data['_embedded']['events'])) {
+                    $concerts = $data['_embedded']['events'];
+                    $preciosController = self::initPreciosController();
+
+                    // Obtener precios de la base de datos
+                    foreach ($concerts as &$concert) {
+                        try {
+                            $precio = $preciosController->getEventPrice($concert['id']);
+                            $concert['precio'] = $precio; // Un único precio fijo
+
+                            // Mantener priceRanges para compatibilidad con la API de Ticketmaster
+                            $concert['priceRanges'] = [[
+                                'type' => 'Entrada general',
+                                'min' => $precio,
+                                'max' => $precio, // Mismo valor min/max = precio fijo
+                                'currency' => 'EUR'
+                            ]];
+                        } catch (Exception $e) {
+                            error_log($e->getMessage());
+                            $concert['precio'] = null;
+                            $concert['priceRanges'] = [];
+                        }
+                    }
+
+                    $page_info = [
+                        'number' => $page,
+                        'totalElements' => $data['page']['totalElements'] ?? count($concerts),
+                        'totalPages' => $data['page']['totalPages'] ?? ceil(count($concerts) / $limit),
+                        'size' => $limit
+                    ];
+
+                    // Guardar en caché
+                    Cache::set($cacheKey, [
+                        'concerts' => $concerts,
+                        'page_info' => $page_info
+                    ]);
+
+                    header("Content-Type: application/json");
+                    echo json_encode([
+                        "status" => "OK",
+                        "message" => "Información de conciertos obtenida.",
+                        "data" => $concerts,
+                        "page" => $page_info
+                    ]);
+                    return;
+                }
+            }
+
             if ($httpCode === 404) {
                 header("Content-Type: application/json");
                 echo json_encode([
@@ -84,33 +185,6 @@ class Concert
                 ]);
                 return;
             }
-
-            $data = json_decode($response, true);
-            if (isset($data['_embedded']['events'])) {
-                $concerts = $data['_embedded']['events'];
-                $page_info = [
-                    'number' => $page,
-                    'totalElements' => $data['page']['totalElements'] ?? count($concerts),
-                    'totalPages' => $data['page']['totalPages'] ?? ceil(count($concerts) / $limit),
-                    'size' => $limit
-                ];
-
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "OK",
-                    "message" => "Información de conciertos obtenidos.",
-                    "data" => $concerts,
-                    "page" => $page_info
-                ]);
-                return;
-            } else {
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "ERROR",
-                    "message" => "No se encontraron conciertos.",
-                ]);
-                return;
-            }
         } catch (Exception $e) {
             header("Content-Type: application/json");
             echo json_encode([
@@ -123,6 +197,41 @@ class Concert
 
     public static function getById($eventId)
     {
+        $cacheKey = "concert_" . $eventId;
+
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData) {
+            $preciosController = self::initPreciosController();
+
+            try {
+                // Siempre obtener el precio actual de la base de datos
+                $precio = $preciosController->getEventPrice($eventId);
+                $cachedData['precio'] = $precio; // Un único precio fijo
+
+                // Mantener priceRanges para compatibilidad
+                $cachedData['priceRanges'] = [[
+                    'type' => 'Entrada general',
+                    'min' => $precio,
+                    'max' => $precio, // Mismo valor min/max = precio fijo
+                    'currency' => 'EUR'
+                ]];
+
+                // Actualizar el caché con los datos modificados
+                Cache::set($cacheKey, $cachedData);
+            } catch (Exception $e) {
+                error_log($e->getMessage());
+                $cachedData['priceRanges'] = [];
+            }
+
+            header("Content-Type: application/json");
+            echo json_encode([
+                "status" => "OK",
+                "message" => "Información del evento obtenida (desde caché).",
+                "data" => $cachedData
+            ]);
+            return;
+        }
+
         $ch = curl_init();
 
         $params = [
@@ -146,6 +255,38 @@ class Concert
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
+            if ($httpCode === 200) {
+                $data = json_decode($response, true);
+                $preciosController = self::initPreciosController();
+
+                try {
+                    $precio = $preciosController->getEventPrice($eventId);
+                    $data['precio'] = $precio; // Un único precio fijo
+
+                    // Mantener priceRanges para compatibilidad
+                    $data['priceRanges'] = [[
+                        'type' => 'Entrada general',
+                        'min' => $precio,
+                        'max' => $precio, // Mismo valor min/max = precio fijo
+                        'currency' => 'EUR'
+                    ]];
+                } catch (Exception $e) {
+                    error_log($e->getMessage());
+                    $data['priceRanges'] = [];
+                }
+
+                // Guardar en caché con los precios
+                Cache::set($cacheKey, $data);
+
+                header("Content-Type: application/json");
+                echo json_encode([
+                    "status" => "OK",
+                    "message" => "Información del evento obtenida.",
+                    "data" => $data
+                ]);
+                return;
+            }
+
             if ($httpCode === 404) {
                 header("Content-Type: application/json");
                 echo json_encode([
@@ -163,15 +304,6 @@ class Concert
                 ]);
                 return;
             }
-
-            $data = json_decode($response, true);
-
-            header("Content-Type: application/json");
-            echo json_encode([
-                "status" => "OK",
-                "message" => "Información del evento obtenida.",
-                "data" => $data
-            ]);
         } catch (Exception $e) {
             header("Content-Type: application/json");
             echo json_encode([

@@ -1,5 +1,6 @@
 <?php
     include_once __DIR__ . '/classes/Artist.php';
+    include_once '../../auth/global_headers.php';
 
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 24;
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;

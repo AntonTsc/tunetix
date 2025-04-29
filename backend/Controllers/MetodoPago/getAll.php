@@ -19,10 +19,11 @@ try {
         exit;
     }
 
-    $prep = $conn->prepare("SELECT * FROM metodo_pago WHERE id_usuario = ?");
-    $prep->bind_param('i', $user_id);
-    $prep->execute();
-    $result = $prep->get_result();
+    // Solo obtener tarjetas activas
+    $stmt = $conn->prepare("SELECT * FROM metodo_pago WHERE id_usuario = ? AND active = 1");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
     $data = $result->fetch_all(MYSQLI_ASSOC);
 
     echo json_encode(['status' => 'OK', 'message' => 'Datos enviados', 'data' => $data]);
@@ -32,4 +33,3 @@ try {
     echo json_encode(['status' => 'ERROR', 'message' => 'Ocurrió un error interno']);
     exit;
 }
-?>
