@@ -11,7 +11,7 @@ import { Icon, Style } from 'ol/style';
 @Component({
   selector: 'app-map-modal',
   template: `
-    <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-8">
+    <div class="fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-8">
       <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl">
         <div class="p-4 border-b flex justify-between items-center">
           <h3 class="text-xl font-semibold text-gray-800">{{ title }}</h3>

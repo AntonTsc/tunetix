@@ -34,6 +34,7 @@ import { TooltipDirective } from './directives/tooltip.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { TicketService } from './services/ticket.service';
 import { TokenService } from './services/token.service';
+import { PaymentModalComponent } from './components/payment-modal/payment-modal.component';
 
 @NgModule({
   declarations: [
@@ -63,7 +64,8 @@ import { TokenService } from './services/token.service';
     AdminUsersComponent,
     TooltipDirective,
     CardComponent,
-    MapModalComponent
+    MapModalComponent,
+    PaymentModalComponent
   ],
   imports: [
     BrowserModule,

@@ -12,12 +12,14 @@ export class TicketService {
   constructor(private http: HttpClient) { }
 
   buyTickets(ticketData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/api/ticket/create.php`, {
-      cantidad: ticketData.cantidad,
-      precio_individual: ticketData.precio_individual,
-      precio_total: ticketData.precio_total,
-      ubicacion: ticketData.ubicacion,
-      artista: ticketData.artista
+    return this.http.post(`${this.baseUrl}/Controllers/Ticket/create.php`, ticketData, {
+      withCredentials: true
+    });
+  }
+
+  getUserTickets(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/Controllers/Ticket/getAll.php`, {
+      withCredentials: true
     });
   }
 }

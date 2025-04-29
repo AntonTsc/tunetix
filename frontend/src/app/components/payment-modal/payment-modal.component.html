@@ -1,0 +1,299 @@
+<div
+  *ngIf="show"
+  class="fixed inset-0 bg-black bg-opacity-50 z-[1000] flex items-center justify-center"
+>
+  <div class="bg-white rounded-lg w-full max-w-lg mx-4 shadow-xl">
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b">
+      <h3 class="text-xl font-semibold text-gray-800">
+        Selecciona método de pago
+      </h3>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6">
+      <!-- Event Summary -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h4 class="font-medium text-gray-800">Resumen de la compra</h4>
+        <p class="text-gray-700 mt-2">{{ eventInfo?.name }}</p>
+        <div class="flex justify-between mt-2 text-sm">
+          <span>{{ quantity }} entrada{{ quantity !== 1 ? "s" : "" }}</span>
+          <span class="font-medium">{{ (price * quantity).toFixed(2) }}€</span>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="loading" class="flex flex-col items-center py-8">
+        <div
+          class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"
+        ></div>
+        <p class="mt-3 text-gray-600">Cargando métodos de pago...</p>
+      </div>
+
+      <!-- Error message -->
+      <div
+        *ngIf="formError"
+        class="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm"
+      >
+        {{ formError }}
+      </div>
+
+      <!-- Saved Cards Section -->
+      <div *ngIf="!loading && savedCards.length > 0" class="mb-6">
+        <h4 class="font-medium text-gray-800 mb-3">Tarjetas guardadas</h4>
+        <div class="space-y-3">
+          <div
+            *ngFor="let card of savedCards"
+            class="border rounded-lg p-3 cursor-pointer transition-colors"
+            [class.bg-purple-50]="card.id === selectedCardId"
+            [class.border-purple-300]="card.id === selectedCardId"
+            (click)="selectCard(card.id || 0)"
+          >
+            <div class="flex items-center">
+              <div class="mr-3">
+                <i
+                  [class]="
+                    'fas ' +
+                    getCardIcon(card.tipo) +
+                    ' text-2xl ' +
+                    getCardIconColor(card.tipo)
+                  "
+                ></i>
+              </div>
+              <div>
+                <div class="font-medium">
+                  {{ getMaskedCardNumber(card.pan) }}
+                </div>
+                <div class="text-sm text-gray-500">{{ card.titular }}</div>
+              </div>
+              <div class="ml-auto">
+                <div
+                  class="h-5 w-5 rounded-full border-2"
+                  [class.border-purple-500]="card.id === selectedCardId"
+                  [class.bg-purple-500]="card.id === selectedCardId"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New Card Toggle -->
+      <div class="mb-6" *ngIf="!loading && savedCards.length > 0">
+        <button
+          (click)="toggleNewCardForm()"
+          class="text-purple-600 hover:text-purple-800 text-sm flex items-center"
+        >
+          <i class="fas fa-plus-circle mr-1"></i>
+          <span>{{
+            showNewCardForm
+              ? "Usar una tarjeta guardada"
+              : "Usar una nueva tarjeta"
+          }}</span>
+        </button>
+      </div>
+
+      <!-- New Card Form -->
+      <div *ngIf="!loading && showNewCardForm" class="border-t pt-4">
+        <h4 class="font-medium text-gray-800 mb-4">Nueva tarjeta</h4>
+
+        <!-- Card Form -->
+        <form [formGroup]="cardForm" class="space-y-4">
+          <!-- Card Owner -->
+          <div>
+            <label
+              for="cardOwner"
+              class="block text-sm font-medium text-gray-700"
+              >Titular</label
+            >
+            <div class="mt-1">
+              <input
+                type="text"
+                id="cardOwner"
+                formControlName="cardOwner"
+                placeholder="Juan Pérez"
+                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+              />
+            </div>
+            <div
+              *ngIf="
+                cardForm.get('cardOwner')?.invalid &&
+                cardForm.get('cardOwner')?.touched
+              "
+              class="text-red-500 text-xs mt-1"
+            >
+              El nombre del titular es obligatorio
+            </div>
+          </div>
+
+          <!-- Card Number -->
+          <div>
+            <label
+              for="cardNumber"
+              class="block text-sm font-medium text-gray-700"
+              >Número de tarjeta</label
+            >
+            <div class="mt-1">
+              <input
+                type="text"
+                id="cardNumber"
+                formControlName="cardNumber"
+                placeholder="1234123412341234"
+                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+              />
+            </div>
+            <div
+              *ngIf="
+                cardForm.get('cardNumber')?.invalid &&
+                cardForm.get('cardNumber')?.touched
+              "
+              class="text-red-500 text-xs mt-1"
+            >
+              Introduce un número de tarjeta válido (16 dígitos)
+            </div>
+          </div>
+
+          <!-- Expiry Date & CVC -->
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label
+                for="expMonth"
+                class="block text-sm font-medium text-gray-700"
+                >Mes</label
+              >
+              <div class="mt-1">
+                <select
+                  id="expMonth"
+                  formControlName="expMonth"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                >
+                  <option value="" disabled selected>MM</option>
+                  <option *ngFor="let month of months" [value]="month">
+                    {{ month }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="expYear"
+                class="block text-sm font-medium text-gray-700"
+                >Año</label
+              >
+              <div class="mt-1">
+                <select
+                  id="expYear"
+                  formControlName="expYear"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                >
+                  <option value="" disabled selected>AA</option>
+                  <option *ngFor="let year of years" [value]="year">
+                    {{ year }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label for="cvc" class="block text-sm font-medium text-gray-700"
+                >CVC</label
+              >
+              <div class="mt-1">
+                <input
+                  type="text"
+                  id="cvc"
+                  formControlName="cvc"
+                  placeholder="123"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Type -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                for="cardType"
+                class="block text-sm font-medium text-gray-700"
+                >Tipo de tarjeta</label
+              >
+              <div class="mt-1">
+                <select
+                  id="cardType"
+                  formControlName="cardType"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                >
+                  <option value="" disabled selected>Seleccione tipo</option>
+                  <option value="VISA">VISA</option>
+                  <option value="MASTERCARD">MASTERCARD</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="currency"
+                class="block text-sm font-medium text-gray-700"
+                >Moneda</label
+              >
+              <div class="mt-1">
+                <select
+                  id="currency"
+                  formControlName="currency"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                >
+                  <option value="EUR">EUR - Euro</option>
+                  <option value="USD">USD - Dólar</option>
+                  <option value="GBP">GBP - Libra</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 border-t flex justify-end space-x-3">
+      <button
+        (click)="closeModal()"
+        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+        [disabled]="isProcessing"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="confirmPayment()"
+        class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center justify-center"
+        [disabled]="isProcessing"
+      >
+        <span *ngIf="!isProcessing">Confirmar pago</span>
+        <div *ngIf="isProcessing" class="flex items-center">
+          <svg
+            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Procesando...
+        </div>
+      </button>
+    </div>
+  </div>
+</div>

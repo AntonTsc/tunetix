@@ -387,7 +387,6 @@
                 {{ event._embedded.venues[0]?.country?.name }}
               </p>
 
-              <!-- Reemplaza el botón de Google Maps con este nuevo botón -->
               <button
                 *ngIf="
                   event._embedded.venues[0]?.location?.longitude &&
@@ -450,7 +449,7 @@
               </div>
             </div>
 
-            <!-- Precio y selector de cantidad (solo mostrar si el evento no está cancelado) -->
+            <!-- Reemplazar la sección de entradas por esta versión actualizada -->
             <div
               class="space-y-6"
               *ngIf="event.dates?.status?.code !== 'cancelled'"
@@ -462,82 +461,117 @@
                 </p>
                 <p class="text-sm text-gray-500 mt-2">Entrada general</p>
 
-                <!-- Quantity selector -->
-                <div class="flex items-center justify-center space-x-4 mt-4">
-                  <button
-                    (click)="decreaseTickets()"
-                    [disabled]="ticketQuantity <= 1"
-                    class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6 text-gray-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                <!-- Quantity selector y total: solo visible si está autenticado -->
+                <ng-container *ngIf="isAuthenticated()">
+                  <!-- Quantity selector -->
+                  <div class="flex items-center justify-center space-x-4 mt-4">
+                    <button
+                      (click)="decreaseTickets()"
+                      [disabled]="ticketQuantity <= 1"
+                      class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M20 12H4"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6 text-gray-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M20 12H4"
+                        />
+                      </svg>
+                    </button>
 
-                  <div class="w-16 text-center">
-                    <input
-                      type="number"
-                      [(ngModel)]="ticketQuantity"
-                      (change)="validateTicketQuantity()"
-                      min="1"
-                      [max]="maxTickets"
-                      class="w-full text-center border rounded-md py-2"
-                    />
-                    <p class="text-xs text-gray-500 mt-1">
-                      Máx. {{ maxTickets }}
-                    </p>
+                    <div class="w-16 text-center">
+                      <input
+                        type="number"
+                        [(ngModel)]="ticketQuantity"
+                        (change)="validateTicketQuantity()"
+                        min="1"
+                        [max]="maxTickets"
+                        class="w-full text-center border rounded-md py-2"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">
+                        Máx. {{ maxTickets }}
+                      </p>
+                    </div>
+
+                    <button
+                      (click)="increaseTickets()"
+                      [disabled]="ticketQuantity >= maxTickets"
+                      class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6 text-gray-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                    </button>
                   </div>
 
+                  <!-- Total -->
+                  <div class="text-center py-4 border-t border-b mt-4">
+                    <p class="text-sm text-gray-600">Total</p>
+                    <p class="text-2xl font-bold text-gray-800">
+                      {{ calculateTotal() }}
+                    </p>
+                  </div>
+                </ng-container>
+
+                <!-- Espacio adicional cuando el usuario no está autenticado -->
+                <div *ngIf="!isAuthenticated()" class="mt-6"></div>
+
+                <!-- Botón condicional según el estado de la autenticación -->
+                <ng-container *ngIf="isAuthenticated(); else loginButton">
                   <button
-                    (click)="increaseTickets()"
-                    [disabled]="ticketQuantity >= maxTickets"
-                    class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    (click)="buyTickets()"
+                    class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition duration-200 mt-4"
+                  >
+                    Comprar {{ ticketQuantity }} entrada{{
+                      ticketQuantity !== 1 ? "s" : ""
+                    }}
+                  </button>
+                </ng-container>
+
+                <ng-template #loginButton>
+                  <button
+                    (click)="navigateToLogin()"
+                    class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition duration-200 mt-4 flex items-center justify-center"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="h-6 w-6 text-gray-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                      class="h-5 w-5 mr-2"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
                       <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        fill-rule="evenodd"
+                        d="M3 3a1 1 0 011-1h12a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm2 2v10h10V5H5z"
+                        clip-rule="evenodd"
+                      />
+                      <path
+                        d="M7 7a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h4a1 1 0 100-2H8z"
                       />
                     </svg>
+                    Iniciar sesión
                   </button>
-                </div>
-
-                <!-- Total -->
-                <div class="text-center py-4 border-t border-b mt-4">
-                  <p class="text-sm text-gray-600">Total</p>
-                  <p class="text-2xl font-bold text-gray-800">
-                    {{ calculateTotal() }}
+                  <p class="text-center text-sm text-gray-500 mt-2">
+                    Necesitas iniciar sesión para comprar entradas
                   </p>
-                </div>
-
-                <!-- Buy button -->
-                <button
-                  (click)="buyTickets()"
-                  class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition duration-200 mt-4"
-                >
-                  Comprar {{ ticketQuantity }} entrada{{
-                    ticketQuantity !== 1 ? "s" : ""
-                  }}
-                </button>
+                </ng-template>
               </div>
             </div>
           </div>
@@ -547,7 +581,7 @@
   </div>
 </div>
 
-<!-- Añade el modal al final del template -->
+<!-- Modal del mapa -->
 <app-map-modal
   *ngIf="showMapModal"
   [longitude]="parseFloat(event._embedded.venues[0]?.location?.longitude)"
@@ -555,3 +589,96 @@
   [title]="event._embedded.venues[0]?.name"
   (close)="closeMap()"
 ></app-map-modal>
+
+<!-- Modal de pago -->
+<app-payment-modal
+  [show]="showPaymentModal"
+  [eventInfo]="event"
+  [quantity]="ticketQuantity"
+  [price]="basePrice"
+  [isProcessing]="isProcessingPayment"
+  (close)="handlePaymentCancel()"
+  (confirm)="handlePaymentConfirm($event)"
+></app-payment-modal>
+
+<!-- Notificación de éxito -->
+<div
+  *ngIf="showSuccessNotification"
+  class="fixed inset-0 flex items-center justify-center z-[1001]"
+>
+  <div
+    class="absolute inset-0 bg-black bg-opacity-50"
+    (click)="closeSuccessNotification()"
+  ></div>
+  <div
+    class="bg-white rounded-lg p-6 shadow-xl max-w-md mx-4 relative z-10 transform transition-all animate-bounce-in"
+  >
+    <!-- Botón de cierre en la esquina superior derecha -->
+    <button
+      (click)="closeSuccessNotification()"
+      class="absolute top-3 right-3 text-gray-400 hover:text-gray-500 focus:outline-none"
+      aria-label="Cerrar"
+    >
+      <svg
+        class="h-6 w-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        ></path>
+      </svg>
+    </button>
+
+    <div class="text-center">
+      <div
+        class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4"
+      >
+        <svg
+          class="h-10 w-10 text-green-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          ></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-medium text-gray-900 mb-2">
+        {{ successMessage }}
+      </h3>
+      <p class="text-gray-600 mb-6">
+        Tus entradas están ahora disponibles en tu historial de compras.
+      </p>
+      <div class="flex justify-center">
+        <button
+          (click)="viewPurchaseHistory()"
+          class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition flex items-center"
+        >
+          <span>Ver mis entradas</span>
+          <svg
+            class="ml-2 h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M14 5l7 7m0 0l-7 7m7-7H3"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

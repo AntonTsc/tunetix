@@ -2,6 +2,8 @@ import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { CardService } from '../../services/card.service';
 import { TicketService } from '../../services/ticket.service';
 import { TicketmasterService } from '../../services/ticketmaster.service';
 
@@ -20,13 +22,20 @@ export class EventoComponent implements OnInit {
   basePrice: number = 40; // Precio base por defecto
   ticketQuantity: number = 1;
   maxTickets: number = 6; // Límite máximo de tickets por compra
+  showPaymentModal: boolean = false;
+  paymentError: string | null = null;
+  isProcessingPayment: boolean = false; // Añadir propiedad para controlar el estado de carga global
+  showSuccessNotification: boolean = false;
+  successMessage: string = '';
 
   constructor(
     private route: ActivatedRoute,
     private ticketmasterService: TicketmasterService,
     private ticketService: TicketService,
     private http: HttpClient,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private authService: AuthService,
+    private cardService: CardService
   ) { }
 
   ngOnInit(): void {
@@ -127,29 +136,114 @@ export class EventoComponent implements OnInit {
   return `${(this.basePrice * this.ticketQuantity).toFixed(2)}€`;
 }
 
-  async buyTickets(): Promise<void> {
+  buyTickets(): void {
     if (this.event.dates?.status?.code === 'cancelled') {
       alert('Este evento ha sido cancelado y no se pueden vender entradas.');
       return;
     }
 
+    // Mostrar el modal de pago en lugar de realizar la compra directamente
+    this.showPaymentModal = true;
+  }
+
+  // Añadir nuevos métodos para manejar el modal
+  handlePaymentCancel(): void {
+    this.showPaymentModal = false;
+    this.paymentError = null;
+    this.isProcessingPayment = false; // Añadir método para resetear el estado cuando se cierra el modal
+  }
+
+  // Manejar la confirmación de pago
+  async handlePaymentConfirm(paymentData: {cardId: number | null, newCard: any | null}): Promise<void> {
     try {
-      const response = await this.ticketService.buyTickets({
-        cantidad: this.ticketQuantity,
-        precio_individual: this.basePrice,
-        precio_total: this.basePrice * this.ticketQuantity,
-        ubicacion: this.event._embedded?.venues[0]?.name || 'No especificada',
-        artista: this.event._embedded?.attractions[0]?.name || this.event.name
-      }).toPromise();
+      this.isProcessingPayment = true;
+      let paymentMethodId: number | null = paymentData.cardId;
+
+      // Si es una tarjeta nueva, primero la guardamos
+      if (paymentData.newCard) {
+        // Usar firstValueFrom en lugar de toPromise (que está obsoleto)
+        const result: any = await new Promise((resolve, reject) => {
+          this.cardService.create(paymentData.newCard).subscribe({
+            next: (res) => resolve(res),
+            error: (err) => reject(err)
+          });
+        });
+
+        console.log('Respuesta de creación de tarjeta:', result);
+
+        if (result.status === 'OK') {
+          // Verificar la estructura de la respuesta
+          if (result.data && result.data.id) {
+            paymentMethodId = result.data.id; // ID en data.id
+          } else if (result.id) {
+            paymentMethodId = result.id; // ID directamente en la respuesta
+          } else {
+            // Si no se encuentra el ID, intentar obtener la tarjeta recién creada
+            const cardsResult: any = await new Promise((resolve, reject) => {
+              this.cardService.getAll().subscribe({
+                next: (res) => resolve(res),
+                error: (err) => reject(err)
+              });
+            });
+
+            if (cardsResult.status === 'OK' && cardsResult.data && cardsResult.data.length > 0) {
+              // Tomar la tarjeta más reciente (asumimos que es la que acabamos de crear)
+              paymentMethodId = cardsResult.data[0].id;
+            } else {
+              throw new Error('No se pudo identificar el ID de la tarjeta creada');
+            }
+          }
+        } else {
+          this.paymentError = 'Error al registrar la tarjeta: ' + result.message;
+          this.isProcessingPayment = false;
+          return;
+        }
+      }
+
+      if (!paymentMethodId) {
+        this.paymentError = 'No se pudo obtener un método de pago válido';
+        this.isProcessingPayment = false;
+        return;
+      }
+
+      console.log('Usando método de pago con ID:', paymentMethodId);
+
+      // Añadir un delay adicional para simular el procesamiento del pago
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Realizar la compra con el ID del método de pago
+      const response: any = await new Promise((resolve, reject) => {
+        this.ticketService.buyTickets({
+          cantidad: this.ticketQuantity,
+          precio_individual: this.basePrice,
+          precio_total: this.basePrice * this.ticketQuantity,
+          ubicacion: this.event._embedded?.venues[0]?.name || 'No especificada',
+          artista: this.event._embedded?.attractions[0]?.name || this.event.name,
+          metodo_pago_id: paymentMethodId
+        }).subscribe({
+          next: (res) => resolve(res),
+          error: (err) => reject(err)
+        });
+      });
+
+      // Añadir delay antes de mostrar la confirmación
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       if (response.status === 'OK') {
-        alert('¡Compra realizada con éxito!');
+        this.showPaymentModal = false;
+        this.isProcessingPayment = false;
+
+        // Mostrar notificación de éxito sin redirección automática
+        this.successMessage = '¡Compra realizada con éxito!';
+        this.showSuccessNotification = true;
       } else {
-        alert('Error al procesar la compra: ' + response.message);
+        this.paymentError = 'Error al procesar la compra: ' + response.message;
+        this.isProcessingPayment = false;
       }
     } catch (error) {
       console.error('Error en la compra:', error);
-      alert('Error al procesar la compra');
+      this.paymentError = 'Error al procesar la compra: ' + (error instanceof Error ? error.message : 'Error desconocido');
+      this.isProcessingPayment = false;
     }
   }
 
@@ -179,5 +273,31 @@ export class EventoComponent implements OnInit {
 
   parseFloat(value: string): number {
     return parseFloat(value);
+  }
+
+  // Añadir método para verificar si el usuario está autenticado
+  isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
+
+  // Añadir método para navegar a la página de login
+  navigateToLogin(): void {
+    // Almacena la URL actual para redirigir después del login
+    const currentUrl = window.location.href;
+    localStorage.setItem('redirectUrl', currentUrl);
+
+    // Navega a la página de login
+    window.location.href = '/login';
+  }
+
+  // Modificar el método existente para que simplemente cierre la notificación
+  closeSuccessNotification(): void {
+    this.showSuccessNotification = false;
+  }
+
+  // Añadir un nuevo método para ver el historial de compras
+  viewPurchaseHistory(): void {
+    this.showSuccessNotification = false;
+    window.location.href = '/perfil/historial-de-compras';
   }
 }
