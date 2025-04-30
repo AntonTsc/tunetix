@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
@@ -8,9 +8,11 @@ import { AuthService } from 'src/app/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   serverResponse?: ServerResponse;
   showPassword: boolean = false;
+  isLoading: boolean = false;
+  isGoogleLoading: boolean = false; // Indicador separado para el botón de Google
 
   @ViewChild('form') form!: ElementRef<HTMLFormElement>;
 
@@ -20,71 +22,96 @@ export class LoginComponent {
     private route: ActivatedRoute
   ) {}
 
-  login() {
-    const fd = new FormData(this.form.nativeElement);
+  ngOnInit() {
+    // Verificar si hay un parámetro de retorno URL
+    this.route.queryParams.subscribe(params => {
+      const returnUrl = params['returnUrl'];
+      if (returnUrl) {
+        localStorage.setItem('returnUrl', returnUrl);
+      }
 
-    const email = fd.get('email') as string;
-    const password = fd.get('password') as string;
-
-    // Validar que los campos no estén vacíos
-    if (!email || !password) {
-      this.serverResponse = {
-        status: 'ERROR',
-        message: 'Todos los campos deben ser rellenados',
-        data: null
-      };
-      return;
-    }
-
-    const json = { email, password };
-
-    // Mostrar mensaje de carga
-    this.serverResponse = {
-      status: 'INFO',
-      message: 'Verificando credenciales...',
-      data: null
-    };
-
-    this._auth.login(json).subscribe({
-      next: (response: ServerResponse) => {
-        if (!response.data) {
-          response.data = null;
-        }
-
-        if (response.status === 'OK') {
-          this.serverResponse = response;
-
-          // ELIMINADO: No almacenar datos del usuario en localStorage
-          // Use the defined method for login success
-          this.onLoginSuccess(response);
-        } else {
-          this.serverResponse = response;
-        }
-      },
-      error: (err) => {
-        console.error('Error en el login:', err);
-
+      // Verificar si hay un mensaje de error de Google OAuth
+      const error = params['error'];
+      if (error) {
         this.serverResponse = {
           status: 'ERROR',
-          message: err.status === 401
-            ? 'Correo electrónico o contraseña incorrectos'
-            : 'Error en el servidor. Por favor, inténtalo más tarde.',
+          message: 'Error en la autenticación con Google: ' + error,
           data: null
         };
+      }
+
+      // Verificar si hay un mensaje de éxito de Google OAuth
+      const login = params['login'];
+      if (login) {
+        let message = 'Inicio de sesión exitoso';
+        if (login === 'linked') {
+          message = 'Cuenta vinculada con Google exitosamente';
+        } else if (login === 'registered') {
+          message = 'Registro con Google exitoso';
+        }
+
+        this.serverResponse = {
+          status: 'OK',
+          message,
+          data: null
+        };
+
+        // Redirigir después de un breve retraso
+        setTimeout(() => {
+          const returnUrl = localStorage.getItem('returnUrl') || '/perfil';
+          localStorage.removeItem('returnUrl');
+          this.router.navigateByUrl(returnUrl);
+        }, 1000);
       }
     });
   }
 
-  onLoginSuccess(response: any) {
-    if (response.status === 'OK') {
-      // Force role check from database
-      this._auth.checkAndUpdateAdminStatus().subscribe(isAdmin => {
-        console.log("Login completado, estado admin:", isAdmin);
+  login() {
+    if (this.form.nativeElement.checkValidity()) {
+      const email = this.form.nativeElement.querySelector<HTMLInputElement>('[name="email"]')?.value;
+      const password = this.form.nativeElement.querySelector<HTMLInputElement>('[name="password"]')?.value;
 
-        // Correctly access query parameters using ActivatedRoute
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/inicio';
-        this.router.navigateByUrl(returnUrl);
-      });
+      if (email && password) {
+        this.isLoading = true;
+        this._auth.login({
+          email,
+          password
+        }).subscribe({
+          next: (response) => {
+            this.isLoading = false;
+            this.serverResponse = response;
+
+            if (response.status === 'OK') {
+              const returnUrl = localStorage.getItem('returnUrl') || '/perfil';
+              localStorage.removeItem('returnUrl');
+              this.router.navigateByUrl(returnUrl);
+            }
+          },
+          error: (err) => {
+            this.isLoading = false;
+            console.error('Error:', err);
+            this.serverResponse = {
+              status: 'ERROR',
+              message: 'Error al conectar con el servidor',
+              data: null
+            };
+          }
+        });
+      }
+    } else {
+      this.form.nativeElement.reportValidity();
     }
+  }
+
+  signInWithGoogle() {
+    this.isGoogleLoading = true; // Usar el indicador específico para Google
+    this.serverResponse = {
+      status: 'INFO',
+      message: 'Iniciando autenticación con Google...',
+      data: null
+    };
+
+    // Usar el nuevo método simple de login con Google
+    this._auth.googleLogin();
   }
 }
