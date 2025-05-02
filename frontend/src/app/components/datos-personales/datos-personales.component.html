@@ -229,10 +229,7 @@
         Esta acción eliminará tu foto de perfil actual y no se puede deshacer.
       </p>
       <div class="flex justify-end space-x-3">
-        <button
-        >
-          Cancelar
-        </button>
+        <button>Cancelar</button>
         <button
           (click)="deleteImage()"
           class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
@@ -290,6 +287,7 @@
             formControlName="name"
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Nombre"
+            (keypress)="onKeyPress($event)"
           />
           <!-- Mensajes de error para el nombre -->
           <div
@@ -307,6 +305,9 @@
             <span *ngIf="nameForm.get('name')?.errors?.['maxlength']">
               El nombre no puede tener más de 50 caracteres
             </span>
+            <span *ngIf="nameForm.get('name')?.errors?.['invalidCharacters']">
+              El nombre solo puede contener letras y espacios
+            </span>
           </div>
           <!-- Añadir debajo del input del nombre -->
           <div class="flex justify-end text-xs text-gray-500 mt-1">
@@ -320,6 +321,7 @@
             formControlName="lastName"
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Apellido"
+            (keypress)="onKeyPress($event)"
           />
           <!-- Mensajes de error para el apellido -->
           <div
@@ -337,6 +339,11 @@
             </span>
             <span *ngIf="nameForm.get('lastName')?.errors?.['maxlength']">
               El apellido no puede tener más de 50 caracteres
+            </span>
+            <span
+              *ngIf="nameForm.get('lastName')?.errors?.['invalidCharacters']"
+            >
+              El apellido solo puede contener letras y espacios
             </span>
           </div>
           <!-- Añadir debajo del input del apellido -->

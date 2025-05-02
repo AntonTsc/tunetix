@@ -1,9 +1,18 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';
 import { UpdateUserData, UserService } from '../../services/user.service';
+
+// Validador personalizado para permitir solo letras, espacios y algunos caracteres como ñ, tildes
+export function onlyLettersValidator(): ValidatorFn {
+  return (control: AbstractControl): {[key: string]: any} | null => {
+    // Expresión regular que permite letras (incluyendo ñ y tildes), espacios y guiones
+    const valid = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(control.value);
+    return !valid ? {'invalidCharacters': {value: control.value}} : null;
+  };
+}
 
 @Component({
   selector: 'app-datos-personales',
@@ -91,7 +100,8 @@ export class DatosPersonalesComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(2),
-          Validators.maxLength(50)
+          Validators.maxLength(50),
+          onlyLettersValidator() // Añadir el validador personalizado
         ]
       ],
       lastName: [
@@ -99,7 +109,8 @@ export class DatosPersonalesComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(2),
-          Validators.maxLength(50)
+          Validators.maxLength(50),
+          onlyLettersValidator() // Añadir el validador personalizado
         ]
       ]
     });
@@ -571,5 +582,19 @@ export class DatosPersonalesComponent implements OnInit {
         this.cdr.detectChanges();
       }
     }
+  }
+
+  // Método para prevenir la entrada de caracteres no permitidos
+  onKeyPress(event: KeyboardEvent): boolean {
+    // Permitir letras, espacios, guiones, teclas de navegación y caracteres especiales como ñ y tildes
+    const pattern = /[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]/;
+    const inputChar = String.fromCharCode(event.charCode);
+
+    if (!pattern.test(inputChar)) {
+      // Evitar la entrada del carácter
+      event.preventDefault();
+      return false;
+    }
+    return true;
   }
 }
