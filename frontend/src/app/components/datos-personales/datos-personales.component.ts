@@ -309,10 +309,26 @@ export class DatosPersonalesComponent implements OnInit {
         Object.keys(this.nameForm.controls).forEach(key => {
           this.nameForm.get(key)?.markAsTouched();
         });
-        this.serverResponse = {
-          status: 'ERROR',
-          message: 'Por favor, completa correctamente el nombre y apellido'
-        };
+
+        // Mensaje de error específico según el tipo de error
+        if (this.nameForm.get('name')?.errors?.['invalidCharacters'] ||
+            this.nameForm.get('lastName')?.errors?.['invalidCharacters']) {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: 'El nombre y apellido solo pueden contener letras y espacios'
+          };
+        } else if (this.nameForm.get('name')?.errors?.['required'] ||
+                  this.nameForm.get('lastName')?.errors?.['required']) {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: 'Por favor, completa todos los campos requeridos'
+          };
+        } else {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: 'Por favor, completa correctamente el nombre y apellido'
+          };
+        }
         return;
       }
 
@@ -585,16 +601,16 @@ export class DatosPersonalesComponent implements OnInit {
   }
 
   // Método para prevenir la entrada de caracteres no permitidos
-  onKeyPress(event: KeyboardEvent): boolean {
-    // Permitir letras, espacios, guiones, teclas de navegación y caracteres especiales como ñ y tildes
-    const pattern = /[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]/;
-    const inputChar = String.fromCharCode(event.charCode);
+  // onKeyPress(event: KeyboardEvent): boolean {
+  //   // Permitir letras, espacios, guiones, teclas de navegación y caracteres especiales como ñ y tildes
+  //   const pattern = /[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]/;
+  //   const inputChar = String.fromCharCode(event.charCode);
 
-    if (!pattern.test(inputChar)) {
-      // Evitar la entrada del carácter
-      event.preventDefault();
-      return false;
-    }
-    return true;
-  }
+  //   if (!pattern.test(inputChar)) {
+  //     // Evitar la entrada del carácter
+  //     event.preventDefault();
+  //     return false;
+  //   }
+  //   return true;
+  // }
 }
