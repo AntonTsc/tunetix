@@ -4,6 +4,7 @@ import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';
 import { UpdateUserData, UserService } from '../../services/user.service';
+import { ImageService } from '../../services/image.service';
 
 // Validador personalizado para permitir solo letras, espacios y algunos caracteres como ñ, tildes
 export function onlyLettersValidator(): ValidatorFn {
@@ -49,6 +50,16 @@ export class DatosPersonalesComponent implements OnInit {
   emailForm: FormGroup = new FormGroup({});
   passwordForm: FormGroup = new FormGroup({});
 
+  // Añadir nueva propiedad para controlar si el usuario es de Google
+  isGoogleAccount: boolean = false;
+  // Nuevo campo para la sección de añadir contraseña para cuentas de Google
+  googlePasswordForm: FormGroup = new FormGroup({});
+  // Controlar si se está editando la contraseña de Google
+  editingGooglePassword: boolean = false;
+
+  // Añadir nueva propiedad para controlar si el usuario tiene contraseña
+  hasPassword: boolean = false;
+
   loading = false;
   updateLoading = false;
   serverResponse: ServerResponse | null = null;
@@ -76,7 +87,8 @@ export class DatosPersonalesComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private tokenService: TokenService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private imageService: ImageService
   ) {
     // Inicializar userData con valores vacíos para evitar errores
     this.userData = {
@@ -90,6 +102,14 @@ export class DatosPersonalesComponent implements OnInit {
     };
 
     this.initForms();
+
+    // Inicializar formulario para añadir contraseña a cuenta de Google
+    this.googlePasswordForm = this.fb.group({
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required]
+    }, {
+      validator: this.checkGooglePasswords
+    });
   }
 
   // Método para inicializar los formularios
@@ -202,6 +222,13 @@ export class DatosPersonalesComponent implements OnInit {
     return newPass === confirmPass ? null : { notSame: true };
   }
 
+  // Validator para las contraseñas de Google
+  checkGooglePasswords(group: FormGroup) {
+    const newPass = group.get('newPassword')?.value;
+    const confirmPass = group.get('confirmPassword')?.value;
+    return newPass === confirmPass ? null : { notSame: true };
+  }
+
   ngOnInit(): void {
     this.loadUserData();
   }
@@ -237,6 +264,12 @@ export class DatosPersonalesComponent implements OnInit {
           this.emailForm.patchValue({
             email: this.userData.email
           });
+
+          // Verificar si es cuenta de Google
+          this.isGoogleAccount = response.data.auth_provider === 'google';
+
+          // Verificar si tiene contraseña configurada
+          this.hasPassword = response.data.has_password === true;
 
           this.loading = false;
         } else {
@@ -560,9 +593,32 @@ export class DatosPersonalesComponent implements OnInit {
     });
   }
 
-  // Helper method to check if user has a profile image
+  // Actualizar el método hasProfileImage para usar el servicio
   hasProfileImage(): boolean {
-    return this.userData.profileImage !== null && this.userData.profileImage !== '';
+    // Inverso de shouldShowSvg - devuelve true cuando debemos mostrar la imagen real
+    return !this.imageService.shouldShowSvg(this.userData.profileImage);
+  }
+
+  // Añadir el método que controla si se debe mostrar el SVG
+  shouldShowSvgAvatar(): boolean {
+    return this.imageService.shouldShowSvg(this.userData.profileImage);
+  }
+
+  // Método para obtener la URL de la imagen
+  getProfileImageSrc(): string {
+    return this.imageService.getProfileImage(this.userData.profileImage);
+  }
+
+  // Método para manejar errores de carga
+  onProfileImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = this.imageService.handleImageError(imgElement.src);
+
+    // Si después de manejar el error debemos mostrar el SVG, actualizamos la vista
+    if (this.imageService.shouldShowSvg(imgElement.src)) {
+      // Forzar la actualización de la vista para mostrar el SVG
+      this.cdr.detectChanges();
+    }
   }
 
   // Helper method to get full name
@@ -600,17 +656,65 @@ export class DatosPersonalesComponent implements OnInit {
     }
   }
 
-  // Método para prevenir la entrada de caracteres no permitidos
-  // onKeyPress(event: KeyboardEvent): boolean {
-  //   // Permitir letras, espacios, guiones, teclas de navegación y caracteres especiales como ñ y tildes
-  //   const pattern = /[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]/;
-  //   const inputChar = String.fromCharCode(event.charCode);
+  // Método para activar el modo de edición de contraseña de Google
+  toggleGooglePasswordEdit(): void {
+    this.editingGooglePassword = !this.editingGooglePassword;
 
-  //   if (!pattern.test(inputChar)) {
-  //     // Evitar la entrada del carácter
-  //     event.preventDefault();
-  //     return false;
-  //   }
-  //   return true;
-  // }
+    if (!this.editingGooglePassword) {
+      // Si estamos saliendo del modo de edición, resetear el formulario
+      this.googlePasswordForm.reset();
+    }
+
+    // Limpiar mensajes al cambiar de modo
+    this.serverResponse = null;
+  }
+
+  // Método para guardar la contraseña de la cuenta de Google
+  // Reemplazar el método actual para no usar checkSession que da error
+  addGooglePassword(): void {
+    // Validar el formulario
+    if (this.googlePasswordForm.invalid) {
+      // Código existente para marcar errores...
+      return;
+    }
+    
+    // Obtener la nueva contraseña
+    const newPassword = this.googlePasswordForm.get('newPassword')?.value;
+    
+    // Mostrar indicador de carga
+    this.updateLoading = true;
+    
+    // Llamada al servicio para añadir contraseña
+    this.userService.addGooglePassword(newPassword).subscribe({
+      next: (response) => {
+        this.updateLoading = false;
+        
+        if (response.status === 'OK') {
+          this.serverResponse = {
+            status: 'OK',
+            message: 'Contraseña añadida correctamente. Ahora puedes iniciar sesión con email y contraseña.'
+          };
+          
+          // Actualizar el estado para mostrar que ahora tiene contraseña
+          this.hasPassword = true;
+          
+          // Resetear formulario y cerrar panel de edición
+          this.googlePasswordForm.reset();
+          this.editingGooglePassword = false;
+        } else {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: response.message || 'Error al añadir contraseña'
+          };
+        }
+      },
+      error: (err) => {
+        this.updateLoading = false;
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Error al añadir contraseña: ' + (err.message || 'Error desconocido')
+        };
+      }
+    });
+  }
 }

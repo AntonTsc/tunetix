@@ -525,4 +525,18 @@ export class AuthService {
       })
     );
   }
+
+  // Añadir este método al servicio AuthService
+  checkSession(): Observable<boolean> {
+    // Verifica si hay un token válido simplemente consultando una API que requiera autenticación
+    return this.http.get<any>(`${this.baseUrl}/auth/check_session.php`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.status === 'OK'),
+      catchError(error => {
+        console.error('Error verificando sesión:', error);
+        return of(false);
+      })
+    );
+  }
 }

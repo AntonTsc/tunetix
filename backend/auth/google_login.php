@@ -155,6 +155,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['code'])) {
     $lastName = $user_info['family_name'] ?? '';
     $photoUrl = $user_info['picture'] ?? '';
 
+    // Si tenemos una URL de foto de perfil, vamos a descargarla y guardarla localmente
+    if (!empty($photoUrl)) {
+        $localPhotoPath = downloadGoogleProfileImage($photoUrl, $googleId);
+        if ($localPhotoPath) {
+            $photoUrl = $localPhotoPath;
+        }
+    }
+
     try {
         // Comprobar si el usuario ya existe
         $stmt = $conn->prepare("SELECT * FROM usuario WHERE google_id = ?");
@@ -322,3 +330,37 @@ echo json_encode([
     "status" => "ERROR",
     "message" => "Método no permitido o parámetros faltantes"
 ]);
+
+/**
+ * Descarga una imagen de perfil de Google y la guarda localmente
+ * @param string $url URL de la imagen de Google
+ * @param string $googleId ID de Google del usuario
+ * @return string|null Ruta relativa de la imagen guardada o null si falla
+ */
+function downloadGoogleProfileImage($url, $googleId)
+{
+    // Crear directorio si no existe
+    $uploadDir = '../../../frontend/src/assets/imgs/avatars/';
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    // Generar nombre de archivo único
+    $fileName = 'google_' . $googleId . '_' . time() . '.jpg';
+    $filePath = $uploadDir . $fileName;
+
+    // Intentar descargar la imagen
+    $imageContent = @file_get_contents($url);
+
+    if ($imageContent !== false) {
+        // Guardar la imagen
+        if (file_put_contents($filePath, $imageContent)) {
+            // Devolver ruta relativa para guardar en BD
+            return 'assets/imgs/avatars/' . $fileName;
+        }
+    }
+
+    // Registrar error si falla
+    error_log("Error descargando imagen de perfil de Google: " . $url);
+    return null;
+}

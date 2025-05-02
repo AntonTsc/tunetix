@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -182,6 +182,22 @@ export class UserService {
           // Force re-check of admin status in the AuthService
           this.authService.checkAndUpdateAdminStatus().subscribe();
         }
+      })
+    );
+  }
+
+  // Añadir nuevo método para gestionar la adición de contraseña a cuentas de Google
+  // Corrección para no usar tokenService
+  addGooglePassword(newPassword: string): Observable<ServerResponse> {
+    // Simplificar el método para usar sólo withCredentials (las cookies)
+    return this.http.post<ServerResponse>(
+      `${this.apiBaseUrl}/Controllers/Usuario/addGooglePassword.php`,
+      { newPassword },
+      { withCredentials: true }
+    ).pipe(
+      catchError(error => {
+        console.error('Error al añadir contraseña a cuenta Google:', error);
+        return throwError(() => error);
       })
     );
   }
