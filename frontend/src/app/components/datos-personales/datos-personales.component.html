@@ -11,45 +11,50 @@
   <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
     <div class="flex flex-col items-center">
       <div class="relative">
-        <!-- Mostrar imagen de perfil si existe -->
-        <img
-          *ngIf="hasProfileImage() && !previewImage"
-          [src]="getProfileImageSrc()"
-          alt="Foto de perfil"
-          class="w-32 h-32 rounded-full object-cover border-4 border-purple-100"
-          (error)="onProfileImageError($event)"
-        />
-
-        <!-- Usar el SVG existente cuando no hay imagen -->
+        <!-- Contenedor de la imagen con el SVG de fallback -->
         <div
-          *ngIf="shouldShowSvgAvatar() && !previewImage"
-          class="w-32 h-32 rounded-full bg-purple-100 flex items-center justify-center border-4 border-purple-100"
+          class="w-32 h-32 rounded-full border-4 border-purple-100 overflow-hidden relative"
         >
-          <!-- Mantén el SVG que ya tienes aquí -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-16 w-16 text-purple-400"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+          <!-- SVG de fallback - Siempre presente en la parte posterior (mismo del header) -->
+          <div
+            class="h-full w-full rounded-full bg-indigo-100 flex items-center justify-center absolute inset-0"
           >
-            <path
-              fill-rule="evenodd"
-              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-              clip-rule="evenodd"
-            />
-          </svg>
+            <svg
+              class="h-16 w-16 text-indigo-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+          </div>
+
+          <!-- Imagen de perfil superpuesta al SVG -->
+          <img
+            *ngIf="userData.profileImage && !previewImage"
+            [src]="userData.profileImage"
+            alt="Foto de perfil"
+            class="w-full h-full object-cover absolute inset-0 z-10"
+            (error)="onProfileImageError($event)"
+          />
+
+          <!-- Vista previa de imagen cuando se selecciona una nueva -->
+          <img
+            *ngIf="previewImage"
+            [src]="previewImage"
+            alt="Vista previa de la foto"
+            class="w-full h-full object-cover absolute inset-0 z-10"
+          />
         </div>
 
-        <!-- Vista previa de imagen -->
-        <img
-          *ngIf="previewImage"
-          [src]="previewImage"
-          alt="Vista previa de la foto"
-          class="w-32 h-32 rounded-full object-cover border-4 border-purple-300"
-        />
-
-        <!-- Resto del código para el menú de la foto -->
-        <div class="absolute bottom-0 right-0 z-10">
+        <!-- Mantener el menú de opciones existente -->
+        <div class="absolute bottom-0 right-0 z-20">
           <div class="flex items-center justify-end relative">
             <!-- Botón de tres puntos que cambia a cruz -->
             <button
@@ -116,7 +121,7 @@
 
               <!-- Opción para eliminar foto - solo aparece si hay una foto - solo icono -->
               <button
-                *ngIf="hasProfileImage()"
+                *ngIf="userData.profileImage"
                 (click)="confirmDeleteImage()"
                 class="p-2 rounded-full mx-1 bg-red-100 text-red-700 hover:bg-red-200 transition-colors flex items-center justify-center"
                 title="Eliminar foto"
@@ -824,7 +829,7 @@
         <div class="flex space-x-3 pt-2">
           <!-- Botón para guardar -->
           <button
-            type="submit"
+            type="button"
             [disabled]="updateLoading || googlePasswordForm.invalid"
             [ngClass]="{
               'bg-purple-600 hover:bg-purple-700':

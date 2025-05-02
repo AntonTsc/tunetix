@@ -82,6 +82,9 @@ export class DatosPersonalesComponent implements OnInit {
   // Propiedad para controlar la visibilidad del menú
   showPhotoMenu = false;
 
+  // Nueva propiedad para rastrear errores de imagen
+  hasImageError: boolean = false;
+
   constructor(
     private userService: UserService,
     private fb: FormBuilder,
@@ -554,6 +557,9 @@ export class DatosPersonalesComponent implements OnInit {
           // Actualizar el perfil con la nueva imagen
           this.userData.profileImage = response.data.image_path;
 
+          // Resetear el indicador de error de imagen
+          this.hasImageError = false;
+
           // Mostrar mensaje de éxito
           this.serverResponse = {
             status: 'OK',
@@ -593,10 +599,9 @@ export class DatosPersonalesComponent implements OnInit {
     });
   }
 
-  // Actualizar el método hasProfileImage para usar el servicio
+  // Modificar este método si existe, o agregar si no existe
   hasProfileImage(): boolean {
-    // Inverso de shouldShowSvg - devuelve true cuando debemos mostrar la imagen real
-    return !this.imageService.shouldShowSvg(this.userData.profileImage);
+    return !!(this.userData && this.userData.profileImage && this.userData.profileImage.trim() !== '');
   }
 
   // Añadir el método que controla si se debe mostrar el SVG
@@ -606,19 +611,17 @@ export class DatosPersonalesComponent implements OnInit {
 
   // Método para obtener la URL de la imagen
   getProfileImageSrc(): string {
-    return this.imageService.getProfileImage(this.userData.profileImage);
+    return this.userData?.profileImage || '';
   }
 
-  // Método para manejar errores de carga
+  // Modificar o agregar el método para manejar errores de imagen
   onProfileImageError(event: Event): void {
     const imgElement = event.target as HTMLImageElement;
-    imgElement.src = this.imageService.handleImageError(imgElement.src);
 
-    // Si después de manejar el error debemos mostrar el SVG, actualizamos la vista
-    if (this.imageService.shouldShowSvg(imgElement.src)) {
-      // Forzar la actualización de la vista para mostrar el SVG
-      this.cdr.detectChanges();
-    }
+    // Agregar clase para hacer la imagen transparente y dejar ver el SVG
+    imgElement.classList.add('profile-image-error');
+
+    console.warn('Error cargando imagen de perfil:', imgElement.src);
   }
 
   // Helper method to get full name
@@ -677,27 +680,27 @@ export class DatosPersonalesComponent implements OnInit {
       // Código existente para marcar errores...
       return;
     }
-    
+
     // Obtener la nueva contraseña
     const newPassword = this.googlePasswordForm.get('newPassword')?.value;
-    
+
     // Mostrar indicador de carga
     this.updateLoading = true;
-    
+
     // Llamada al servicio para añadir contraseña
     this.userService.addGooglePassword(newPassword).subscribe({
       next: (response) => {
         this.updateLoading = false;
-        
+
         if (response.status === 'OK') {
           this.serverResponse = {
             status: 'OK',
             message: 'Contraseña añadida correctamente. Ahora puedes iniciar sesión con email y contraseña.'
           };
-          
+
           // Actualizar el estado para mostrar que ahora tiene contraseña
           this.hasPassword = true;
-          
+
           // Resetear formulario y cerrar panel de edición
           this.googlePasswordForm.reset();
           this.editingGooglePassword = false;
