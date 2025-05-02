@@ -34,6 +34,11 @@ const routes: Routes = [
 
   // Rutas protegidas para usuarios autenticados
   {path: 'contacto', component: ContactoComponent, canActivate: [AuthGuard]},
+
+  // Ruta principal de perfil con redirección automática a datos personales
+  {path: 'perfil', redirectTo: 'perfil/datos-personales', pathMatch: 'full'},
+
+  // Rutas anidadas de perfil
   {path: 'perfil', component: PerfilComponent, canActivate:[AuthGuard], children:[
     {path: 'datos-personales', component: DatosPersonalesComponent},
     {path: 'metodos-de-pago', component: MetodosPagoComponent},

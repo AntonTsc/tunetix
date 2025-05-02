@@ -416,8 +416,8 @@ export class AuthService {
                   // Comprobar estado de administrador
                   this.checkAndUpdateAdminStatus().subscribe();
 
-                  // Redirigir a la página de perfil
-                  this.router.navigate(['/perfil']);
+                  // Redirigir a la página de inicio
+                  this.router.navigate(['/inicio']);
                 }
               },
               error: (error) => {

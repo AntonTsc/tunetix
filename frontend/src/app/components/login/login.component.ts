@@ -56,11 +56,9 @@ export class LoginComponent implements OnInit {
           data: null
         };
 
-        // Redirigir después de un breve retraso
+        // Redirigir después de un breve retraso al inicio
         setTimeout(() => {
-          const returnUrl = localStorage.getItem('returnUrl') || '/perfil';
-          localStorage.removeItem('returnUrl');
-          this.router.navigateByUrl(returnUrl);
+          this.router.navigateByUrl('/inicio');
         }, 1000);
       }
     });
@@ -82,9 +80,8 @@ export class LoginComponent implements OnInit {
             this.serverResponse = response;
 
             if (response.status === 'OK') {
-              const returnUrl = localStorage.getItem('returnUrl') || '/perfil';
-              localStorage.removeItem('returnUrl');
-              this.router.navigateByUrl(returnUrl);
+              // Redirigir al inicio
+              this.router.navigateByUrl('/inicio');
             }
           },
           error: (err) => {

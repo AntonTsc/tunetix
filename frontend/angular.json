@@ -29,7 +29,9 @@
             ],
             "scripts": [],
             "allowedCommonJsDependencies": [
-              "@abacritt/angularx-social-login"
+              "@abacritt/angularx-social-login",
+              "xml-utils/get-attribute.js",
+              "xml-utils/find-tags-by-name.js"
             ]
           },
           "configurations": {
