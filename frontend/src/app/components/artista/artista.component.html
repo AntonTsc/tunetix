@@ -43,10 +43,10 @@
           <h1 class="text-3xl md:text-4xl font-bold mb-2">{{ artist.name }}</h1>
           <div class="flex flex-wrap gap-2">
             <span class="px-3 py-1 text-sm bg-purple-500 rounded-full font-medium">
-              {{ artist.stats.playcount }} reproducciones
+              {{ artist.stats.playcount | number}} reproducciones
             </span>
             <span class="px-3 py-1 text-sm bg-blue-500 rounded-full font-medium">
-              {{ artist.stats.listeners }} oyentes
+              {{ artist.stats.listeners | number}} oyentes
             </span>
           </div>
         </div>
