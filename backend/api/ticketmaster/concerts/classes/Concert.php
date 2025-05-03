@@ -2,6 +2,7 @@
 include_once __DIR__ . '/../../../../dotenv.php';
 include_once __DIR__ . '/../../../../cache/Cache.php';
 include_once __DIR__ . '/../../../../Controllers/PreciosEventos/create.php';
+include_once __DIR__ . '/../../../../utils/classes/ServerResponse.php';
 
 class Concert
 {
@@ -17,7 +18,7 @@ class Concert
         return self::$preciosController;
     }
 
-    public static function getAll($limit = 0, $keyword = "", $countryCode = "", $page = 0, $sort = "date_desc")
+    public static function getAll($limit = 0, $keyword = "", $countryCode = "", $page = 1, $sort = "date_desc")
     {
         // Crear una clave única para el caché basada en los parámetros
         $cacheKey = "concerts_" . md5($limit . $keyword . $countryCode . $page . $sort);
@@ -311,6 +312,107 @@ class Concert
                 "message" => "Error al obtener el evento.",
                 "error" => $e->getMessage()
             ]);
+        }
+    }
+
+    public static function getAttractionIdByName(string $name)
+    {
+        try {
+            $ch = curl_init();
+            $params = [
+                'apikey' => $_ENV['TICKETMASTER_API_KEY'],
+                'keyword' => $name,
+                'locale' => '*'
+            ];
+            $url = self::$baseUrl . '/attractions.json?' . http_build_query($params);
+
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept: application/json',
+                'Content-Type: application/json'
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200) {
+                throw new Exception("Error getting the attractionId", $httpCode);
+            }
+
+            $attractionData = json_decode($response, true);
+
+            // Buscar coincidencia exacta del nombre
+            if (isset($attractionData['_embedded']['attractions'])) {
+                foreach ($attractionData['_embedded']['attractions'] as $attraction) {
+                    if (strtolower($attraction['name']) === strtolower($name)) {
+                        return $attraction['id'];
+                    }
+                }
+            }
+            
+            return null;
+
+        } catch(Exception $e) {
+            error_log("Error in getAttractionIdByName: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public static function getByArtistName(string $name): ?array
+    {
+        try {
+            if (!$name) {
+                return [];
+            }
+
+            $attractionId = self::getAttractionIdByName($name);
+            if (!$attractionId) {
+                return [];
+            }
+
+            $ch = curl_init();
+            $params = [
+                'apikey' => $_ENV['TICKETMASTER_API_KEY'],
+                'attractionId' => $attractionId,
+                'classificationName' => 'music',
+                'locale' => '*',
+                'sort' => 'date,asc',
+                'startDateTime' => date('Y-m-d') . 'T00:00:00Z'
+            ];
+
+            $url = self::$baseUrl . '/events.json?' . http_build_query($params);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept: application/json',
+                'Content-Type: application/json'
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200) {
+                return [];
+            }
+
+            $eventsData = json_decode($response, true);
+
+            if (isset($eventsData['_embedded']['events'])) {
+                return array_slice($eventsData['_embedded']['events'], 0, 5);
+            }
+
+            return [];
+
+        } catch(Exception $e) {
+            error_log("Error in getByArtistName: " . $e->getMessage());
+            return [];
         }
     }
 }

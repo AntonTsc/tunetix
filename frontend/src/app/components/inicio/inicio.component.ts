@@ -31,7 +31,14 @@ export class InicioComponent implements OnInit {
     // Cargar artistas top
     this._lastfm.getTopArtists(6, 1, "popularity_desc", "").subscribe({
       next: (response: any) => {
-        this.artists = response.data?.artists || [];
+        if (response.status === 'OK' && response.data?.artists) {
+          // Ya no filtramos por mbid, usamos todos los artistas
+          this.artists = response.data.artists.map((artist: any) => ({
+            ...artist,
+            mbid: artist.mbid || null,
+            name: artist.name
+          }));
+        }
         this.isLoadingArtists = false;
       },
       error: (error) => {

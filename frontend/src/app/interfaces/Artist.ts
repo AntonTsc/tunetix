@@ -1,9 +1,13 @@
-export default interface Artist{
-    id: string;
-    name: string;
-    genres: string[];
-    popularity: number;
-    followers: number;
-    images: { url: string; height: number; width: number }[]
-    isArtist: boolean;
+export default interface Artist {
+    name: string;        // nombre siempre requerido
+    mbid?: string;       // mbid opcional
+    url: string;
+    image: Array<{
+        '#text': string;
+        size: string;
+    }>;
+    stats?: {
+        listeners: string;
+        playcount: string;
+    };
 }

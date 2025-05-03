@@ -95,7 +95,7 @@ export class EventoComponent implements OnInit {
       const bestImage = this.event.images.find((img: any) => img.ratio === '16_9' && img.width > 1000);
       return bestImage ? bestImage.url : this.event.images[0].url;
     }
-    return 'assets/images/default-event.jpg';
+    return '';
   }
 
   getMinPrice(): string {

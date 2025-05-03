@@ -2,12 +2,12 @@
     include_once __DIR__ . '/../../../dotenv.php';
     include_once __DIR__ . '/../../../utils/classes/ServerResponse.php';
     include_once __DIR__ . '/../../../cache/Cache.php';
+    include_once __DIR__ . '../../../ticketmaster/concerts/classes/Concert.php';
     
 
     class Artist{
         private static $apiKey;
         private static $baseUrl;
-        private static $mbBaseUrl = "https://musicbrainz.org/ws/2";
         private static $wdBaseUrl = "https://www.wikidata.org/w/api.php";
 
         private static function initialize() {
@@ -167,26 +167,46 @@
                 $artists = $data['artists']['artist'];
                 $pagination = $data['artists']['@attr'];
 
-                // Procesar imágenes solo para nuevos artistas
+                // Procesar artistas y obtener conciertos
                 foreach ($artists as $key => $artist) {
-                    if (isset($artist['mbid']) && !empty($artist['mbid'])) {
-                        $imageKey = "artist_image_" . md5($artist['name']);
-                        $cachedImage = Cache::get($imageKey, true);
+                    // Procesar imagen
+                    $imageKey = "artist_image_" . md5($artist['name']);
+                    $cachedImage = Cache::get($imageKey, 'asset');
 
-                        if ($cachedImage) {
-                            // Usar imagen cacheada
-                            $artists[$key]['image'] = $cachedImage;
-                        } else {
-                            // Solo obtener nueva imagen si no está en caché
-                            $wikidataUrl = self::getArtistWikidataUrl($artist['mbid']);
-                            if ($wikidataUrl) {
-                                $artistImages = self::getArtistImage($wikidataUrl);
-                                if ($artistImages) {
-                                    $artists[$key]['image'] = $artistImages;
-                                    Cache::set($imageKey, $artistImages, true);
-                                }
-                            }
+                    if ($cachedImage) {
+                        $artists[$key]['image'] = $cachedImage;
+                    } else {
+                        $artistImages = self::getArtistImage($artist['name']);
+                        if ($artistImages) {
+                            $artists[$key]['image'] = $artistImages;
+                            Cache::set($imageKey, $artistImages, 'asset');
                         }
+                    }
+
+                    // Obtener y cachear conciertos
+                    $concertKey = "artist_concerts_" . md5($artist['name']);
+                    $cachedConcerts = Cache::get($concertKey, 'concert');
+                    
+                    if (!$cachedConcerts) {
+                        $concerts = Concert::getByArtistName($artist['name']);
+                        
+                        if (!empty($concerts)) {
+                            // Procesar los conciertos para obtener solo los datos necesarios
+                            $processedConcerts = array_map(function($concert) {
+                                return [
+                                    'id' => $concert['id'],
+                                    'name' => $concert['name'],
+                                    'image' => $concert['images'][0]['url'] ?? '' // Solo la primera imagen
+                                ];
+                            }, $concerts);
+
+                            Cache::set($concertKey, $processedConcerts, 'concert');
+                            $artists[$key]['concerts'] = $processedConcerts;
+                        } else {
+                            $artists[$key]['concerts'] = [];
+                        }
+                    } else {
+                        $artists[$key]['concerts'] = $cachedConcerts;
                     }
                 }
 
@@ -207,6 +227,118 @@
                 Cache::set($cacheKey, $data);
 
                 ServerResponse::success("Top artists fetched successfully", $data);
+            } catch (Exception $e) {
+                ServerResponse::send($e->getCode(), $e->getMessage());
+            }
+        }
+
+        /**
+         * Obtiene la información detallada de un artista usando su mbid o nombre
+         * @param string|null $mbid ID de MusicBrainz del artista (opcional)
+         * @param string|null $name Nombre del artista (opcional)
+         * @throws Exception Si no se proporciona ningún parámetro o si falla la petición
+         */
+        public static function getArtistMetaData(?string $mbid = null, ?string $name = null)
+        {
+            self::initialize();
+
+            if (!$mbid && !$name) {
+                throw new Exception("Either mbid or name must be provided");
+            }
+
+            // Determinar qué parámetro usar para la caché
+            $cacheKey = $mbid ? 
+                "artist_meta_mbid_" . $mbid : 
+                "artist_meta_name_" . md5($name);
+            
+            // Intentar obtener del caché
+            $cachedData = Cache::get($cacheKey, 'artist');
+            if ($cachedData) {
+                ServerResponse::success("Artist metadata fetched successfully (from cache)", $cachedData);
+                return;
+            }
+
+            try {
+                // Construir URL según el parámetro proporcionado
+                if ($mbid) {
+                    $url = self::$baseUrl . "&method=artist.getinfo&mbid=" . urlencode($mbid) . "&autocorrect=1";
+                } else {
+                    $url = self::$baseUrl . "&method=artist.getinfo&artist=" . urlencode($name) . "&autocorrect=1";
+                }
+
+                $curl = curl_init($url);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                
+                $response = curl_exec($curl);
+                curl_close($curl);
+
+                $data = json_decode($response, true);
+                if (!$data || !isset($data['artist'])) {
+                    throw new Exception("Failed to fetch or parse data from API");
+                }
+
+                $artist = $data['artist'];
+
+                // Procesar imágenes del artista principal
+                $imageKey = "artist_image_" . md5($artist['name']);
+                $cachedImage = Cache::get($imageKey, 'asset');
+
+                if ($cachedImage) {
+                    $artist['image'] = $cachedImage;
+                } else {
+                    $artistImages = self::getArtistImage($artist['name']);
+                    if ($artistImages) {
+                        $artist['image'] = $artistImages;
+                        Cache::set($imageKey, $artistImages, 'asset');
+                    }
+                }
+
+                // Obtener conciertos del artista
+                $concertKey = "artist_concerts_" . md5($artist['name']);
+                $cachedConcerts = Cache::get($concertKey, 'concert');
+                
+                if (!$cachedConcerts) {
+                    $concerts = Concert::getByArtistName($artist['name']);
+                    
+                    if (!empty($concerts)) {
+                        // Procesar los conciertos para obtener solo los datos necesarios
+                        $processedConcerts = array_map(function($concert) {
+                            return [
+                                'id' => $concert['id'],
+                                'name' => $concert['name'],
+                                'image' => $concert['images'][0]['url'] ?? '' // Solo la primera imagen
+                            ];
+                        }, $concerts);
+
+                        Cache::set($concertKey, $processedConcerts, 'concert');
+                        $artist['concerts'] = $processedConcerts;
+                    } else {
+                        $artist['concerts'] = [];
+                    }
+                } else {
+                    $artist['concerts'] = $cachedConcerts;
+                }
+
+                // Procesar artistas similares
+                if (isset($artist['similar']['artist']) && is_array($artist['similar']['artist'])) {
+                    foreach ($artist['similar']['artist'] as $key => $similarArtist) {
+                        $similarImageKey = "artist_image_" . md5($similarArtist['name']);
+                        $cachedSimilarImage = Cache::get($similarImageKey, 'asset');
+
+                        if ($cachedSimilarImage) {
+                            $artist['similar']['artist'][$key]['image'] = $cachedSimilarImage;
+                        } else {
+                            $similarArtistImages = self::getArtistImage($similarArtist['name']);
+                            if ($similarArtistImages) {
+                                $artist['similar']['artist'][$key]['image'] = $similarArtistImages;
+                                Cache::set($similarImageKey, $similarArtistImages, 'asset');
+                            }
+                        }
+                    }
+                }
+
+                Cache::set($cacheKey, $artist, 'artist');
+                ServerResponse::success("Artist metadata fetched successfully", $artist);
             } catch (Exception $e) {
                 ServerResponse::send($e->getCode(), $e->getMessage());
             }

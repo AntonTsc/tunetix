@@ -25,7 +25,7 @@ const routes: Routes = [
   // Rutas públicas
   {path: 'inicio', component: InicioComponent},
   {path: 'artistas', component: ArtistasComponent},
-  {path: 'artista', component: ArtistaComponent},
+  {path: 'artista/:id', component: ArtistaComponent},
   {path: 'canciones', component: CancionesComponent},
   {path: 'evento/:id', component: EventoComponent},
   {path: 'eventos', component: EventosComponent},

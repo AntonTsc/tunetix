@@ -123,11 +123,11 @@
         *ngFor="let artist of artists"
         class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full"
       >
-        <div class="relative pb-[56.25%]">
+        <div class="relative pb-[56.25%] bg-gray-200">
           <img
             [src]="artist.image[3]['#text']"
             [alt]="artist.name"
-            class="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+            class="absolute inset-0 h-full w-full object-center object-cover transition-opacity duration-300"
             loading="lazy"
           />
           <!-- Botón de favoritos -->
@@ -171,7 +171,14 @@
               <span class="font-semibold text-purple-600">{{ artist.listeners | number }}</span> oyentes
             </p>
           </div>
-          
+          <div class="mt-auto flex justify-end items-center">
+            <a
+              [routerLink]="['/artista', artist.mbid]"
+              class="text-sm font-medium text-purple-600 hover:text-purple-800 transition duration-200"
+            >
+              Ver detalles
+            </a>
+          </div>
         </div>
       </div>
     </div>

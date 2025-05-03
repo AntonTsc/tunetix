@@ -6,8 +6,9 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./card.component.css']
 })
 export class CardComponent {
-  @Input() data: any = undefined;
+  @Input() data: any;
   @Input() loading: boolean = false;
+  @Input() allowNoId: boolean = false; // Nueva propiedad
 
   getUrlImage(imageUrl?: string): string {
     if (imageUrl) {
@@ -23,5 +24,10 @@ export class CardComponent {
     }
 
     return ''; // Imagen por defecto
+  }
+
+  shouldShow(): boolean {
+    if (this.allowNoId) return true;
+    return this.data && (this.data.id || this.data.mbid);
   }
 }

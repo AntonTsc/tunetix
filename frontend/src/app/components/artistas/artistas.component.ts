@@ -5,6 +5,7 @@ import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { LastfmService } from 'src/app/services/lastfm.service';
 
 interface Artist {
+  mbid: string;
   name: string;
   playcount: string;
   listeners: string;

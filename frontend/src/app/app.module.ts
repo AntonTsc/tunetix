@@ -35,6 +35,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { TicketService } from './services/ticket.service';
 import { TokenService } from './services/token.service';
 import { PaymentModalComponent } from './components/payment-modal/payment-modal.component';
+import { FormattedTextPipe } from './pipes/formatted-text.pipe';
 
 @NgModule({
   declarations: [
@@ -65,7 +66,8 @@ import { PaymentModalComponent } from './components/payment-modal/payment-modal.
     TooltipDirective,
     CardComponent,
     MapModalComponent,
-    PaymentModalComponent
+    PaymentModalComponent,
+    FormattedTextPipe
   ],
   imports: [
     BrowserModule,
