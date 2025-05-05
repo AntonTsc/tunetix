@@ -36,6 +36,9 @@ export class UserService {
   private userDataSubject = new BehaviorSubject<any>(null);
   public userData$ = this.userDataSubject.asObservable();
 
+  // Variable para controlar si ya se inició la descarga de la imagen de Google
+  private googleImageDownloadStarted = false;
+
   // Corregimos la inyección de dependencias usando el constructor
   constructor(
     private http: HttpClient,
@@ -233,13 +236,20 @@ export class UserService {
       return '';
     }
 
-    // Si es una URL de Google, iniciar descarga automática (asíncrona)
-    if (imagePath.startsWith('http') && imagePath.includes('googleusercontent.com')) {
+    // Si es una URL de Google, iniciar descarga automática (asíncrona) SOLO UNA VEZ
+    if (imagePath.startsWith('http') && imagePath.includes('googleusercontent.com') && !this.googleImageDownloadStarted) {
+      // Marcar que ya se inició la descarga para evitar duplicados
+      this.googleImageDownloadStarted = true;
+
       // Usar setTimeout para no bloquear la UI y ejecutar de forma asíncrona
       setTimeout(() => {
         this.downloadGoogleProfileImage().subscribe({
           next: () => console.log('Imagen de Google descargada con éxito'),
-          error: (err) => console.error('Error al descargar imagen de Google:', err)
+          error: (err) => {
+            console.error('Error al descargar imagen de Google:', err);
+            // Resetear la bandera en caso de error para permitir reintentos
+            this.googleImageDownloadStarted = false;
+          }
         });
       }, 0);
 
