@@ -64,11 +64,20 @@ try {
         exit;
     }
 
-    // Ruta completa a la imagen
-    $imagePath = '../../../frontend/src/' . $user['image_path'];
+    // Determinar la ubicación correcta del archivo según la ruta almacenada
+    if (strpos($user['image_path'], 'uploads/avatars/') === 0) {
+        // Imagen en el backend
+        $imagePath = '../../' . $user['image_path'];
+    } else if (strpos($user['image_path'], 'assets/imgs/avatars/') === 0) {
+        // Imagen en el frontend (compatibilidad con versiones anteriores)
+        $imagePath = '../../../frontend/src/' . $user['image_path'];
+    } else {
+        // URL externa (Google)
+        $imagePath = null;
+    }
 
-    // Eliminar el archivo físicamente
-    if (file_exists($imagePath) && strpos($user['image_path'], 'default') === false) {
+    // Eliminar el archivo físicamente si existe y no es una URL externa
+    if ($imagePath && file_exists($imagePath) && strpos($user['image_path'], 'default') === false) {
         if (!unlink($imagePath)) {
             echo json_encode([
                 "status" => "ERROR",

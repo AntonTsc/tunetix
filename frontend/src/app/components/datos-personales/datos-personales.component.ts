@@ -2,9 +2,9 @@ import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/cor
 import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from '../../services/auth.service';
+import { ImageService } from '../../services/image.service';
 import { TokenService } from '../../services/token.service';
 import { UpdateUserData, UserService } from '../../services/user.service';
-import { ImageService } from '../../services/image.service';
 
 // Validador personalizado para permitir solo letras, espacios y algunos caracteres como ñ, tildes
 export function onlyLettersValidator(): ValidatorFn {
@@ -86,7 +86,7 @@ export class DatosPersonalesComponent implements OnInit {
   hasImageError: boolean = false;
 
   constructor(
-    private userService: UserService,
+    public userService: UserService,
     private fb: FormBuilder,
     private authService: AuthService,
     private tokenService: TokenService,

@@ -89,7 +89,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private userService: UserService,
+    public userService: UserService,
     private cdr: ChangeDetectorRef
   ) {
     // Eliminamos la llamada a checkIfLoggedIn() del constructor

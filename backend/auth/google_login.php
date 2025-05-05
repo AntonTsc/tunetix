@@ -340,7 +340,7 @@ echo json_encode([
 function downloadGoogleProfileImage($url, $googleId)
 {
     // Crear directorio si no existe
-    $uploadDir = '../../../frontend/src/assets/imgs/avatars/';
+    $uploadDir = '../uploads/avatars/';
     if (!file_exists($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
@@ -356,7 +356,7 @@ function downloadGoogleProfileImage($url, $googleId)
         // Guardar la imagen
         if (file_put_contents($filePath, $imageContent)) {
             // Devolver ruta relativa para guardar en BD
-            return 'assets/imgs/avatars/' . $fileName;
+            return 'uploads/avatars/' . $fileName;
         }
     }
 

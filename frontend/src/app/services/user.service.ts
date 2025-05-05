@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -200,5 +200,59 @@ export class UserService {
         return throwError(() => error);
       })
     );
+  }
+
+  // Añadir método para detectar y descargar automáticamente imágenes de Google
+  downloadGoogleProfileImage(): Observable<ServerResponse> {
+    return this.http.post<ServerResponse>(
+      `${this.apiBaseUrl}/Controllers/Usuario/downloadGoogleProfileImage.php`,
+      {},
+      { withCredentials: true }
+    ).pipe(
+      tap((response: ServerResponse) => {
+        if (response.status === 'OK' && response.data) {
+          const currentData = this.userDataSubject.getValue();
+          if (currentData) {
+            this.userDataSubject.next({
+              ...currentData,
+              image_path: response.data.image_path
+            });
+          }
+        }
+      }),
+      catchError(error => {
+        console.error('Error descargando imagen de Google:', error);
+        return throwError(() => new Error('Error al descargar la imagen de Google'));
+      })
+    );
+  }
+
+  // Método para obtener la URL apropiada de la imagen de perfil
+  getProfileImageUrl(imagePath: string | null): string {
+    if (!imagePath) {
+      return '';
+    }
+
+    // Si es una URL de Google, iniciar descarga automática (asíncrona)
+    if (imagePath.startsWith('http') && imagePath.includes('googleusercontent.com')) {
+      // Usar setTimeout para no bloquear la UI y ejecutar de forma asíncrona
+      setTimeout(() => {
+        this.downloadGoogleProfileImage().subscribe({
+          next: () => console.log('Imagen de Google descargada con éxito'),
+          error: (err) => console.error('Error al descargar imagen de Google:', err)
+        });
+      }, 0);
+
+      // Devolver la URL externa directamente
+      return imagePath;
+    }
+
+    // Para rutas relativas, construir la URL completa con la base API
+    if (!imagePath.startsWith('http')) {
+      return `${this.apiBaseUrl}/${imagePath}`;
+    }
+
+    // Si es otra URL externa, devolverla sin modificar
+    return imagePath;
   }
 }

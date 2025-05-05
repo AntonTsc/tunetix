@@ -38,7 +38,7 @@
           <!-- Imagen de perfil superpuesta al SVG -->
           <img
             *ngIf="userData.profileImage && !previewImage"
-            [src]="userData.profileImage"
+            [src]="userService.getProfileImageUrl(userData.profileImage)"
             alt="Foto de perfil"
             class="w-full h-full object-cover absolute inset-0 z-10"
             (error)="onProfileImageError($event)"

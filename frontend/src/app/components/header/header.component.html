@@ -156,7 +156,7 @@
                 <!-- Mostrar imagen solo si hasProfileImage() es true -->
                 <img
                   *ngIf="hasProfileImage()"
-                  [src]="user_data?.image_path"
+                  [src]="userService.getProfileImageUrl(user_data?.image_path)"
                   alt="Foto de perfil"
                   class="w-full h-full object-cover"
                   (error)="handleImageError($event)"
@@ -392,7 +392,7 @@
               <div class="rounded-full overflow-hidden">
                 <img
                   *ngIf="user_data?.image_path"
-                  [src]="user_data.image_path"
+                  [src]="userService.getProfileImageUrl(user_data?.image_path)"
                   alt="Foto de perfil"
                   class="w-full h-full object-cover"
                   (error)="handleImageError($event)"
