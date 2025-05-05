@@ -5,24 +5,108 @@ import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from 'src/app/services/auth.service';
 import { CardService } from 'src/app/services/card.service';
 
+// Función para aplicar el algoritmo de Luhn (mod 10)
+function luhnCheck(cardNumber: string): boolean {
+  // Eliminar espacios y caracteres no numéricos
+  const digits = cardNumber.replace(/\D/g, '');
+
+  if (digits.length < 13 || digits.length > 19) {
+    return false;
+  }
+
+  let sum = 0;
+  let shouldDouble = false;
+
+  // Recorrer la tarjeta de derecha a izquierda
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = parseInt(digits.charAt(i));
+
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+
+  // La tarjeta es válida si la suma es múltiplo de 10
+  return (sum % 10) === 0;
+}
+
+// Validar el tipo de tarjeta según su prefijo y longitud
+function getCardType(cardNumber: string): string | null {
+  // Eliminar espacios
+  const digits = cardNumber.replace(/\D/g, '');
+
+  // VISA: Empieza con 4 y tiene 13 o 16 dígitos
+  const visaRegex = /^4[0-9]{12}(?:[0-9]{3})?$/;
+
+  // MasterCard: Empieza con 51-55 o 2221-2720 y tiene 16 dígitos
+  const mastercardRegex = /^(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))$/;
+
+  if (visaRegex.test(digits)) {
+    return 'VISA';
+  } else if (mastercardRegex.test(digits)) {
+    return 'MASTERCARD';
+  }
+
+  return null;
+}
+
 // Custom validator function
 function cardNumberValidator(control: AbstractControl): ValidationErrors | null {
   if (!control.value) {
-    return null; // Let the required validator handle empty values
+    return { required: true };
   }
 
-  // Remove all spaces and check length
-  const cardNumberWithoutSpaces = control.value.replace(/\s/g, '');
-  if (cardNumberWithoutSpaces.length !== 16) {
-    return { 'invalidCardNumber': true };
+  const cardNumber = control.value.replace(/\s/g, '');
+
+  // Verificar si son dígitos
+  if (!/^\d+$/.test(cardNumber)) {
+    return { invalidCardNumber: true };
   }
 
-  // Check if all characters are digits
-  if (!/^\d+$/.test(cardNumberWithoutSpaces)) {
-    return { 'invalidCardNumber': true };
+  // Verificar longitud básica
+  if (cardNumber.length < 13 || cardNumber.length > 19) {
+    return { invalidLength: true };
   }
 
-  return null; // Valid
+  // Validar mediante algoritmo de Luhn
+  if (!luhnCheck(cardNumber)) {
+    return { invalidLuhn: true };
+  }
+
+  // Verificar el tipo de tarjeta
+  const cardType = getCardType(cardNumber);
+  if (!cardType) {
+    return { invalidCardType: true };
+  }
+
+  return null;
+}
+
+// Función para formatear el número de tarjeta con espacios cada 4 dígitos
+function formatCardNumber(value: string): string {
+  if (!value) return '';
+  // Limpiamos el valor de espacios y caracteres no numéricos
+  const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+
+  // Limitamos a 16 dígitos máximo
+  const digits = v.substring(0, 16);
+
+  const parts = [];
+  for (let i = 0, len = digits.length; i < len; i += 4) {
+    parts.push(digits.substring(i, i + 4));
+  }
+
+  if (parts.length) {
+    return parts.join(' ');
+  } else {
+    return value;
+  }
 }
 
 @Component({
@@ -47,6 +131,8 @@ export class MetodosPagoComponent implements OnInit {
   // Añadir userData para almacenar datos del usuario
   userData: any = null;
 
+  isCardTypeDetected: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private _card: CardService,
@@ -55,7 +141,7 @@ export class MetodosPagoComponent implements OnInit {
     this.cardForm = this.fb.group({
       cardNumber: ['', [
         Validators.required,
-        cardNumberValidator  // Apply the custom validator
+        cardNumberValidator  // Validator mejorado
       ]],
       cardOwner: ['', Validators.required],
       expMonth: ['', Validators.required],
@@ -70,6 +156,33 @@ export class MetodosPagoComponent implements OnInit {
     for (let i = 0; i < 10; i++) {
       this.years.push((currentYear + i).toString().substr(2));
     }
+
+    // Escuchar cambios en el número de tarjeta para aplicar formato
+    this.cardForm.get('cardNumber')?.valueChanges.subscribe(value => {
+      if (value) {
+        const formattedValue = formatCardNumber(value);
+        // Solo actualizar si el valor formateado es diferente para evitar bucles
+        if (formattedValue !== value) {
+          this.cardForm.get('cardNumber')?.setValue(formattedValue, { emitEvent: false });
+        }
+
+        // Auto-detectar tipo de tarjeta
+        const cardType = getCardType(value.replace(/\s/g, ''));
+        if (cardType) {
+          this.cardForm.get('cardType')?.setValue(cardType);
+          this.isCardTypeDetected = true; // Activar bloqueo del campo
+        } else {
+          this.isCardTypeDetected = false; // Desactivar bloqueo si no se reconoce el tipo
+          if (value.replace(/\s/g, '').length >= 13) {
+            // Si tiene al menos 13 dígitos pero no es un tipo válido, resetear el campo
+            this.cardForm.get('cardType')?.setValue('');
+          }
+        }
+      } else {
+        // Si el campo está vacío, permitir la selección manual
+        this.isCardTypeDetected = false;
+      }
+    });
   }
 
   getAll(){
@@ -127,12 +240,6 @@ export class MetodosPagoComponent implements OnInit {
         if (response.status === 'OK') {
           // Reset the form
           this.cardForm.reset();
-
-          // Inicializar valores por defecto después del reset si es necesario
-          // this.cardForm.patchValue({
-          //   cardType: 'VISA',
-          //   currency: 'EUR'
-          // });
         }
 
         this.getAll();
