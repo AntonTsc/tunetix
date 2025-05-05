@@ -48,7 +48,6 @@
           <img
             *ngIf="previewImage"
             [src]="previewImage"
-            alt="Vista previa de la foto"
             class="w-full h-full object-cover absolute inset-0 z-10"
           />
         </div>
@@ -99,7 +98,11 @@
             <!-- Menú desplegable con opciones de edición - horizontal -->
             <div
               *ngIf="showPhotoMenu"
-              class="menu-opciones-foto absolute left-full bottom-0 flex items-center ml-2 menu-animation"
+              class="menu-opciones-foto absolute left-full bottom-0 flex items-center ml-2"
+              [ngClass]="{
+                'menu-animation': !menuExitAnimation,
+                'menu-animation-exit': menuExitAnimation
+              }"
             >
               <!-- Opción para cambiar foto - solo icono -->
               <label
@@ -146,7 +149,7 @@
               type="file"
               id="profile-image-upload"
               (change)="onFileSelected($event)"
-              accept="image/*"
+              accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp"
               class="hidden"
             />
           </div>

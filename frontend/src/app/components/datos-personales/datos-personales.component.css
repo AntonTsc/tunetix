@@ -4,6 +4,11 @@
   transform-origin: left center;
 }
 
+.menu-animation-exit {
+  animation: slideToLeft 0.3s ease forwards;
+  transform-origin: left center;
+}
+
 @keyframes slideFromLeft {
   0% {
     opacity: 0;
@@ -12,6 +17,17 @@
   100% {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes slideToLeft {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-10px);
   }
 }
 

@@ -85,6 +85,9 @@ export class DatosPersonalesComponent implements OnInit {
   // Nueva propiedad para rastrear errores de imagen
   hasImageError: boolean = false;
 
+  // Para el control de animaciones del menú de opciones
+  menuExitAnimation = false;
+
   constructor(
     public userService: UserService,
     private fb: FormBuilder,
@@ -634,7 +637,22 @@ export class DatosPersonalesComponent implements OnInit {
     if (event) {
       event.stopPropagation(); // Evitar que el clic se propague al documento
     }
-    this.showPhotoMenu = !this.showPhotoMenu;
+
+    if (this.showPhotoMenu) {
+      // Si el menú está abierto, primero aplicamos la animación de salida
+      this.menuExitAnimation = true;
+
+      // Esperamos a que finalice la animación antes de ocultar el menú
+      setTimeout(() => {
+        this.showPhotoMenu = false;
+        this.menuExitAnimation = false;
+        this.cdr.detectChanges();
+      }, 300); // Tiempo igual a la duración de la animación (0.3s)
+    } else {
+      // Si el menú está cerrado, lo mostramos directamente con la animación de entrada
+      this.showPhotoMenu = true;
+      this.menuExitAnimation = false;
+    }
   }
 
   // Manejador de clic para cerrar el menú cuando se haga clic fuera

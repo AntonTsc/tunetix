@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!in_array($fileType, $validTypes)) {
         echo json_encode([
             "status" => "ERROR",
-            "message" => "El archivo debe ser una imagen (JPEG, PNG, GIF o WEBP)"
+            "message" => "El archivo debe ser una imagen (JPEG, JPG, JFIF, PNG, GIF o WEBP)"
         ]);
         exit;
     }
