@@ -1,15 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TicketService } from '../../services/ticket.service';
 
 interface Purchase {
   id: string;
+  eventId?: string;
   eventName: string;
   eventImage: string;
   location: string;
   purchaseDate: Date;
   quantity: number;
+  unitPrice?: number;
   totalPrice: number;
   status: 'completed' | 'pending' | 'canceled';
+  paymentMethod?: {
+    id: number;
+    type: string;
+    owner: string;
+  };
 }
 
 @Component({
@@ -21,6 +29,8 @@ export class HistorialComprasComponent implements OnInit {
   purchases: Purchase[] = [];
   filteredPurchases: Purchase[] = [];
   filterOption: string = 'all';
+  loading: boolean = true;
+  error: string | null = null;
 
   // Pagination
   currentPage: number = 1;
@@ -29,80 +39,64 @@ export class HistorialComprasComponent implements OnInit {
   // For template use
   Math = Math;
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private ticketService: TicketService) { }
 
   ngOnInit(): void {
-    // Sample data - in a real app this would come from a service
-    this.purchases = [
-      {
-        id: '1',
-        eventName: 'Concierto de Imagine Dragons',
-        eventImage: 'assets/imgs/events/imagine-dragons.jpg',
-        location: 'Estadio Santiago Bernabéu, Madrid',
-        purchaseDate: new Date(2024, 11, 15),
-        quantity: 2,
-        totalPrice: 150.00,
-        status: 'completed'
-      },
-      {
-        id: '2',
-        eventName: 'Festival Primavera Sound',
-        eventImage: 'assets/imgs/events/primavera-sound.jpg',
-        location: 'Parc del Fòrum, Barcelona',
-        purchaseDate: new Date(2024, 5, 22),
-        quantity: 1,
-        totalPrice: 90.50,
-        status: 'completed'
-      },
-      {
-        id: '3',
-        eventName: 'Concierto de Rosalía',
-        eventImage: 'assets/imgs/events/rosalia.jpg',
-        location: 'WiZink Center, Madrid',
-        purchaseDate: new Date(2024, 8, 5),
-        quantity: 4,
-        totalPrice: 280.00,
-        status: 'pending'
-      },
-      {
-        id: '4',
-        eventName: 'Festival Mad Cool',
-        eventImage: 'assets/imgs/events/mad-cool.jpg',
-        location: 'Espacio Mad Cool, Madrid',
-        purchaseDate: new Date(2023, 6, 12),
-        quantity: 2,
-        totalPrice: 180.00,
-        status: 'completed'
-      },
-      {
-        id: '5',
-        eventName: 'Concierto de Dua Lipa',
-        eventImage: 'assets/imgs/events/dua-lipa.jpg',
-        location: 'Palau Sant Jordi, Barcelona',
-        purchaseDate: new Date(2023, 9, 30),
-        quantity: 3,
-        totalPrice: 210.50,
-        status: 'canceled'
-      },
-      {
-        id: '6',
-        eventName: 'Festival Sonorama Ribera',
-        eventImage: 'assets/imgs/events/sonorama.jpg',
-        location: 'Aranda de Duero, Burgos',
-        purchaseDate: new Date(2023, 7, 10),
-        quantity: 2,
-        totalPrice: 120.00,
-        status: 'completed'
-      }
-    ];
+    this.loadPurchases();
+  }
 
-    // Initialize filtered purchases
-    this.applyFilter();
+  // Cargar compras desde el servidor
+  loadPurchases(): void {
+    this.loading = true;
+    this.error = null;
+
+    this.ticketService.getUserTickets().subscribe({
+      next: (response) => {
+        console.log('Respuesta del servidor:', response); // Agregar log para depuración
+
+        if (response.status === 'OK' && response.data) {
+          console.log('Datos recibidos:', response.data); // Log de los datos
+
+          // Convertir las fechas de string a objetos Date
+          this.purchases = response.data.map((ticket: any) => ({
+            id: ticket.id,
+            eventId: ticket.eventId,
+            eventName: ticket.eventName,
+            eventImage: ticket.eventImage,
+            location: ticket.location,
+            purchaseDate: new Date(ticket.purchaseDate),
+            quantity: ticket.quantity,
+            unitPrice: ticket.unitPrice,
+            totalPrice: ticket.totalPrice,
+            status: ticket.status,
+            paymentMethod: ticket.paymentMethod
+          }));
+
+          console.log('Purchases después del mapeo:', this.purchases); // Log después del mapeo
+
+          // Inicializar filtered purchases
+          this.applyFilter();
+        } else {
+          this.error = 'No se pudieron cargar las compras';
+          this.purchases = [];
+          this.filteredPurchases = [];
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar el historial de compras', err);
+        this.error = 'Error al conectar con el servidor';
+        this.loading = false;
+        this.purchases = [];
+        this.filteredPurchases = [];
+      }
+    });
   }
 
   // Apply filter based on selected option
   applyFilter(): void {
     const now = new Date();
+    console.log('Ejecutando applyFilter con', this.purchases.length, 'compras');
 
     switch (this.filterOption) {
       case 'recent':
@@ -120,6 +114,7 @@ export class HistorialComprasComponent implements OnInit {
         this.filteredPurchases = [...this.purchases];
     }
 
+    console.log('Después del filtrado:', this.filteredPurchases.length, 'compras filtradas');
     // Reset pagination
     this.currentPage = 1;
   }
@@ -138,9 +133,18 @@ export class HistorialComprasComponent implements OnInit {
     }
   }
 
-  // View purchase details
+  // View purchase details - redirige a la página del evento si hay un eventId
   viewDetails(purchaseId: string): void {
-    this.router.navigate(['/perfil/compras', purchaseId]);
+    // Buscar el ticket en las compras
+    const purchase = this.purchases.find(p => p.id === purchaseId);
+
+    if (purchase && purchase.eventId) {
+      // Si tiene un ID de evento, navegar a la página del evento
+      this.router.navigate(['/eventos', purchase.eventId]);
+    } else {
+      // Si no tiene un ID de evento o no se encuentra la compra, usar la ruta antigua
+      this.router.navigate(['/perfil/compras', purchaseId]);
+    }
   }
 
   // Change page for pagination

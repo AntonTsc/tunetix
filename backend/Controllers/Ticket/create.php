@@ -50,33 +50,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Calcular precio total
         $precio_total = $data['cantidad'] * $data['precio_individual'];
 
-        // Insertar ticket
-        $stmt = $conn->prepare("INSERT INTO ticket (id_usuario, cantidad, precio_individual, precio_total, ubicacion, artista, metodo_pago_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        // Comprobar si existe el campo event_id
+        if (isset($data['event_id']) && !empty($data['event_id'])) {
+            // Verificar que el evento exista en la tabla precios_eventos
+            $verify_event = $conn->prepare("SELECT event_id FROM precios_eventos WHERE event_id = ?");
+            $verify_event->bind_param("s", $data['event_id']);
+            $verify_event->execute();
+            $event_result = $verify_event->get_result();
 
-        $stmt->bind_param(
-            "iiddssi",
-            $user_id,
-            $data['cantidad'],
-            $data['precio_individual'],
-            $precio_total,
-            $data['ubicacion'],
-            $data['artista'],
-            $data['metodo_pago_id']
-        );
+            if ($event_result->num_rows === 0) {
+                // Si el evento no existe, lo registramos primero
+                $insert_event = $conn->prepare("INSERT INTO precios_eventos (event_id, precio) VALUES (?, ?)");
+                $insert_event->bind_param("sd", $data['event_id'], $data['precio_individual']);
+
+                if (!$insert_event->execute()) {
+                    echo json_encode(["status" => "ERROR", "message" => "Error al registrar el evento"]);
+                    exit;
+                }
+            }
+
+            // Insertar ticket con event_id
+            $stmt = $conn->prepare("INSERT INTO ticket (id_usuario, event_id, cantidad, precio_individual, precio_total, ubicacion, artista, metodo_pago_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+
+            $stmt->bind_param(
+                "isiddssi",
+                $user_id,
+                $data['event_id'],
+                $data['cantidad'],
+                $data['precio_individual'],
+                $precio_total,
+                $data['ubicacion'],
+                $data['artista'],
+                $data['metodo_pago_id']
+            );
+        } else {
+            // Insertar ticket sin event_id (compatible con versiones anteriores)
+            $stmt = $conn->prepare("INSERT INTO ticket (id_usuario, cantidad, precio_individual, precio_total, ubicacion, artista, metodo_pago_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+
+            $stmt->bind_param(
+                "iiddssi",
+                $user_id,
+                $data['cantidad'],
+                $data['precio_individual'],
+                $precio_total,
+                $data['ubicacion'],
+                $data['artista'],
+                $data['metodo_pago_id']
+            );
+        }
 
         if ($stmt->execute()) {
+            $response_data = [
+                "id" => $conn->insert_id,
+                "cantidad" => $data['cantidad'],
+                "precio_individual" => $data['precio_individual'],
+                "precio_total" => $precio_total,
+                "ubicacion" => $data['ubicacion'],
+                "artista" => $data['artista'],
+                "metodo_pago_id" => $data['metodo_pago_id']
+            ];
+
+            // Añadir event_id a la respuesta si está presente
+            if (isset($data['event_id'])) {
+                $response_data["event_id"] = $data['event_id'];
+            }
+
             echo json_encode([
                 "status" => "OK",
                 "message" => "Tickets comprados correctamente",
-                "data" => [
-                    "id" => $conn->insert_id,
-                    "cantidad" => $data['cantidad'],
-                    "precio_individual" => $data['precio_individual'],
-                    "precio_total" => $precio_total,
-                    "ubicacion" => $data['ubicacion'],
-                    "artista" => $data['artista'],
-                    "metodo_pago_id" => $data['metodo_pago_id']
-                ]
+                "data" => $response_data
             ]);
         } else {
             echo json_encode(["status" => "ERROR", "message" => "Error al registrar la compra: " . $stmt->error]);

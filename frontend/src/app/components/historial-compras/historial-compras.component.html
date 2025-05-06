@@ -22,7 +22,7 @@
 
   <!-- Empty state -->
   <div
-    *ngIf="purchases.length === 0"
+    *ngIf="!loading && filteredPurchases.length === 0"
     class="bg-white rounded-lg border border-gray-200 p-8 text-center"
   >
     <svg
@@ -69,7 +69,7 @@
 
   <!-- Purchase history table -->
   <div
-    *ngIf="purchases.length > 0"
+    *ngIf="!loading && filteredPurchases.length > 0"
     class="bg-white rounded-lg border border-gray-200 overflow-hidden"
   >
     <!-- Table header -->
@@ -135,14 +135,7 @@
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center">
-                <div class="h-10 w-10 flex-shrink-0">
-                  <img
-                    class="h-10 w-10 rounded-md object-cover"
-                    [src]="purchase.eventImage"
-                    alt="Event image"
-                  />
-                </div>
-                <div class="ml-4">
+                <div class="ml-1">
                   <div class="text-sm font-medium text-gray-900">
                     {{ purchase.eventName }}
                   </div>
