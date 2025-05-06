@@ -36,6 +36,9 @@ export class UserService {
   private userDataSubject = new BehaviorSubject<any>(null);
   public userData$ = this.userDataSubject.asObservable();
 
+  // Variable para controlar si ya se inició la descarga de la imagen de Google
+  private googleImageDownloadStarted = false;
+
   // Corregimos la inyección de dependencias usando el constructor
   constructor(
     private http: HttpClient,
@@ -184,5 +187,82 @@ export class UserService {
         }
       })
     );
+  }
+
+  // Añadir nuevo método para gestionar la adición de contraseña a cuentas de Google
+  // Corrección para no usar tokenService
+  addGooglePassword(newPassword: string): Observable<ServerResponse> {
+    // Simplificar el método para usar sólo withCredentials (las cookies)
+    return this.http.post<ServerResponse>(
+      `${this.apiBaseUrl}/Controllers/Usuario/addGooglePassword.php`,
+      { newPassword },
+      { withCredentials: true }
+    ).pipe(
+      catchError(error => {
+        console.error('Error al añadir contraseña a cuenta Google:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Añadir método para detectar y descargar automáticamente imágenes de Google
+  downloadGoogleProfileImage(): Observable<ServerResponse> {
+    return this.http.post<ServerResponse>(
+      `${this.apiBaseUrl}/Controllers/Usuario/downloadGoogleProfileImage.php`,
+      {},
+      { withCredentials: true }
+    ).pipe(
+      tap((response: ServerResponse) => {
+        if (response.status === 'OK' && response.data) {
+          const currentData = this.userDataSubject.getValue();
+          if (currentData) {
+            this.userDataSubject.next({
+              ...currentData,
+              image_path: response.data.image_path
+            });
+          }
+        }
+      }),
+      catchError(error => {
+        console.error('Error descargando imagen de Google:', error);
+        return throwError(() => new Error('Error al descargar la imagen de Google'));
+      })
+    );
+  }
+
+  // Método para obtener la URL apropiada de la imagen de perfil
+  getProfileImageUrl(imagePath: string | null): string {
+    if (!imagePath) {
+      return '';
+    }
+
+    // Si es una URL de Google, iniciar descarga automática (asíncrona) SOLO UNA VEZ
+    if (imagePath.startsWith('http') && imagePath.includes('googleusercontent.com') && !this.googleImageDownloadStarted) {
+      // Marcar que ya se inició la descarga para evitar duplicados
+      this.googleImageDownloadStarted = true;
+
+      // Usar setTimeout para no bloquear la UI y ejecutar de forma asíncrona
+      setTimeout(() => {
+        this.downloadGoogleProfileImage().subscribe({
+          next: () => console.log('Imagen de Google descargada con éxito'),
+          error: (err) => {
+            console.error('Error al descargar imagen de Google:', err);
+            // Resetear la bandera en caso de error para permitir reintentos
+            this.googleImageDownloadStarted = false;
+          }
+        });
+      }, 0);
+
+      // Devolver la URL externa directamente
+      return imagePath;
+    }
+
+    // Para rutas relativas, construir la URL completa con la base API
+    if (!imagePath.startsWith('http')) {
+      return `${this.apiBaseUrl}/${imagePath}`;
+    }
+
+    // Si es otra URL externa, devolverla sin modificar
+    return imagePath;
   }
 }

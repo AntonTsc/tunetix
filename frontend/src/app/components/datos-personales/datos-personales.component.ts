@@ -1,9 +1,19 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { AuthService } from '../../services/auth.service';
+import { ImageService } from '../../services/image.service';
 import { TokenService } from '../../services/token.service';
 import { UpdateUserData, UserService } from '../../services/user.service';
+
+// Validador personalizado para permitir solo letras, espacios y algunos caracteres como ñ, tildes
+export function onlyLettersValidator(): ValidatorFn {
+  return (control: AbstractControl): {[key: string]: any} | null => {
+    // Expresión regular que permite letras (incluyendo ñ y tildes), espacios y guiones
+    const valid = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(control.value);
+    return !valid ? {'invalidCharacters': {value: control.value}} : null;
+  };
+}
 
 @Component({
   selector: 'app-datos-personales',
@@ -40,6 +50,16 @@ export class DatosPersonalesComponent implements OnInit {
   emailForm: FormGroup = new FormGroup({});
   passwordForm: FormGroup = new FormGroup({});
 
+  // Añadir nueva propiedad para controlar si el usuario es de Google
+  isGoogleAccount: boolean = false;
+  // Nuevo campo para la sección de añadir contraseña para cuentas de Google
+  googlePasswordForm: FormGroup = new FormGroup({});
+  // Controlar si se está editando la contraseña de Google
+  editingGooglePassword: boolean = false;
+
+  // Añadir nueva propiedad para controlar si el usuario tiene contraseña
+  hasPassword: boolean = false;
+
   loading = false;
   updateLoading = false;
   serverResponse: ServerResponse | null = null;
@@ -62,12 +82,19 @@ export class DatosPersonalesComponent implements OnInit {
   // Propiedad para controlar la visibilidad del menú
   showPhotoMenu = false;
 
+  // Nueva propiedad para rastrear errores de imagen
+  hasImageError: boolean = false;
+
+  // Para el control de animaciones del menú de opciones
+  menuExitAnimation = false;
+
   constructor(
-    private userService: UserService,
+    public userService: UserService,
     private fb: FormBuilder,
     private authService: AuthService,
     private tokenService: TokenService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private imageService: ImageService
   ) {
     // Inicializar userData con valores vacíos para evitar errores
     this.userData = {
@@ -81,6 +108,14 @@ export class DatosPersonalesComponent implements OnInit {
     };
 
     this.initForms();
+
+    // Inicializar formulario para añadir contraseña a cuenta de Google
+    this.googlePasswordForm = this.fb.group({
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required]
+    }, {
+      validator: this.checkGooglePasswords
+    });
   }
 
   // Método para inicializar los formularios
@@ -91,7 +126,8 @@ export class DatosPersonalesComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(2),
-          Validators.maxLength(50)
+          Validators.maxLength(50),
+          onlyLettersValidator() // Añadir el validador personalizado
         ]
       ],
       lastName: [
@@ -99,7 +135,8 @@ export class DatosPersonalesComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(2),
-          Validators.maxLength(50)
+          Validators.maxLength(50),
+          onlyLettersValidator() // Añadir el validador personalizado
         ]
       ]
     });
@@ -191,6 +228,13 @@ export class DatosPersonalesComponent implements OnInit {
     return newPass === confirmPass ? null : { notSame: true };
   }
 
+  // Validator para las contraseñas de Google
+  checkGooglePasswords(group: FormGroup) {
+    const newPass = group.get('newPassword')?.value;
+    const confirmPass = group.get('confirmPassword')?.value;
+    return newPass === confirmPass ? null : { notSame: true };
+  }
+
   ngOnInit(): void {
     this.loadUserData();
   }
@@ -226,6 +270,12 @@ export class DatosPersonalesComponent implements OnInit {
           this.emailForm.patchValue({
             email: this.userData.email
           });
+
+          // Verificar si es cuenta de Google
+          this.isGoogleAccount = response.data.auth_provider === 'google';
+
+          // Verificar si tiene contraseña configurada
+          this.hasPassword = response.data.has_password === true;
 
           this.loading = false;
         } else {
@@ -270,7 +320,40 @@ export class DatosPersonalesComponent implements OnInit {
           confirmPassword: ''
         };
       }
+
+      // Desactivar el modo de edición para el campo actual
+      this.editingField[field as keyof typeof this.editingField] = false;
     } else {
+      // Si vamos a comenzar a editar un campo, primero cerramos cualquier otro campo en edición
+      Object.keys(this.editingField).forEach(key => {
+        // Si hay otro campo en edición, lo restauramos a su valor original
+        if (this.editingField[key as keyof typeof this.editingField]) {
+          if (key === 'name') {
+            this.nameForm.patchValue({
+              name: this.originalData.name,
+              lastName: this.originalData.lastName
+            });
+            this.userData.name = this.originalData.name;
+            this.userData.lastName = this.originalData.lastName;
+          } else if (key === 'email') {
+            this.emailForm.patchValue({
+              email: this.originalData.email
+            });
+            this.userData.email = this.originalData.email;
+          } else if (key === 'password') {
+            this.passwordForm.reset();
+            this.passwordData = {
+              currentPassword: '',
+              newPassword: '',
+              confirmPassword: ''
+            };
+          }
+
+          // Desactivamos su modo de edición
+          this.editingField[key as keyof typeof this.editingField] = false;
+        }
+      });
+
       // Si estamos comenzando a editar, guardamos los valores originales
       if (field === 'name') {
         this.originalData.name = this.userData.name;
@@ -278,14 +361,18 @@ export class DatosPersonalesComponent implements OnInit {
       } else if (field === 'email') {
         this.originalData.email = this.userData.email;
       }
+
+      // Activar el modo de edición para el campo actual
+      this.editingField[field as keyof typeof this.editingField] = true;
+
+      // Si estamos activando la edición de algún campo, desactivamos la edición de contraseña de Google
+      if (this.editingGooglePassword) {
+        this.toggleGooglePasswordEdit();
+      }
     }
 
     // Limpiar mensajes al cambiar de modo
     this.serverResponse = null;
-
-    // Toggle del estado de edición
-    this.editingField[field as keyof typeof this.editingField] =
-      !this.editingField[field as keyof typeof this.editingField];
   }
 
   saveProfile(field: string): void {
@@ -298,16 +385,40 @@ export class DatosPersonalesComponent implements OnInit {
         Object.keys(this.nameForm.controls).forEach(key => {
           this.nameForm.get(key)?.markAsTouched();
         });
-        this.serverResponse = {
-          status: 'ERROR',
-          message: 'Por favor, completa correctamente el nombre y apellido'
-        };
+
+        // Mensaje de error específico según el tipo de error
+        if (this.nameForm.get('name')?.errors?.['invalidCharacters'] ||
+            this.nameForm.get('lastName')?.errors?.['invalidCharacters']) {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: 'El nombre y apellido solo pueden contener letras y espacios'
+          };
+        } else if (this.nameForm.get('name')?.errors?.['required'] ||
+                  this.nameForm.get('lastName')?.errors?.['required']) {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: 'Por favor, completa todos los campos requeridos'
+          };
+        } else {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: 'Por favor, completa correctamente el nombre y apellido'
+          };
+        }
         return;
       }
 
       // Actualizar userData con los valores del formulario
       this.userData.name = this.nameForm.value.name;
       this.userData.lastName = this.nameForm.value.lastName;
+
+      // Verificar si ha habido cambios
+      if (this.userData.name === this.originalData.name &&
+          this.userData.lastName === this.originalData.lastName) {
+        // No hay cambios, simplemente cerrar el modo de edición sin mostrar mensaje
+        this.editingField[field as keyof typeof this.editingField] = false;
+        return;
+      }
     } else if (field === 'email') {
       if (this.emailForm.invalid) {
         // Marcar controles como touched para mostrar errores
@@ -321,6 +432,13 @@ export class DatosPersonalesComponent implements OnInit {
 
       // Actualizar userData con el valor del formulario
       this.userData.email = this.emailForm.value.email;
+
+      // Verificar si ha habido cambios
+      if (this.userData.email === this.originalData.email) {
+        // No hay cambios, simplemente cerrar el modo de edición sin mostrar mensaje
+        this.editingField[field as keyof typeof this.editingField] = false;
+        return;
+      }
     }
 
     this.updateLoading = true;
@@ -410,6 +528,15 @@ export class DatosPersonalesComponent implements OnInit {
     // Actualizar valores desde el formulario
     this.passwordData = this.passwordForm.value;
 
+    // Evitar enviar la solicitud si la nueva contraseña está vacía
+    if (!this.passwordData.newPassword.trim()) {
+      this.serverResponse = {
+        status: 'ERROR',
+        message: 'La nueva contraseña no puede estar vacía'
+      };
+      return;
+    }
+
     this.updateLoading = true;
     this.userService.updatePassword(
       this.passwordData.currentPassword,
@@ -494,6 +621,9 @@ export class DatosPersonalesComponent implements OnInit {
           // Actualizar el perfil con la nueva imagen
           this.userData.profileImage = response.data.image_path;
 
+          // Resetear el indicador de error de imagen
+          this.hasImageError = false;
+
           // Mostrar mensaje de éxito
           this.serverResponse = {
             status: 'OK',
@@ -533,9 +663,29 @@ export class DatosPersonalesComponent implements OnInit {
     });
   }
 
-  // Helper method to check if user has a profile image
+  // Modificar este método si existe, o agregar si no existe
   hasProfileImage(): boolean {
-    return this.userData.profileImage !== null && this.userData.profileImage !== '';
+    return !!(this.userData && this.userData.profileImage && this.userData.profileImage.trim() !== '');
+  }
+
+  // Añadir el método que controla si se debe mostrar el SVG
+  shouldShowSvgAvatar(): boolean {
+    return this.imageService.shouldShowSvg(this.userData.profileImage);
+  }
+
+  // Método para obtener la URL de la imagen
+  getProfileImageSrc(): string {
+    return this.userData?.profileImage || '';
+  }
+
+  // Modificar o agregar el método para manejar errores de imagen
+  onProfileImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+
+    // Agregar clase para hacer la imagen transparente y dejar ver el SVG
+    imgElement.classList.add('profile-image-error');
+
+    console.warn('Error cargando imagen de perfil:', imgElement.src);
   }
 
   // Helper method to get full name
@@ -548,7 +698,22 @@ export class DatosPersonalesComponent implements OnInit {
     if (event) {
       event.stopPropagation(); // Evitar que el clic se propague al documento
     }
-    this.showPhotoMenu = !this.showPhotoMenu;
+
+    if (this.showPhotoMenu) {
+      // Si el menú está abierto, primero aplicamos la animación de salida
+      this.menuExitAnimation = true;
+
+      // Esperamos a que finalice la animación antes de ocultar el menú
+      setTimeout(() => {
+        this.showPhotoMenu = false;
+        this.menuExitAnimation = false;
+        this.cdr.detectChanges();
+      }, 300); // Tiempo igual a la duración de la animación (0.3s)
+    } else {
+      // Si el menú está cerrado, lo mostramos directamente con la animación de entrada
+      this.showPhotoMenu = true;
+      this.menuExitAnimation = false;
+    }
   }
 
   // Manejador de clic para cerrar el menú cuando se haga clic fuera
@@ -571,5 +736,126 @@ export class DatosPersonalesComponent implements OnInit {
         this.cdr.detectChanges();
       }
     }
+  }
+
+  // Método para activar el modo de edición de contraseña de Google
+  toggleGooglePasswordEdit(): void {
+    // Si vamos a activar la edición de contraseña de Google
+    if (!this.editingGooglePassword) {
+      // Primero cerramos cualquier otro campo en edición
+      Object.keys(this.editingField).forEach(key => {
+        if (this.editingField[key as keyof typeof this.editingField]) {
+          // Restaurar valores originales
+          if (key === 'name') {
+            this.nameForm.patchValue({
+              name: this.originalData.name,
+              lastName: this.originalData.lastName
+            });
+            this.userData.name = this.originalData.name;
+            this.userData.lastName = this.originalData.lastName;
+          } else if (key === 'email') {
+            this.emailForm.patchValue({
+              email: this.originalData.email
+            });
+            this.userData.email = this.originalData.email;
+          } else if (key === 'password') {
+            this.passwordForm.reset();
+            this.passwordData = {
+              currentPassword: '',
+              newPassword: '',
+              confirmPassword: ''
+            };
+          }
+
+          // Desactivar el modo de edición
+          this.editingField[key as keyof typeof this.editingField] = false;
+        }
+      });
+    }
+
+    // Toggle del estado de edición de contraseña de Google
+    this.editingGooglePassword = !this.editingGooglePassword;
+
+    if (!this.editingGooglePassword) {
+      // Si estamos saliendo del modo de edición, resetear el formulario
+      this.googlePasswordForm.reset();
+    }
+
+    // Limpiar mensajes al cambiar de modo
+    this.serverResponse = null;
+  }
+
+  // Método para guardar la contraseña de la cuenta de Google
+  // Reemplazar el método actual para no usar checkSession que da error
+  addGooglePassword(): void {
+    // Validar el formulario
+    if (this.googlePasswordForm.invalid) {
+      // Marcar todos los controles como touched para mostrar errores
+      Object.keys(this.googlePasswordForm.controls).forEach(key => {
+        this.googlePasswordForm.get(key)?.markAsTouched();
+      });
+
+      // Mostrar mensaje de error específico
+      if (this.googlePasswordForm.errors?.['notSame']) {
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Las contraseñas no coinciden'
+        };
+      } else {
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Por favor, completa correctamente todos los campos de contraseña'
+        };
+      }
+      return;
+    }
+
+    // Obtener la nueva contraseña
+    const newPassword = this.googlePasswordForm.get('newPassword')?.value;
+
+    // Verificar si la contraseña está vacía
+    if (!newPassword.trim()) {
+      this.serverResponse = {
+        status: 'ERROR',
+        message: 'La contraseña no puede estar vacía'
+      };
+      return;
+    }
+
+    // Mostrar indicador de carga
+    this.updateLoading = true;
+
+    // Llamada al servicio para añadir contraseña
+    this.userService.addGooglePassword(newPassword).subscribe({
+      next: (response) => {
+        this.updateLoading = false;
+
+        if (response.status === 'OK') {
+          this.serverResponse = {
+            status: 'OK',
+            message: 'Contraseña añadida correctamente. Ahora puedes iniciar sesión con email y contraseña.'
+          };
+
+          // Actualizar el estado para mostrar que ahora tiene contraseña
+          this.hasPassword = true;
+
+          // Resetear formulario y cerrar panel de edición
+          this.googlePasswordForm.reset();
+          this.editingGooglePassword = false;
+        } else {
+          this.serverResponse = {
+            status: 'ERROR',
+            message: response.message || 'Error al añadir contraseña'
+          };
+        }
+      },
+      error: (err) => {
+        this.updateLoading = false;
+        this.serverResponse = {
+          status: 'ERROR',
+          message: 'Error al añadir contraseña: ' + (err.message || 'Error desconocido')
+        };
+      }
+    });
   }
 }

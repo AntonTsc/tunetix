@@ -17,16 +17,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $data['email'];
     $password = $data['password'];
 
-    // Modificar la consulta para incluir el rol
-    $prep = $conn->prepare("SELECT id, nombre, apellido, correo, contrasena, rol FROM usuario WHERE correo = ?");
-    $prep->bind_param("s", $email);
-    $prep->execute();
-    $result = $prep->get_result();
+    // Modificar la consulta para incluir el rol y auth_provider
+    $stmt = $conn->prepare('SELECT id, nombre, apellido, correo, contrasena, rol, auth_provider FROM usuario WHERE correo = ?');
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
     // Verificar si el usuario existe
     if (!$user) {
-        echo json_encode(["status" => "ERROR", "message" => "Correo electrónico o contraseña incorrectos"]);
+        echo json_encode([
+            'status' => 'ERROR',
+            'message' => 'Credenciales inválidas.'
+        ]);
+        exit;
+    }
+
+    // Comprobar si es cuenta de Google sin contraseña
+    if ($user['auth_provider'] === 'google' && empty($user['contrasena'])) {
+        echo json_encode([
+            'status' => 'ERROR',
+            'message' => 'Esta cuenta está vinculada a Google. Por favor, inicia sesión con Google o añade una contraseña desde tu perfil.'
+        ]);
         exit;
     }
 
@@ -38,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Verificar contraseña
+    // Verificar la contraseña (para cuentas locales o cuentas de Google con contraseña)
     if (password_verify($password, $user['contrasena'])) {
         // Generar tokens
         $access_token = generateToken($user['id'], $user['correo'], 1800); // 30 min
@@ -64,11 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     } else {
         // Contraseña incorrecta
-        echo json_encode(["status" => "ERROR", "message" => "Correo electrónico o contraseña incorrectos"]);
+        echo json_encode([
+            'status' => 'ERROR',
+            'message' => 'Credenciales inválidas.'
+        ]);
         exit;
     }
 
-    $prep->close();
+    $stmt->close();
 } else {
     echo json_encode(["status" => "ERROR", "message" => "Método no permitido"]);
 }

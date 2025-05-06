@@ -32,7 +32,12 @@
       *ngFor="let card of savedCards; let i = index"
       class="border-b border-gray-200 last:border-b-0"
     >
-    <app-credit-card [card]="card" [index]="i" (delete)="deleteCard($event)" (serverResponseEmitter)="getServerResponse($event)"/>
+      <app-credit-card
+        [card]="card"
+        [index]="i"
+        (delete)="deleteCard($event)"
+        (serverResponseEmitter)="getServerResponse($event)"
+      />
     </div>
   </div>
 
@@ -43,11 +48,14 @@
     </div>
 
     <div class="p-6">
-      <form [formGroup]="cardForm" (ngSubmit)="create()" class="space-y-6" #form>
+      <form
+        [formGroup]="cardForm"
+        (ngSubmit)="create()"
+        class="space-y-6"
+        #form
+      >
         <div>
-          <label
-            for="cardOwner"
-            class="block text-sm font-medium text-gray-700"
+          <label for="cardOwner" class="block text-sm font-medium text-gray-700"
             >Titular</label
           >
           <div class="mt-1">
@@ -104,9 +112,22 @@
                 El número de tarjeta es obligatorio
               </span>
               <span
-                *ngIf="cardForm.get('cardNumber')?.errors?.['pattern'] || cardForm.get('cardNumber')?.errors?.['invalidCardNumber']"
+                *ngIf="cardForm.get('cardNumber')?.errors?.['invalidCardNumber']"
               >
-                Introduce un número de tarjeta válido (16 dígitos)
+                Introduce solo números (sin letras ni caracteres especiales)
+              </span>
+              <span
+                *ngIf="cardForm.get('cardNumber')?.errors?.['invalidLength']"
+              >
+                El número de tarjeta debe tener entre 13 y 19 dígitos
+              </span>
+              <span *ngIf="cardForm.get('cardNumber')?.errors?.['invalidLuhn']">
+                El número de tarjeta no es válido (verificación fallida)
+              </span>
+              <span
+                *ngIf="cardForm.get('cardNumber')?.errors?.['invalidCardType']"
+              >
+                Solo aceptamos tarjetas VISA o MASTERCARD
               </span>
             </div>
           </div>
@@ -214,7 +235,11 @@
                 id="cardType"
                 formControlName="cardType"
                 name="type"
+                [attr.disabled]="isCardTypeDetected ? true : null"
                 class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-3"
+                [ngClass]="{
+                  'bg-gray-100 cursor-not-allowed': isCardTypeDetected
+                }"
               >
                 <option value="" disabled selected>Selecciona tipo</option>
                 <option value="VISA">Visa</option>
@@ -228,6 +253,12 @@
                 class="text-red-500 text-sm mt-1"
               >
                 Selecciona el tipo de tarjeta
+              </div>
+              <div
+                *ngIf="isCardTypeDetected"
+                class="text-sm text-gray-500 mt-1"
+              >
+                Tipo detectado automáticamente
               </div>
             </div>
           </div>
@@ -267,7 +298,7 @@
         <div>
           <button
             type="submit"
-            (click)="$event.preventDefault();create()"
+            (click)="$event.preventDefault(); create()"
             [disabled]="cardForm.invalid"
             [ngClass]="{
               'bg-purple-600 hover:bg-purple-700': !cardForm.invalid,

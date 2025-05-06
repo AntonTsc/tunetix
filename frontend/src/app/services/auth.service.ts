@@ -19,6 +19,9 @@ export class AuthService {
     if (this.isAuthenticated()) {
       this.checkAndUpdateAdminStatus().subscribe();
     }
+
+    // Check for Google OAuth redirect response parameters
+    this.checkGoogleRedirect();
   }
 
   baseUrl = environment.apiUrl;
@@ -323,5 +326,217 @@ export class AuthService {
     this.userDataSubject.next(userData);
 
     // No se actualiza localStorage, solo los datos en memoria
+  }
+
+  /**
+   * Inicia el proceso de autenticación con Google utilizando el nuevo enfoque OAuth 2.0
+   * Este método redirige al usuario a Google para autenticarse
+   */
+  initiateGoogleLogin(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/auth/google_login.php?action=init`).pipe(
+      tap((response: any) => {
+        if (response.status === 'OK' && response.auth_url) {
+          // Redirigir al usuario a la URL de autenticación de Google
+          window.location.href = response.auth_url;
+        }
+      }),
+      catchError(error => {
+        console.error('Error al iniciar login con Google:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Método simplificado para iniciar el flujo de login con Google
+  googleLogin(): void {
+    this.initiateGoogleLogin().subscribe({
+      next: () => {
+        // La redirección se maneja en initiateGoogleLogin
+      },
+      error: (error) => {
+        console.error('Error al iniciar sesión con Google:', error);
+      }
+    });
+  }
+
+  /**
+   * Verifica si hay parámetros de redirección de Google OAuth y maneja la autenticación
+   */
+  private checkGoogleRedirect(): void {
+    // Verificar si estamos en una redirección de Google con parámetros de login
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Log de todos los parámetros de URL para diagnóstico
+    // Crear un objeto con los parámetros de URL de forma compatible con todas las versiones de TS
+    const params: Record<string, string> = {};
+    urlParams.forEach((value, key) => {
+      params[key] = value;
+    });
+    console.log('checkGoogleRedirect - Todos los parámetros URL:', params);
+
+    // Parámetros específicos que buscamos
+    const loginStatus = urlParams.get('login');
+    const errorParam = urlParams.get('error');
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+
+    // Si tenemos código y estado de Google OAuth, procesarlo
+    if (code && state) {
+      console.log('Detectados parámetros de OAuth de Google: code y state');
+
+      // Procesar el código de autorización directamente en el backend
+      this.processGoogleOAuthCode(code, state).subscribe({
+        next: (response) => {
+          console.log('Respuesta del procesamiento de OAuth:', response);
+
+          if (response.status === 'OK') {
+            // Resetear cookies y actualizar estado de autenticación
+            this.cookies = null;
+            this.updateAuthState(true);
+
+            // Obtener datos del usuario
+            this.fetchCurrentUserData().subscribe({
+              next: (userData) => {
+                console.log('Datos de usuario después de procesar OAuth:', userData);
+
+                if (userData.status === 'OK' && userData.data) {
+                  // Guardar los datos del usuario incluyendo la foto de perfil de Google
+                  const userDataWithImage = {
+                    ...userData.data,
+                    // Asegurarse de que image_path esté presente
+                    image_path: userData.data.image_path || null
+                  };
+
+                  // Actualizar el BehaviorSubject con todos los datos del usuario
+                  this.userDataSubject.next(userDataWithImage);
+
+                  console.log('🎉 Autenticación con Google exitosa');
+                  console.log('📋 Datos completos del usuario:', userDataWithImage);
+
+                  // Comprobar estado de administrador
+                  this.checkAndUpdateAdminStatus().subscribe();
+
+                  // Redirigir a la página de inicio
+                  this.router.navigate(['/inicio']);
+                }
+              },
+              error: (error) => {
+                console.error('Error al obtener datos de usuario después de OAuth:', error);
+              }
+            });
+          } else {
+            console.error('Error en la respuesta de procesamiento OAuth:', response);
+          }
+        },
+        error: (error) => {
+          console.error('Error al procesar código OAuth:', error);
+        }
+      });
+
+      // Limpiar la URL para eliminar los parámetros de OAuth
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
+    // Continuar con el manejo de los parámetros login/error como antes
+    if (loginStatus || errorParam) {
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+
+      // Si el login fue exitoso, actualizar estado de autenticación y obtener datos de usuario
+      if (loginStatus === 'success' || loginStatus === 'linked' || loginStatus === 'registered') {
+        console.log('Google login successful, status:', loginStatus);
+        this.cookies = null; // Resetear cookies en memoria
+        this.updateAuthState(true); // Actualizar estado de autenticación
+
+        // Obtener datos del usuario actual después del login
+        this.fetchCurrentUserData().subscribe({
+          next: (response) => {
+            console.log('fetchCurrentUserData response:', response);
+
+            if (response.status === 'OK' && response.data) {
+              this.userDataSubject.next(response.data);
+
+              // Mostrar información del usuario en consola después de iniciar sesión con Google
+              console.log('🎉 Autenticación con Google exitosa');
+              console.log('📋 Datos del usuario:', response.data);
+
+              // También registrar en la consola las cookies actuales
+              console.log('🍪 Cookies actuales:', {
+                access_token: this.getCookie('access_token') ? '(presente)' : '(no presente)',
+                refresh_token: this.getCookie('refresh_token') ? '(presente)' : '(no presente)'
+              });
+
+              this.checkAndUpdateAdminStatus().subscribe({
+                next: (isAdmin) => console.log('Admin status:', isAdmin),
+                error: (err) => console.error('Error checking admin status:', err)
+              });
+            } else {
+              console.warn('No se recibieron datos de usuario válidos:', response);
+            }
+          },
+          error: (error) => {
+            console.error('⛔ Error al obtener datos de usuario después de login con Google:', error);
+          }
+        });
+      }
+
+      // Si hubo error en el login, mostrar mensaje
+      if (errorParam) {
+        console.error('⛔ Error en autenticación con Google:', errorParam);
+      }
+    }
+  }
+
+  /**
+   * Método para procesar el código de autorización de Google OAuth
+   */
+  private processGoogleOAuthCode(code: string, state: string): Observable<any> {
+    // Agregar el encabezado X-Requested-With para identificar esta solicitud como XHR
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    });
+
+    return this.http.get<any>(`${this.baseUrl}/auth/google_login.php?code=${code}&state=${state}`, {
+      withCredentials: true,
+      headers: headers
+    }).pipe(
+      tap((response) => {
+        if (response.status === 'OK') {
+          console.log('Código OAuth procesado correctamente');
+
+          // Si la respuesta incluye datos de usuario, actualizamos el subject
+          if (response.user_data) {
+            const userData = {
+              id: response.user_data.id,
+              first_name: response.user_data.first_name,
+              last_name: response.user_data.last_name,
+              email: response.user_data.email,
+              image_path: response.user_data.image_path
+            };
+            this.userDataSubject.next(userData);
+          }
+        }
+      }),
+      catchError(error => {
+        console.error('Error al procesar código OAuth:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Añadir este método al servicio AuthService
+  checkSession(): Observable<boolean> {
+    // Verifica si hay un token válido simplemente consultando una API que requiera autenticación
+    return this.http.get<any>(`${this.baseUrl}/auth/check_session.php`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.status === 'OK'),
+      catchError(error => {
+        console.error('Error verificando sesión:', error);
+        return of(false);
+      })
+    );
   }
 }

@@ -27,6 +27,7 @@ import { InicioComponent } from './components/inicio/inicio.component';
 import { LoginComponent } from './components/login/login.component';
 import { MapModalComponent } from './components/map-modal/map-modal.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
+import { PaymentModalComponent } from './components/payment-modal/payment-modal.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
@@ -34,7 +35,6 @@ import { TooltipDirective } from './directives/tooltip.directive';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { TicketService } from './services/ticket.service';
 import { TokenService } from './services/token.service';
-import { PaymentModalComponent } from './components/payment-modal/payment-modal.component';
 import { FormattedTextPipe } from './pipes/formatted-text.pipe';
 
 @NgModule({
@@ -83,7 +83,7 @@ import { FormattedTextPipe } from './pipes/formatted-text.pipe';
   providers: [
     TokenService,
     {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true},
-    TicketService
+    TicketService,
   ],
   bootstrap: [AppComponent]
 })

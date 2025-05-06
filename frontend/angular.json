@@ -27,7 +27,12 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "@abacritt/angularx-social-login",
+              "xml-utils/get-attribute.js",
+              "xml-utils/find-tags-by-name.js"
+            ]
           },
           "configurations": {
             "production": {

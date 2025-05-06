@@ -4,6 +4,11 @@
   transform-origin: left center;
 }
 
+.menu-animation-exit {
+  animation: slideToLeft 0.3s ease forwards;
+  transform-origin: left center;
+}
+
 @keyframes slideFromLeft {
   0% {
     opacity: 0;
@@ -12,6 +17,17 @@
   100% {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes slideToLeft {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-10px);
   }
 }
 
@@ -34,4 +50,39 @@
 .menu-opciones-foto button:hover,
 .menu-opciones-foto label:hover {
   transform: scale(1.1);
+}
+
+/* Estilo para el contenedor de imagen de perfil */
+.w-32.h-32.rounded-full {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Estilo para la imagen de fallback */
+.avatar-fallback {
+  z-index: 1; /* Z-index más bajo que la imagen real */
+}
+
+/* La imagen principal tiene un z-index más alto para cubrir el SVG */
+img.profile-image-error {
+  opacity: 0; /* Cuando hay error, hacemos invisible la imagen */
+  z-index: 1; /* Para que se muestre el SVG detrás */
+}
+
+/* Estilos para cuando la imagen falla al cargar - para que se muestre el SVG */
+.profile-image-error {
+  opacity: 0; /* Hacer la imagen transparente */
+}
+
+/* Para asegurar que el SVG y la imagen ocupen el mismo espacio */
+.rounded-full img,
+.rounded-full svg {
+  transition: all 0.2s ease;
+}
+
+/* Efecto hover similar al del header */
+.rounded-full:hover img,
+.rounded-full:hover svg {
+  transform: scale(1.05);
+  transition: transform 0.3s ease-in-out;
 }

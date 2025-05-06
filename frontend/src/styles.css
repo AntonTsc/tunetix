@@ -37,3 +37,35 @@
     font-weight: 700;
     font-style: normal;
 }
+
+/* Estilos para manejar errores de imagen */
+.image-error {
+  opacity: 0 !important;
+  transition: opacity 0.3s ease;
+}
+
+/* Estilos para el contenedor de avatar que muestra el fallback SVG */
+.avatar-container {
+  position: relative;
+}
+
+.avatar-container .fallback-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.avatar-container img {
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-container img.image-error + .fallback-svg {
+  z-index: 3;
+}
