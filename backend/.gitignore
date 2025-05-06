@@ -1,5 +1,6 @@
 vendor
 .env
+cache/*/*.json
 cache/*.json
 !cache/*.php
 assets
