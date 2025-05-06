@@ -15,14 +15,12 @@ import { UserService } from 'src/app/services/user.service';
       state('closed', style({
         opacity: 0,
         transform: 'translateY(-10px)',
-        height: 0,
-        overflow: 'hidden'
+        height: 0
       })),
       state('open', style({
         opacity: 1,
         transform: 'translateY(0)',
-        height: '*',
-        overflow: 'visible'
+        height: '*'
       })),
       transition('closed => open', [
         animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)') // Curva de aceleración más suave
@@ -36,7 +34,6 @@ import { UserService } from 'src/app/services/user.service';
         opacity: 0,
         transform: 'translateY(-10px) scale(0.95)',
         height: 0,
-        // overflow: 'hidden'
       })),
       state('open', style({
         opacity: 1,
@@ -53,8 +50,7 @@ import { UserService } from 'src/app/services/user.service';
     trigger('mobileMenuAnimation', [
       state('closed', style({
         opacity: 0,
-        maxHeight: '0px',
-        overflow: 'hidden'
+        maxHeight: '0px'
       })),
       state('open', style({
         opacity: 1,
@@ -92,8 +88,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public userService: UserService,
     private cdr: ChangeDetectorRef
   ) {
-    // Eliminamos la llamada a checkIfLoggedIn() del constructor
-    // ya que podría ejecutarse demasiado pronto
   }
 
   ngOnInit(): void {
