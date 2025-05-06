@@ -219,7 +219,8 @@ export class EventoComponent implements OnInit {
           precio_total: this.basePrice * this.ticketQuantity,
           ubicacion: this.event._embedded?.venues[0]?.name || 'No especificada',
           artista: this.event._embedded?.attractions[0]?.name || this.event.name,
-          metodo_pago_id: paymentMethodId
+          metodo_pago_id: paymentMethodId,
+          event_id: this.eventId // Añadido: guardar el ID del evento
         }).subscribe({
           next: (res) => resolve(res),
           error: (err) => reject(err)
@@ -230,6 +231,8 @@ export class EventoComponent implements OnInit {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       if (response.status === 'OK') {
+        console.log('Compra realizada:', response);
+
         this.showPaymentModal = false;
         this.isProcessingPayment = false;
 

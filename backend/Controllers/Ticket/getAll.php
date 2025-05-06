@@ -57,12 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         $tickets = [];
 
-        // Log para cada ticket encontrado
-        $ticketCount = 0;
         while ($ticket = $result->fetch_assoc()) {
-            $ticketCount++;
-            error_log("Procesando ticket #$ticketCount: ID=" . $ticket['id'] . ", Artista=" . $ticket['artista']);
-
             // Transformar los datos para que sean compatibles con la interfaz del frontend
             $status = 'completed'; // Por defecto todas las compras están completadas
 
@@ -75,15 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $status = 'pending';
             }
 
-            // Construir la URL de la imagen del evento (podría venir de la API de Ticketmaster o un campo en la BD)
-            $eventImage = 'assets/imgs/events/default-event.jpg';
-
             // Asegurar que todos los campos sean del tipo correcto
             $ticketData = [
                 'id' => (string)$ticket['id'], // Convertir a string para seguridad
                 'eventId' => isset($ticket['event_id']) ? (string)$ticket['event_id'] : '',
                 'eventName' => $ticket['artista'], // Usamos el artista como nombre del evento
-                'eventImage' => $eventImage,
                 'location' => $ticket['ubicacion'],
                 'purchaseDate' => $ticket['purchaseDate'],
                 'quantity' => (int)$ticket['cantidad'],

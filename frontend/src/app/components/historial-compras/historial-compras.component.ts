@@ -6,7 +6,6 @@ interface Purchase {
   id: string;
   eventId?: string;
   eventName: string;
-  eventImage: string;
   location: string;
   purchaseDate: Date;
   quantity: number;
@@ -52,17 +51,12 @@ export class HistorialComprasComponent implements OnInit {
 
     this.ticketService.getUserTickets().subscribe({
       next: (response) => {
-        console.log('Respuesta del servidor:', response); // Agregar log para depuración
-
         if (response.status === 'OK' && response.data) {
-          console.log('Datos recibidos:', response.data); // Log de los datos
-
           // Convertir las fechas de string a objetos Date
           this.purchases = response.data.map((ticket: any) => ({
             id: ticket.id,
             eventId: ticket.eventId,
             eventName: ticket.eventName,
-            eventImage: ticket.eventImage,
             location: ticket.location,
             purchaseDate: new Date(ticket.purchaseDate),
             quantity: ticket.quantity,
@@ -71,8 +65,6 @@ export class HistorialComprasComponent implements OnInit {
             status: ticket.status,
             paymentMethod: ticket.paymentMethod
           }));
-
-          console.log('Purchases después del mapeo:', this.purchases); // Log después del mapeo
 
           // Inicializar filtered purchases
           this.applyFilter();
@@ -96,7 +88,6 @@ export class HistorialComprasComponent implements OnInit {
   // Apply filter based on selected option
   applyFilter(): void {
     const now = new Date();
-    console.log('Ejecutando applyFilter con', this.purchases.length, 'compras');
 
     switch (this.filterOption) {
       case 'recent':
@@ -114,7 +105,6 @@ export class HistorialComprasComponent implements OnInit {
         this.filteredPurchases = [...this.purchases];
     }
 
-    console.log('Después del filtrado:', this.filteredPurchases.length, 'compras filtradas');
     // Reset pagination
     this.currentPage = 1;
   }
@@ -139,8 +129,8 @@ export class HistorialComprasComponent implements OnInit {
     const purchase = this.purchases.find(p => p.id === purchaseId);
 
     if (purchase && purchase.eventId) {
-      // Si tiene un ID de evento, navegar a la página del evento
-      this.router.navigate(['/eventos', purchase.eventId]);
+      // Si tiene un ID de evento, navegar a la página del evento (corregido a "evento" en singular)
+      this.router.navigate(['/evento', purchase.eventId]);
     } else {
       // Si no tiene un ID de evento o no se encuentra la compra, usar la ruta antigua
       this.router.navigate(['/perfil/compras', purchaseId]);
