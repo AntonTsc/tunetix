@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Configurar cookies seguras
         setcookie("access_token", $access_token, [
-            'expires' => time() + 5, // 30 min
+            'expires' => time() + 1800, // 30 min
             'path' => '/',
             'secure' => false, // true si usas HTTPS
             'httponly' => true,
