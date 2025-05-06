@@ -119,7 +119,7 @@
               <span
                 *ngIf="cardForm.get('cardNumber')?.errors?.['invalidLength']"
               >
-                El número de tarjeta debe tener entre 13 y 19 dígitos
+                El número de tarjeta debe tener entre 13 y 16 dígitos
               </span>
               <span *ngIf="cardForm.get('cardNumber')?.errors?.['invalidLuhn']">
                 El número de tarjeta no es válido (verificación fallida)

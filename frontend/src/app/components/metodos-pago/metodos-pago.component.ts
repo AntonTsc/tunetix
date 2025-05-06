@@ -189,7 +189,7 @@ export class MetodosPagoComponent implements OnInit {
     this._card.getAll().subscribe({
       next: (response: ServerResponse) => {
         this.savedCards = response.data as Card[]
-        console.log(this.savedCards)
+        // console.log(this.savedCards)
       },
       error: (err: any) => {
         console.error(err)
