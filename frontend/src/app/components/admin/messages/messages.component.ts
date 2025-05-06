@@ -1,6 +1,7 @@
 import { animate, group, query, stagger, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { MessageResponse, MessageService } from 'src/app/services/message.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-messages',
@@ -87,6 +88,9 @@ export class AdminMessagesComponent implements OnInit {
   // Para usar Math en el template
   Math = Math;
 
+  // API URL property
+  apiUrl = environment.apiUrl;
+
   @ViewChild('statusDropdown') statusDropdownRef!: ElementRef;
 
   constructor(private messageService: MessageService) { }
@@ -156,19 +160,22 @@ export class AdminMessagesComponent implements OnInit {
     this.isDetailOpen = true;
     this.animatingClose = false;
 
+    // Bloquear el scroll del cuerpo cuando se abre el panel
+    document.body.style.overflow = 'hidden';
+
     // Comentamos o eliminamos esta parte para que no marque como leído automáticamente
     // if (message.status === 'nuevo') {
     //   this.updateStatus(message.id, 'leído');
     //   message.status = 'leído';
     // }
-
-    // Bloquear el scroll del cuerpo cuando se abre el panel
-    document.body.style.overflow = 'hidden';
   }
 
   closeDetail(): void {
     // Primero, actualiza el estado para permitir que se active la animación
     this.animatingClose = true;
+
+    // Restaurar el scroll del cuerpo cuando se cierra el panel
+    document.body.style.overflow = 'auto';
 
     // Después de un tiempo que coincida con la duración de la animación,
     // realmente cambia isDetailOpen a false
@@ -418,5 +425,18 @@ export class AdminMessagesComponent implements OnInit {
       .replace(/\\n/g, '\n')  // Convertir la cadena literal "\n" a un salto de línea real
       .replace(/\r\n/g, '\n') // Normalizar saltos de línea Windows a Unix
       .replace(/\n{3,}/g, '\n\n'); // Reducir múltiples saltos de línea a máximo dos
+  }
+
+  // Método para obtener la URL completa de la imagen de perfil
+  getProfileImageUrl(imagePath: string): string {
+    if (!imagePath) return '';
+
+    // Si la ruta ya es una URL completa (comienza con http), devolverla tal cual
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+
+    // Si es una ruta relativa, añadir la URL base del backend
+    return `${this.apiUrl}/${imagePath}`;
   }
 }

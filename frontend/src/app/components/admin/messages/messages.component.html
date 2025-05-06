@@ -274,7 +274,7 @@
                     </div>
                     <img
                       *ngIf="message.user_image"
-                      [src]="message.user_image"
+                      [src]="getProfileImageUrl(message.user_image)"
                       alt="Foto de perfil"
                       class="h-8 w-8 rounded-full object-cover border border-indigo-100"
                     />
@@ -455,7 +455,7 @@
                             </div>
                             <img
                               *ngIf="message.user_image"
-                              [src]="message.user_image"
+                              [src]="getProfileImageUrl(message.user_image)"
                               alt="Foto de perfil"
                               class="h-8 w-8 rounded-full object-cover border border-gray-200"
                             />
@@ -869,7 +869,7 @@
                     </div>
                     <img
                       *ngIf="selectedMessage.user_image"
-                      [src]="selectedMessage.user_image"
+                      [src]="getProfileImageUrl(selectedMessage.user_image)"
                       alt="Foto de perfil"
                       class="h-8 w-8 rounded-full object-cover border border-indigo-200"
                     />
