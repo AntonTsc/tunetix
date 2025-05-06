@@ -261,13 +261,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isUserMenuOpen = false;
   menuVisible = false;
   closeMenuTimer: any = null;
-  closeDelayTime = 100;
+  closeDelayTime = 300;
 
   // Variables para el dropdown de Explorar
   explorarMenuOpen = false;
   explorarMenuVisible = false;
   explorarCloseTimer: any = null;
-  explorarCloseDelay = 100;
+  explorarCloseDelay = 300;
 
   // Variables para el menú móvil
   isMobileMenuOpen = false;
