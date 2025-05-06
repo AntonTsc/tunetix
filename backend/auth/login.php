@@ -1,4 +1,7 @@
 <?php
+
+use Firebase\JWT\JWT;
+
 include_once '../db.php';
 include_once '../auth/global_headers.php';
 include_once 'token.php';
@@ -52,17 +55,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Verificar la contraseña (para cuentas locales o cuentas de Google con contraseña)
     if (password_verify($password, $user['contrasena'])) {
-        // Generar tokens
-        $access_token = generateToken($user['id'], $user['correo'], 1800); // 30 min
+        // Generar tokens con "user_id" como clave
+        $access_token = generateToken($user['id'], $user['correo'], 10); // 30 min
         $refresh_token = generateToken($user['id'], $user['correo'], 259200); // 3 días
 
         // Configurar cookies seguras
-        setcookie("access_token", $access_token, time() + 1800, "/", "localhost", false, false);
-        setcookie("refresh_token", $refresh_token, time() + 259200, "/", "localhost", false, false);
+        setcookie("access_token", $access_token, [
+            'expires' => time() + 5, // 30 min
+            'path' => '/',
+            'secure' => false, // true si usas HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+        setcookie("refresh_token", $refresh_token, [
+            'expires' => time() + 259200, // 3 dias
+            'path' => '/',
+            'secure' => false, // true si usas HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
 
         // Modificar la preparación de userData para incluir el rol
         $userData = [
-            "id" => $user['id'],
+            "user_id" => $user['id'],
             "first_name" => $user['nombre'],
             "last_name" => $user['apellido'],
             "email" => $user['correo'],

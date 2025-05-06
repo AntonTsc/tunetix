@@ -32,10 +32,17 @@ try {
         exit;
     }
 
-    $new_access_token = generateToken($decoded->id, $decoded->email, 1800); // 30 min
+    $user_id = isset($decoded->user_id) ? $decoded->user_id : $decoded->id;
+    $new_access_token = generateToken($user_id, $decoded->email, 1800); // 30 min
 
-    // Configurar la cookie de access_token con Secure y HttpOnly
-    setcookie("access_token", $new_access_token, time() + 1800, "/", "", false, true);  // Expira en 30 min
+    // Configurar las cookies de access_token y refresh_token con Secure, HttpOnly y SameSite
+    setcookie("access_token", $new_access_token, [
+        'expires' => time() + 1800,
+        'path' => '/',
+        'secure' => false, // true si usas HTTPS
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
 
     echo json_encode(["status" => "OK", "message" => "Token renovado", "access_token" => $new_access_token]);
 

@@ -1,68 +1,30 @@
-import { Component, OnInit } from '@angular/core';
-import { SpotifyService } from './services/spotify.service';
-import Artist from './interfaces/Artist';
-import ServerResponse from './interfaces/ServerResponse';
-import { ArtistService } from './services/artist.service';
-import { TrackService } from './services/track.service';
-import Track from './interfaces/Track';
-import { ConcertsService } from './services/concerts.service';
-import { TicketmasterService } from './services/ticketmaster.service';
-// import { AfterViewInit, OnInit } from '@angular/core';
-// import { NavigationEnd, Router } from '@angular/router';
-// import { AuthService } from './services/auth.service';
-// import ServerResponse from './interfaces/ServerResponse';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit{
-  constructor
-  (private _spotify: SpotifyService, 
-    private _tracks: TrackService,
-    private _ticketmaster: TicketmasterService,
-    private _concerts: ConcertsService
-  ){}
+export class AppComponent implements OnInit, OnDestroy {
+  private refreshInterval: any;
 
-  ngOnInit(): void {
-    this.setTracks();
-    this.setConcerts();
+  constructor(private authService: AuthService) {}
+
+  ngOnInit() {
+    // Para pruebas, refresca cada 5 segundos
+    this.refreshInterval = setInterval(() => {
+      console.log('Intentando refrescar access_token');
+      this.authService.refreshAccessToken().subscribe({
+        next: (res) => console.log('Respuesta refresh:', res),
+        error: (err) => console.error('Error refresh:', err)
+      });
+    }, 30 * 60 * 1000); // Refresca cada 30 minutos (1800000 ms)
   }
 
-  setTracks(){
-    this._tracks.setLoading(true);
-    this._spotify.getTracks(6).subscribe({
-      next: (response: ServerResponse) => {
-        if(response.status === "OK"){
-          this._tracks.set(response.data as Track[]);
-        }else{
-          console.error(response.message);
-          this._tracks.setLoading(false);
-        }
-      },
-      error: (error: ServerResponse) => {
-        console.error(error.message);
-        this._tracks.setLoading(false);
-      }
-    })
-  }
-
-  setConcerts(){
-    this._concerts.setLoading(true);
-    this._ticketmaster.getConcerts(6, "", "ES").subscribe({
-      next: (response: ServerResponse) => {
-        if(response.status === "OK"){
-          this._concerts.set(response.data as any[])
-        }else{
-          console.error(response.message);
-          this._concerts.setLoading(false);
-        }
-      },
-      error: (error: any) => {
-        console.error(error);
-        this._concerts.setLoading(false);
-      }
-    })
+  ngOnDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 }

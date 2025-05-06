@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
 export const AdminGuard: CanActivateFn = (route, state): Observable<boolean> => {
@@ -10,6 +10,7 @@ export const AdminGuard: CanActivateFn = (route, state): Observable<boolean> => 
 
   // SIEMPRE verificar con el servidor para acceder a rutas admin
   return authService.verifyAdminWithServer().pipe(
+    take(1),
     map(isAdmin => {
       if (!isAdmin) {
         console.log("AdminGuard: Acceso denegado, no es administrador");

@@ -112,14 +112,17 @@ export class LoginComponent implements OnInit {
   }
 
   signInWithGoogle() {
-    this.isGoogleLoading = true; // Usar el indicador específico para Google
-    this.serverResponse = {
-      status: 'INFO',
-      message: 'Iniciando autenticación con Google...',
-      data: null
-    };
-
-    // Usar el nuevo método simple de login con Google
     this._auth.googleLogin();
+  }
+
+  onSubmit() {
+    this._auth.login(this.loginData).subscribe({
+      next: (response) => {
+        // Maneja el login exitoso
+      },
+      error: (err) => {
+        // Maneja el error
+      }
+    });
   }
 }

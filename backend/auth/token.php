@@ -11,7 +11,7 @@ $secret_key = $_ENV['SECRET'];
 function generateToken($user_id, $email, $exp) {
     global $secret_key;
     $payload = [
-        "id" => $user_id,
+        "user_id" => $user_id,
         "email" => $email,
         "exp" => time() + $exp
     ];
@@ -22,7 +22,7 @@ function getUserIdFromToken($jwt) {
     global $secret_key;
     try {
         $decoded = JWT::decode($jwt, new Key($secret_key, 'HS256'));
-        return $decoded->id;
+        return $decoded->user_id;
     } catch (Exception $e) {
         // Maneja el error de decodificación del token
         return null;
