@@ -47,7 +47,7 @@ if ($result->num_rows > 0) {
 
 // Si llegamos aquí, el usuario es administrador
 // Obtener todos los usuarios
-$getAllUsers = $conn->prepare("SELECT id, nombre as first_name, apellido as last_name, correo as email, image_path, rol as role, created_at, updated_at FROM usuario ORDER BY id ASC");
+$getAllUsers = $conn->prepare("SELECT id, nombre as first_name, apellido as last_name, correo as email, image_path, rol as role, created_at, updated_at, auth_provider, google_id FROM usuario ORDER BY id ASC");
 $getAllUsers->execute();
 $result = $getAllUsers->get_result();
 

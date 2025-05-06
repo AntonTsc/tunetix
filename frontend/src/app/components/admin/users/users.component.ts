@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { environment } from 'src/environments/environment';
 import { AuthService } from '../../../services/auth.service';
 import { UserService } from '../../../services/user.service';
 
@@ -39,6 +40,8 @@ export class AdminUsersComponent implements OnInit {
   selectedConfirmUser: any = null;
   confirmNewRole: string = '';
 
+  apiUrl = environment.apiUrl;
+
   constructor(
     private userService: UserService,
     private authService: AuthService
@@ -51,12 +54,44 @@ export class AdminUsersComponent implements OnInit {
 
   // Cargar el usuario actual
   loadCurrentUser(): void {
+    // Obtener los datos del usuario actual del servicio de autenticación
     this.currentUser = this.authService.getCurrentUserData();
+
+    // Si no hay datos del usuario actual, solicitarlos
+    if (!this.currentUser) {
+      this.authService.fetchCurrentUserData().subscribe({
+        next: (response) => {
+          if (response && response.status === 'OK') {
+            this.currentUser = response.data;
+          }
+        },
+        error: (err) => {
+          console.error('Error al obtener datos del usuario actual:', err);
+        }
+      });
+    }
   }
 
   // Verificar si un usuario es el usuario actual
   isSelf(userId: number): boolean {
     return this.currentUser && this.currentUser.id === userId;
+  }
+
+  // Verificar si un usuario se ha autenticado a través de Google
+  isGoogleUser(user: any): boolean {
+    if (!user) return false;
+
+    // Verificar directamente el campo auth_provider que ahora viene de la API
+    if (user.auth_provider === 'google') {
+      return true;
+    }
+
+    // Verificar si existe google_id como respaldo
+    if (user.google_id && user.google_id.trim() !== '') {
+      return true;
+    }
+
+    return false;
   }
 
   // Cargar todos los usuarios
@@ -211,5 +246,18 @@ export class AdminUsersComponent implements OnInit {
   setRoleFilter(role: string): void {
     this.roleFilter = role;
     this.applyFilter();
+  }
+
+  // Método para obtener la URL completa de la imagen de perfil
+  getProfileImageUrl(imagePath: string): string {
+    if (!imagePath) return '';
+
+    // Si la ruta ya es una URL completa (comienza con http), devolverla tal cual
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+
+    // Si es una ruta relativa, añadir la URL base del backend
+    return `${this.apiUrl}/${imagePath}`;
   }
 }
