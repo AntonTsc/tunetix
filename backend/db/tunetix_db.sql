@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 02-05-2025 a las 09:53:28
+-- Tiempo de generación: 07-05-2025 a las 09:03:36
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -76,6 +76,7 @@ CREATE TABLE `precios_eventos` (
 CREATE TABLE `ticket` (
   `id` int(11) NOT NULL,
   `id_usuario` int(11) NOT NULL,
+  `event_id` varchar(255) DEFAULT NULL,
   `cantidad` int(11) NOT NULL,
   `precio_individual` float NOT NULL,
   `precio_total` float NOT NULL,
