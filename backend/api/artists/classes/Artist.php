@@ -9,7 +9,7 @@ class Artist
 {
     private static $apiKey;
     private static $baseUrl;
-    private static $wdBaseUrl = "https://nfm.nuukmobility.com/proxy/https://www.wikidata.org/w/api.php";
+    private static $wdBaseUrl = "https://www.wikidata.org/w/api.php";
 
     private static function initialize()
     {
@@ -17,7 +17,7 @@ class Artist
             throw new Exception("API Key is not set in the environment variables.");
         }
         self::$apiKey = $_ENV['LASTFM_API_KEY'];
-        self::$baseUrl = "https://nfm.nuukmobility.com/proxy/https://ws.audioscrobbler.com/2.0/?api_key=" . self::$apiKey . "&format=json";
+        self::$baseUrl = "https://ws.audioscrobbler.com/2.0/?api_key=" . self::$apiKey . "&format=json";
     }
 
     private static function getArtistImage($artistName)
