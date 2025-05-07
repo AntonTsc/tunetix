@@ -449,10 +449,42 @@
               </div>
             </div>
 
+            <!-- Show warning for off-sale events -->
+            <div
+              *ngIf="event.dates?.status?.code === 'offsale'"
+              class="text-center py-6"
+            >
+              <div class="bg-yellow-50 p-4 rounded-lg">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-12 w-12 text-yellow-500 mx-auto mb-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p class="text-yellow-800 font-medium text-lg mb-1">
+                  Venta Cerrada
+                </p>
+                <p class="text-yellow-700">
+                  La venta de entradas para este evento ha finalizado.
+                </p>
+              </div>
+            </div>
+
             <!-- Reemplazar la sección de entradas por esta versión actualizada -->
             <div
               class="space-y-6"
-              *ngIf="event.dates?.status?.code !== 'cancelled'"
+              *ngIf="
+                event.dates?.status?.code !== 'cancelled' &&
+                event.dates?.status?.code !== 'offsale'
+              "
             >
               <div class="text-center">
                 <p class="text-sm text-gray-500">Precio por entrada</p>

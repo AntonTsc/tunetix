@@ -100,6 +100,12 @@ export class EventosComponent implements OnInit, OnDestroy {
     this.ticketmasterService.getConcerts(this.pageSize, keyword, country, this.currentPage, sortBy)
       .subscribe({
         next: (response) => {
+          // Verificar si la respuesta es nula o indefinida
+          if (!response) {
+            this.handleEmptyResults('No se encontraron resultados para esta búsqueda.');
+            return;
+          }
+
           if (response.status === 'OK') {
             this.events = response.data;
 
@@ -114,14 +120,10 @@ export class EventosComponent implements OnInit, OnDestroy {
             this.error = null;
           } else {
             if (response.message === 'No se encontraron conciertos.') {
-              this.events = [];
-              this.totalPages = 0;
-              this.totalEvents = 0;
+              this.handleEmptyResults('No se encontraron eventos para esta búsqueda.');
             } else {
               this.error = response.message || 'Error al cargar eventos';
-              this.events = [];
-              this.totalPages = 0;
-              this.totalEvents = 0;
+              this.handleEmptyResults(this.error || 'Error desconocido al cargar eventos');
             }
           }
           this.isLoading = false;
@@ -129,12 +131,18 @@ export class EventosComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error fetching events:', error);
           this.error = 'Ha ocurrido un error al cargar los eventos. Por favor, inténtalo de nuevo más tarde.';
-          this.events = [];
-          this.isLoading = false;
-          this.totalPages = 0;
-          this.totalEvents = 0;
+          this.handleEmptyResults(this.error);
         }
       });
+  }
+
+  // Método auxiliar para manejar casos donde no hay resultados
+  private handleEmptyResults(message: string): void {
+    this.events = [];
+    this.totalPages = 0;
+    this.totalEvents = 0;
+    this.error = null;
+    this.isLoading = false;
   }
 
   goToNextPage(): void {

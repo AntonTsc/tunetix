@@ -96,6 +96,11 @@ class Concert
         }
 
         if ($keyword != "") {
+            // Modificar la palabra clave para permitir búsquedas parciales
+            // Añadiendo un asterisco al final para indicar "comienza con"
+            if (!str_ends_with($keyword, '*')) {
+                $keyword = $keyword . '*';
+            }
             $params['keyword'] = $keyword;
         }
 
@@ -166,6 +171,21 @@ class Concert
                         "page" => $page_info
                     ]);
                     return;
+                } else {
+                    // No se encontraron eventos, pero el estado HTTP es 200
+                    header("Content-Type: application/json");
+                    echo json_encode([
+                        "status" => "ERROR",
+                        "message" => "No se encontraron conciertos.",
+                        "data" => [],
+                        "page" => [
+                            'number' => $page,
+                            'totalElements' => 0,
+                            'totalPages' => 0,
+                            'size' => $limit
+                        ]
+                    ]);
+                    return;
                 }
             }
 
@@ -174,6 +194,13 @@ class Concert
                 echo json_encode([
                     "status" => "ERROR",
                     "message" => "No se encontraron conciertos.",
+                    "data" => [],
+                    "page" => [
+                        'number' => $page,
+                        'totalElements' => 0,
+                        'totalPages' => 0,
+                        'size' => $limit
+                    ]
                 ]);
                 return;
             }
@@ -183,6 +210,13 @@ class Concert
                 echo json_encode([
                     "status" => "ERROR",
                     "message" => "Error al obtener los datos de los conciertos.",
+                    "data" => [],
+                    "page" => [
+                        'number' => $page,
+                        'totalElements' => 0,
+                        'totalPages' => 0,
+                        'size' => $limit
+                    ]
                 ]);
                 return;
             }
@@ -191,7 +225,14 @@ class Concert
             echo json_encode([
                 "status" => "ERROR",
                 "message" => "Error al obtener los conciertos.",
-                "data" => $e->getMessage(),
+                "data" => [],
+                "page" => [
+                    'number' => $page,
+                    'totalElements' => 0,
+                    'totalPages' => 0,
+                    'size' => $limit
+                ],
+                "error" => $e->getMessage(),
             ]);
         }
     }
@@ -319,6 +360,12 @@ class Concert
     {
         try {
             $ch = curl_init();
+
+            // Modificar la palabra clave para permitir búsquedas parciales
+            if (!str_ends_with($name, '*')) {
+                $name = $name . '*';
+            }
+
             $params = [
                 'apikey' => $_ENV['TICKETMASTER_API_KEY'],
                 'keyword' => $name,
@@ -345,18 +392,13 @@ class Concert
 
             $attractionData = json_decode($response, true);
 
-            // Buscar coincidencia exacta del nombre
-            if (isset($attractionData['_embedded']['attractions'])) {
-                foreach ($attractionData['_embedded']['attractions'] as $attraction) {
-                    if (strtolower($attraction['name']) === strtolower($name)) {
-                        return $attraction['id'];
-                    }
-                }
+            // Ya no buscamos una coincidencia exacta del nombre, sino la primera que devuelva la API
+            if (isset($attractionData['_embedded']['attractions']) && count($attractionData['_embedded']['attractions']) > 0) {
+                return $attractionData['_embedded']['attractions'][0]['id'];
             }
-            
-            return null;
 
-        } catch(Exception $e) {
+            return null;
+        } catch (Exception $e) {
             error_log("Error in getAttractionIdByName: " . $e->getMessage());
             return null;
         }
@@ -409,8 +451,7 @@ class Concert
             }
 
             return [];
-
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             error_log("Error in getByArtistName: " . $e->getMessage());
             return [];
         }

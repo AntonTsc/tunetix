@@ -142,6 +142,11 @@ export class EventoComponent implements OnInit {
       return;
     }
 
+    if (this.event.dates?.status?.code === 'offsale') {
+      alert('La venta de entradas para este evento ha finalizado.');
+      return;
+    }
+
     // Mostrar el modal de pago en lugar de realizar la compra directamente
     this.showPaymentModal = true;
   }
