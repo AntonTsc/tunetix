@@ -1,6 +1,6 @@
 <?php
 include_once __DIR__ . '/../../../../dotenv.php';
-include_once __DIR__ . '/../../../../cache/Cache.php';
+include_once __DIR__ . '/../../../../utils/classes/Cache.php';
 include_once __DIR__ . '/../../../../Controllers/PreciosEventos/create.php';
 include_once __DIR__ . '/../../../../utils/classes/ServerResponse.php';
 
@@ -161,7 +161,7 @@ class Concert
                     Cache::set($cacheKey, [
                         'concerts' => $concerts,
                         'page_info' => $page_info
-                    ]);
+                    ], 'concert'); // Especificar 'concert' como tipo de caché
 
                     header("Content-Type: application/json");
                     echo json_encode([
@@ -259,7 +259,7 @@ class Concert
                 ]];
 
                 // Actualizar el caché con los datos modificados
-                Cache::set($cacheKey, $cachedData);
+                Cache::set($cacheKey, $cachedData, 'concert');
             } catch (Exception $e) {
                 error_log($e->getMessage());
                 $cachedData['priceRanges'] = [];
@@ -318,7 +318,7 @@ class Concert
                 }
 
                 // Guardar en caché con los precios
-                Cache::set($cacheKey, $data);
+                Cache::set($cacheKey, $data, 'concert');
 
                 header("Content-Type: application/json");
                 echo json_encode([

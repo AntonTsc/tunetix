@@ -14,6 +14,10 @@ interface Artist {
     '#text': string;
     size: string;
   }>;
+  stats?: {
+    listeners: string;
+    playcount: string;
+  };
 }
 
 interface PaginationInfo {

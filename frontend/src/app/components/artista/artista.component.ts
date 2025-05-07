@@ -1,8 +1,8 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Location } from '@angular/common';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { LastfmService } from '../../services/lastfm.service';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Location } from '@angular/common';
 
 interface Artist {
   name: string;
@@ -128,16 +128,15 @@ export class ArtistaComponent implements OnInit {
   loadSimilarArtist(name: string): void {
     this.loading = true;
     this.error = null;
-    
+
     const scrollPosition = window.scrollY;
 
     this.lastfmService.getArtistMetadata(null, name).subscribe({
         next: (response: any) => {
             if (response.status === 'OK' && response.data) {
                 this.artist = response.data;
-                // Actualizar la URL usando el mbid si existe, sino el nombre
-                const navigationId = this.artist?.mbid || this.artist?.name;
-                this.location.go(`/artista/${navigationId}`);
+                // Actualizar la URL usando siempre el nombre del artista para consistencia
+                this.location.go(`/artista/${this.artist?.name}`);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 this.error = response.message || 'Error al cargar la información del artista';
@@ -160,8 +159,8 @@ export class ArtistaComponent implements OnInit {
 
   getMainImage(): string {
     if (this.artist?.image && this.artist.image.length > 0) {
-      const largeImage = this.artist.image.find(img => img.size === 'extralarge');
-      return largeImage ? largeImage['#text'] : this.artist.image[0]['#text'];
+      const mediumImage = this.artist.image.find(img => img.size === 'medium');
+      return mediumImage ? mediumImage['#text'] : this.artist.image[0]['#text'];
     }
     return 'assets/images/default-artist.jpg';
   }
