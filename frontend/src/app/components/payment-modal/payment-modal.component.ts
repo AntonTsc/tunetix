@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import Card from 'src/app/interfaces/Card';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
+import { BinService } from 'src/app/services/bin.service';
 import { CardService } from 'src/app/services/card.service';
 
 // Función para aplicar el algoritmo de Luhn (mod 10)
@@ -134,9 +135,26 @@ export class PaymentModalComponent implements OnInit {
   months: string[] = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
   years: string[] = [];
 
+  // Lista completa de monedas disponibles
+  currencies: {value: string, label: string}[] = [
+    { value: 'EUR', label: 'EUR - Euro' },
+    { value: 'USD', label: 'USD - Dólar estadounidense' },
+    { value: 'GBP', label: 'GBP - Libra esterlina' },
+    { value: 'ARS', label: 'ARS - Peso argentino' },
+    { value: 'MXN', label: 'MXN - Peso mexicano' },
+    { value: 'CLP', label: 'CLP - Peso chileno' },
+    { value: 'COP', label: 'COP - Peso colombiano' },
+    { value: 'BRL', label: 'BRL - Real brasileño' },
+    { value: 'JPY', label: 'JPY - Yen japonés' },
+    { value: 'CNY', label: 'CNY - Yuan chino' },
+    { value: 'CAD', label: 'CAD - Dólar canadiense' },
+    { value: 'AUD', label: 'AUD - Dólar australiano' }
+  ];
+
   constructor(
     private cardService: CardService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private binService: BinService
   ) {
     // Initialize form with improved validation
     this.cardForm = this.fb.group({
@@ -158,7 +176,7 @@ export class PaymentModalComponent implements OnInit {
       this.years.push((currentYear + i).toString().substr(2));
     }
 
-    // Escuchar cambios en el número de tarjeta para aplicar formato y autodetectar tipo
+    // Escuchar cambios en el número de tarjeta para aplicar formato y detectar tipo
     this.cardForm.get('cardNumber')?.valueChanges.subscribe(value => {
       if (value) {
         const formattedValue = formatCardNumber(value);
@@ -167,17 +185,31 @@ export class PaymentModalComponent implements OnInit {
           this.cardForm.get('cardNumber')?.setValue(formattedValue, { emitEvent: false });
         }
 
-        // Auto-detectar tipo de tarjeta
-        const cardType = getCardType(value.replace(/\s/g, ''));
-        if (cardType) {
-          this.cardForm.get('cardType')?.setValue(cardType);
-          this.isCardTypeDetected = true; // Activar bloqueo del campo
+        // Verificamos si hay suficientes dígitos para detectar el tipo de tarjeta
+        const digits = value.replace(/\D/g, '');
+        if (digits.length >= 6) {
+          // Utilizamos el servicio para obtener el tipo de tarjeta
+          this.binService.getCardType(digits).subscribe(cardType => {
+            if (cardType) {
+              this.cardForm.get('cardType')?.setValue(cardType);
+              this.isCardTypeDetected = true;
+            } else {
+              // Si no se detecta con el servicio, intentamos con nuestra lógica local
+              const localCardType = getCardType(digits);
+              if (localCardType) {
+                this.cardForm.get('cardType')?.setValue(localCardType);
+                this.isCardTypeDetected = true;
+              } else {
+                this.isCardTypeDetected = false;
+                if (digits.length >= 13) {
+                  this.cardForm.get('cardType')?.setValue('');
+                }
+              }
+            }
+          });
         } else {
-          this.isCardTypeDetected = false; // Desactivar bloqueo si no se reconoce el tipo
-          if (value.replace(/\s/g, '').length >= 13) {
-            // Si tiene al menos 13 dígitos pero no es un tipo válido, resetear el campo
-            this.cardForm.get('cardType')?.setValue('');
-          }
+          // Si no hay suficientes dígitos, resetear la detección
+          this.isCardTypeDetected = false;
         }
       } else {
         // Si el campo está vacío, permitir la selección manual

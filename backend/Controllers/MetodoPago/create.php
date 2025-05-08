@@ -69,8 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Verificar si el usuario ya tiene esta tarjeta registrada
-        $checkDuplicate = $conn->prepare("SELECT id FROM metodo_pago WHERE id_usuario = ? AND pan = ?");
+        // Verificar si el usuario ya tiene esta tarjeta registrada (solo tarjetas activas)
+        $checkDuplicate = $conn->prepare("SELECT id FROM metodo_pago WHERE id_usuario = ? AND pan = ? AND active = 1");
         $checkDuplicate->bind_param("is", $user_id, $pan);
         $checkDuplicate->execute();
         $result = $checkDuplicate->get_result();
@@ -78,6 +78,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows > 0) {
             echo json_encode(["status" => "ERROR", "message" => "Ya tienes esta tarjeta registrada"]);
             exit;
+        }
+
+        // Verificar si el usuario tenía esta tarjeta pero está inactiva (para reactivarla con los nuevos datos)
+        $checkInactive = $conn->prepare("SELECT id FROM metodo_pago WHERE id_usuario = ? AND pan = ? AND active = 0");
+        $checkInactive->bind_param("is", $user_id, $pan);
+        $checkInactive->execute();
+        $inactiveResult = $checkInactive->get_result();
+
+        if ($inactiveResult->num_rows > 0) {
+            // La tarjeta existe pero está inactiva, la reactivamos con los nuevos datos proporcionados
+            $inactiveCard = $inactiveResult->fetch_assoc();
+            $cardId = $inactiveCard['id'];
+
+            $reactivate = $conn->prepare("UPDATE metodo_pago SET 
+                tipo = ?, 
+                titular = ?, 
+                cvc = ?, 
+                fecha_expiracion = ?, 
+                divisa = ?, 
+                active = 1
+                WHERE id = ?");
+            $reactivate->bind_param("sssssi", $tipo, $titular, $cvc, $fecha_expiracion, $divisa, $cardId);
+
+            if ($reactivate->execute()) {
+                echo json_encode([
+                    'status' => 'OK',
+                    'message' => 'Método de pago registrado correctamente',
+                    'data' => [
+                        'id' => $cardId,
+                        'tipo' => $tipo,
+                        'titular' => $titular,
+                        'pan' => $pan,
+                        'fecha_expiracion' => $fecha_expiracion,
+                        'divisa' => $divisa
+                    ]
+                ]);
+                exit;
+            } else {
+                echo json_encode(['status' => 'ERROR', 'message' => 'Error al reactivar la tarjeta: ' . $conn->error]);
+                exit;
+            }
         }
 
         // Use column names that match your database schema

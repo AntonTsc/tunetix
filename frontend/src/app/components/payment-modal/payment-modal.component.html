@@ -283,9 +283,12 @@
                   formControlName="currency"
                   class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
                 >
-                  <option value="EUR">EUR - Euro</option>
-                  <option value="USD">USD - Dólar</option>
-                  <option value="GBP">GBP - Libra</option>
+                  <option
+                    *ngFor="let currency of currencies"
+                    [value]="currency.value"
+                  >
+                    {{ currency.label }}
+                  </option>
                 </select>
               </div>
             </div>
