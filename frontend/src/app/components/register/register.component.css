@@ -1,0 +1,75 @@
+/* Animaciones para elementos flotantes */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-float-slow {
+  animation: float-slow 5s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 3.5s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float-fast 2.5s ease-in-out infinite;
+}
+
+/* Estilos adicionales para el formulario de registro */
+input {
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  border-color: rgba(124, 58, 237, 0.5);
+}
+
+/* Efecto de resplandor para el botón */
+button[type="submit"]:hover {
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
+}
+
+/* Animación para el hover de los SVG */
+button svg {
+  transition: transform 0.3s ease;
+}
+
+button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Efecto para tarjeta principal */
+.bg-white {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-white::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+}
+
+.bg-white:hover::before {
+  opacity: 1;
+}
