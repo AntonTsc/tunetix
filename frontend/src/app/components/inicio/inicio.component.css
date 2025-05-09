@@ -1,0 +1,193 @@
+/* Estilos para la página de inicio */
+
+/* Animación para los elementos que se cargan */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos para las tarjetas */
+:host ::ng-deep app-card {
+  display: block;
+  animation: fadeIn 0.5s ease-out forwards;
+  animation-delay: calc(var(--card-index, 0) * 0.1s);
+  opacity: 0;
+}
+
+/* Efecto de brillos decorativos */
+.hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: 0;
+}
+
+.hero-glow-1 {
+  background: rgba(139, 92, 246, 0.4);
+  width: 150px;
+  height: 150px;
+  top: 20%;
+  right: 10%;
+}
+
+.hero-glow-2 {
+  background: rgba(79, 70, 229, 0.3);
+  width: 200px;
+  height: 200px;
+  bottom: 10%;
+  left: 5%;
+}
+
+/* Estilos para los indicadores de carga */
+.loading-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* Animación de hover para botones */
+.btn-hover-effect {
+  transition: all 0.3s ease;
+}
+
+.btn-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Efecto de brillo al cargar la página */
+.section-appear {
+  animation: sectionAppear 0.8s ease-out forwards;
+}
+
+@keyframes sectionAppear {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animaciones para las notas musicales */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(5deg); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-8deg); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(8deg); }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 4s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float-fast 5s ease-in-out infinite;
+}
+
+/* Decoración de fondo para la página */
+.bg-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a78bfa' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Estilos para las tarjetas de estadísticas */
+.stats-card {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  padding: 3px;
+  background: linear-gradient(to right, rgba(124, 58, 237, 0.7), rgba(219, 39, 119, 0.7));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.stats-card::after {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 60%);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.stats-card:hover::after {
+  opacity: 0.15;
+  transform: scale(1);
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.stats-card-purple::before {
+  background: linear-gradient(45deg, rgba(139, 92, 246, 0.8), rgba(124, 58, 237, 0.5));
+}
+
+.stats-card-indigo::before {
+  background: linear-gradient(45deg, rgba(99, 102, 241, 0.8), rgba(79, 70, 229, 0.5));
+}
+
+.stats-card-pink::before {
+  background: linear-gradient(45deg, rgba(236, 72, 153, 0.8), rgba(219, 39, 119, 0.5));
+}
+
+/* Animación para los números de estadísticas */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stats-card .stats-value {
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: countUp 1.2s ease-out forwards;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover .stats-value {
+  transform: scale(1.05);
+}
+
+.stats-card .stats-label {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  position: relative;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  transition: all 0.3s ease;
+  color: #4B5563;
+}

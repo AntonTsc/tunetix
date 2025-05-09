@@ -1,0 +1,74 @@
+/* Estilos para el footer */
+footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Estilos para el logo en el footer */
+.footer-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.footer-logo {
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+  max-width: 100%;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 3px;
+}
+
+.footer-logo:hover {
+  transform: scale(1.05);
+  background: rgba(124, 58, 237, 0.2);
+}
+
+/* Estilos para el copyright con logo */
+.copyright-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.copyright-logo img {
+  border-radius: 4px;
+}
+
+/* Estilos para los enlaces del footer */
+.footer-link {
+  position: relative;
+  display: inline-block;
+}
+
+.footer-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background: linear-gradient(to right, #7c3aed, #db2777);
+  transition: width 0.3s ease;
+}
+
+.footer-link:hover::after {
+  width: 100%;
+}
+
+/* Estilos para los iconos sociales */
+.social-icon {
+  transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 4px 6px rgba(124, 58, 237, 0.5));
+}
+
+/* Estilo específico para el icono de X (Twitter) */
+.hover\:text-gray-100:hover {
+  color: #f9fafb;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
+}

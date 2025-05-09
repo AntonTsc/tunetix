@@ -52,7 +52,7 @@ export class LastfmService {
 
   getArtistMetadata(mbid: string | null = null, name: string | null = null): Observable<any> {
     let params = new HttpParams();
-    
+
     if (mbid) {
         params = params.set('mbid', mbid);
     } else if (name) {
