@@ -123,35 +123,73 @@ class Track
     }
 
     public static function getTrackInfo(string $trackName, string $artistName)
-    {
-        self::initialize();
-        $cacheKey = "track_info_" . md5($trackName . $artistName);
+{
+    self::initialize();
+    $cacheKey = "track_info_" . md5($trackName . $artistName);
 
-        // Intenta obtener los datos del caché
-        $cachedData = Cache::get($cacheKey, 'track');
-        if ($cachedData) {
-            ServerResponse::success("Track info fetched successfully (from cache)", $cachedData);
-            return;
-        }
-
-        // Si no hay datos en caché, realizar la solicitud a la API
-        try {
-            $url = self::$baseUrl . "&method=track.getInfo&track=" . urlencode($trackName) . "&artist=" . urlencode($artistName);
-            $curl = curl_init($url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-            $response = curl_exec($curl);
-            curl_close($curl);
-
-            $data = json_decode($response, true);
-            if (!$data) {
-                throw new Exception("Failed to fetch or parse data from API");
-            }
-            
-            Cache::set($cacheKey, $data, 'track');
-            ServerResponse::success("Track info fetched successfully", $data);
-        } catch (Exception $e) {
-            ServerResponse::send($e->getCode(), $e->getMessage());
-        }
+    // Intenta obtener los datos del caché
+    $cachedData = Cache::get($cacheKey, 'track');
+    if ($cachedData) {
+        ServerResponse::success("Track info fetched successfully (from cache)", $cachedData);
+        return;
     }
+
+    // Si no hay datos en caché, realizar la solicitud a la API
+    try {
+        // URLs para las solicitudes
+        $trackUrl = self::$baseUrl . "&method=track.getInfo&track=" . urlencode($trackName) . "&artist=" . urlencode($artistName);
+        $similarTracksUrl = self::$baseUrl . "&method=track.getsimilar&track=" . urlencode($trackName) . "&artist=" . urlencode($artistName);
+        
+        // Inicializar cURL
+        $curl = curl_init($trackUrl);
+        $curlSimilar = curl_init($similarTracksUrl);
+
+        // Establecer opciones para las solicitudes
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlSimilar, CURLOPT_RETURNTRANSFER, true);
+
+        // Inicializar multi-cURL
+        $mh = curl_multi_init();
+
+        // Añadir las solicitudes a multi-cURL
+        curl_multi_add_handle($mh, $curl);
+        curl_multi_add_handle($mh, $curlSimilar);
+
+        // Ejecutar las solicitudes concurrentemente
+        $running = null;
+        do {
+            curl_multi_exec($mh, $running);
+        } while ($running > 0);
+
+        // Obtener las respuestas
+        $trackResponse = curl_multi_getcontent($curl);
+        $similarResponse = curl_multi_getcontent($curlSimilar);
+
+        // Cerrar las sesiones cURL
+        curl_multi_remove_handle($mh, $curl);
+        curl_multi_remove_handle($mh, $curlSimilar);
+        curl_multi_close($mh);
+        curl_close($curl);
+        curl_close($curlSimilar);
+
+        // Decodificar las respuestas JSON
+        $data = json_decode($trackResponse, true);
+        $data['track']['similar'] = array_slice(json_decode($similarResponse, true)['similartracks']['track'], 0, 5);
+
+        // Comprobar si ambas respuestas son válidas
+        if (!$data) {
+            throw new Exception("Failed to fetch or parse data from API");
+        }
+
+        // Almacenar en caché
+        Cache::set($cacheKey, $data, 'track');
+        
+        // Responder con los datos obtenidos
+        ServerResponse::success("Track info fetched successfully", $data);
+
+    } catch (Exception $e) {
+        ServerResponse::send($e->getCode(), $e->getMessage());
+    }
+}
+
 }
