@@ -66,10 +66,10 @@ import { UserService } from 'src/app/services/user.service';
   ]
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  isAuthenticated = false;
+  isAuthenticated: boolean | null = null;
   userData: any = null;
   user_data: any = null;
-  isLoggedOut: boolean = false;
+  isLoggedOut: boolean | null = null;
   serverResponse!: ServerResponse;
   private adminSubscription: Subscription | null = null;
 
@@ -91,18 +91,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // PRIMERO: Verificar el estado de autenticación actual de forma sincrónica
-    this.isAuthenticated = this.authService.isAuthenticated();
-    this.isLoggedOut = !this.isAuthenticated;
 
-    // Si el usuario está autenticado, cargar datos inmediatamente de forma proactiva
-    if (this.isAuthenticated) {
+    this.authService.checkAuthOnInit().subscribe(isAuthenticated => {
+    this.isAuthenticated = isAuthenticated;
+    this.isLoggedOut = !isAuthenticated;
+
+    if (isAuthenticated) {
       this.loadUserDataImmediately();
+      this.checkAdminStatus();
     }
 
-    // DESPUÉS: Configurar suscripciones para actualizaciones futuras
-
-    // Auth state subscription
+    this.cdr.detectChanges(); // fuerza actualización si es necesario
+  });
+  
+    // Suscripción a datos de autenticación
     this.authSubscription = this.authService.authState$.subscribe(isAuthenticated => {
       this.isAuthenticated = isAuthenticated;
       this.isLoggedOut = !isAuthenticated;

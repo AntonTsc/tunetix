@@ -7,6 +7,7 @@ import { TrackService } from './services/track.service';
 import Track from './interfaces/Track';
 import { ConcertsService } from './services/concerts.service';
 import { TicketmasterService } from './services/ticketmaster.service';
+import { AuthService } from './services/auth.service';
 // import { AfterViewInit, OnInit } from '@angular/core';
 // import { NavigationEnd, Router } from '@angular/router';
 // import { AuthService } from './services/auth.service';
@@ -19,33 +20,13 @@ import { TicketmasterService } from './services/ticketmaster.service';
 })
 export class AppComponent implements OnInit{
   constructor
-  (private _spotify: SpotifyService, 
-    private _tracks: TrackService,
+  ( 
     private _ticketmaster: TicketmasterService,
     private _concerts: ConcertsService
   ){}
-
+  
   ngOnInit(): void {
-    this.setTracks();
-    this.setConcerts();
-  }
-
-  setTracks(){
-    this._tracks.setLoading(true);
-    this._spotify.getTracks(6).subscribe({
-      next: (response: ServerResponse) => {
-        if(response.status === "OK"){
-          this._tracks.set(response.data as Track[]);
-        }else{
-          console.error(response.message);
-          this._tracks.setLoading(false);
-        }
-      },
-      error: (error: ServerResponse) => {
-        console.error(error.message);
-        this._tracks.setLoading(false);
-      }
-    })
+    this.setConcerts();    
   }
 
   setConcerts(){

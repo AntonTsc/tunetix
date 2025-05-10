@@ -147,8 +147,9 @@
         </ul>
       </nav>
       <!-- Sección del avatar de usuario en el header -->
-      <ng-container *ngIf="isLoggedOut === false; else LoggedOut">
-        <div class="usuario ml-8 relative" (clickOutside)="closeUserMenu()">          <div class="cursor-pointer" (click)="toggleUserMenu($event)">
+      <ng-container *ngIf="isAuthenticated; else LoggedOut">
+        <div class="usuario ml-8 relative" (clickOutside)="closeUserMenu()">          
+          <div class="cursor-pointer" (click)="toggleUserMenu($event)">
             <!-- Mostrar imagen de perfil si existe, SVG por defecto si no -->            <div
               class="w-[85px] h-[85px] rounded-full border-2 transition-all duration-300 shadow-md relative"
               [ngClass]="{
@@ -317,7 +318,8 @@
             </ul>
           </div>
         </div>
-      </ng-container>      <ng-template #LoggedOut>
+      </ng-container>      
+      <ng-template #LoggedOut>
         <a
           routerLink="/login"
           routerLinkActive="text-white"

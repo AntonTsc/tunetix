@@ -53,11 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verificar la contraseña (para cuentas locales o cuentas de Google con contraseña)
     if (password_verify($password, $user['contrasena'])) {
         // Generar tokens
-        $access_token = generateToken($user['id'], $user['correo'], 1800); // 30 min
+        $access_token = generateToken($user['id'], $user['correo'], 60 * 30); // 30 min
         $refresh_token = generateToken($user['id'], $user['correo'], 259200); // 3 días
 
         // Configurar cookies seguras
-        setcookie("access_token", $access_token, time() + 1800, "/", "localhost", false, false);
+        setcookie("access_token", $access_token, time() + 60 * 30, "/", "localhost", false, false);
         setcookie("refresh_token", $refresh_token, time() + 259200, "/", "localhost", false, false);
 
         // Modificar la preparación de userData para incluir el rol

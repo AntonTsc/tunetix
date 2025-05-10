@@ -2,7 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+
 import { environment } from 'src/environments/environment';
 import { ServerResponse, User } from '../interfaces/User';
 import { TokenService } from './token.service';
@@ -539,4 +540,39 @@ export class AuthService {
       })
     );
   }
+
+  checkAuthOnInit(): Observable<boolean> {
+  return this.getCookies().pipe(
+    switchMap(response => {
+      if (response.status === 'ERROR') {
+        // Intentar renovar token
+        return this.refreshToken().pipe(
+          map(refreshRes => {
+            if (refreshRes.status === 'OK') {
+              // Opcional: actualizar flags internas aquí
+              this.authStateChanged.next(true);
+              return true;
+            } else {
+              this.authStateChanged.next(false);
+              return false;
+            }
+          }),
+          catchError(() => {
+            this.logout().subscribe(); // Limpia sesión si no se puede renovar
+            this.authStateChanged.next(false);
+            return of(false);
+          })
+        );
+      } else {
+        // Ya está autenticado
+        this.authStateChanged.next(true);
+        return of(true);
+      }
+    }),
+    catchError(() => {
+      this.authStateChanged.next(false);
+      return of(false);
+    })
+  );
+}
 }
