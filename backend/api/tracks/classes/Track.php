@@ -121,4 +121,39 @@ class Track
             ServerResponse::send($e->getCode(), $e->getMessage());
         }
     }
+
+    public static function getTrackInfo(string $trackName, string $artistName)
+    {
+        self::initialize();
+        $cacheKey = "track_info_" . md5($trackName . $artistName);
+
+        // Intenta obtener los datos del caché
+        $cachedData = Cache::get($cacheKey, 'track');
+        if ($cachedData) {
+            ServerResponse::success("Track info fetched successfully (from cache)", $cachedData);
+            return;
+        }
+
+        // Si no hay datos en caché, realizar la solicitud a la API
+        try {
+            $url = self::$baseUrl . "&method=track.getInfo&track=" . urlencode($trackName) . "&artist=" . urlencode($artistName);
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+            $response = curl_exec($curl);
+            curl_close($curl);
+
+            $data = json_decode($response, true);
+            if (!$data) {
+                throw new Exception("Failed to fetch or parse data from API");
+            }
+
+            $data['url'] = $url;
+
+            Cache::set($cacheKey, $data, 'track');
+            ServerResponse::success("Track info fetched successfully", $data);
+        } catch (Exception $e) {
+            ServerResponse::send($e->getCode(), $e->getMessage());
+        }
+    }
 }

@@ -9,11 +9,17 @@ class ServerResponse
             header('Content-Type: application/json');
         }
 
-        echo json_encode([
+        $payload = [
             'status' => $statusCode === 200 ? 'OK' : 'ERROR',
             'message' => $message,
             'data' => $data
-        ]);
+        ];
+
+        if($payload['data'] === null){
+            unset($payload['data']);
+        }
+
+        echo json_encode($payload);
         exit;
     }
 
