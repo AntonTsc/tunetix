@@ -35,16 +35,13 @@ export class EventosComponent implements OnInit, OnDestroy {
     { code: 'DE', name: 'Alemania' },
     { code: 'IT', name: 'Italia' },
     { code: '', name: 'Todos los países' }
-  ];
-
-  // Pagination properties
+  ];  // Pagination properties
   currentPage: number = 0;
   pageSize: number = 24;
   totalPages: number = 0;
   totalEvents: number = 0;
 
   private formSubscription: Subscription | undefined;
-
   sortOptions = [
     { value: 'name_asc', label: 'Nombre (A-Z)' },
     { value: 'name_desc', label: 'Nombre (Z-A)' },
@@ -52,7 +49,7 @@ export class EventosComponent implements OnInit, OnDestroy {
     { value: 'date_desc', label: 'Fecha (más antiguo)' }
   ];
 
-  imageLoaded = false;
+  imageLoaded: boolean = false;
   favorites: Set<string> = new Set();
 
   constructor(

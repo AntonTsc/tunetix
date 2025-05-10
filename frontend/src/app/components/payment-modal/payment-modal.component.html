@@ -1,11 +1,29 @@
 <div
   *ngIf="show"
-  class="fixed inset-0 bg-black bg-opacity-50 z-[1000] flex items-center justify-center"
+  class="fixed inset-0 bg-black bg-opacity-50 z-[1000] flex items-center justify-center modal-overlay"
 >
-  <div class="bg-white rounded-lg w-full max-w-lg mx-4 shadow-xl">
-    <!-- Modal Header -->
-    <div class="px-6 py-4 border-b">
-      <h3 class="text-xl font-semibold text-gray-800">
+  <div
+    class="bg-white rounded-xl w-full max-w-lg mx-4 shadow-xl animate-scale-in modal-container overflow-hidden"
+  >
+    <!-- Modal Header con gradiente -->
+    <div
+      class="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-700 text-white relative overflow-hidden"
+    >
+      <h3 class="text-xl font-semibold relative z-10 flex items-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 mr-2"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+          />
+        </svg>
         Selecciona método de pago
       </h3>
     </div>
@@ -13,65 +31,162 @@
     <!-- Modal Body -->
     <div class="p-6">
       <!-- Event Summary -->
-      <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h4 class="font-medium text-gray-800">Resumen de la compra</h4>
-        <p class="text-gray-700 mt-2">{{ eventInfo?.name }}</p>
-        <div class="flex justify-between mt-2 text-sm">
-          <span>{{ quantity }} entrada{{ quantity !== 1 ? "s" : "" }}</span>
-          <span class="font-medium">{{ (price * quantity).toFixed(2) }}€</span>
+      <div
+        class="mb-6 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100 shadow-sm fade-in"
+      >
+        <h4 class="font-medium text-gray-800 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-2 text-purple-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Resumen de la compra
+        </h4>
+        <p class="text-gray-700 mt-2 font-semibold">{{ eventInfo?.name }}</p>
+        <div class="flex justify-between mt-3 text-sm">
+          <span class="flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-1 text-indigo-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+              />
+            </svg>
+            {{ quantity }} entrada{{ quantity !== 1 ? "s" : "" }}
+          </span>
+          <span class="font-medium text-base text-purple-700"
+            >{{ (price * quantity).toFixed(2) }}€</span
+          >
         </div>
       </div>
 
       <!-- Loading state -->
-      <div *ngIf="loading" class="flex flex-col items-center py-8">
-        <div
-          class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"
-        ></div>
-        <p class="mt-3 text-gray-600">Cargando métodos de pago...</p>
+      <div *ngIf="loading" class="flex flex-col items-center py-8 fade-in">
+        <div class="relative">
+          <div
+            class="w-12 h-12 border-purple-200 border-4 border-dashed rounded-full animate-spin"
+          ></div>
+          <div
+            class="w-12 h-12 border-purple-500 border-t-4 border-b-4 rounded-full animate-spin absolute inset-0"
+          ></div>
+        </div>
+        <p class="mt-4 text-gray-600 font-medium">
+          Cargando métodos de pago...
+        </p>
       </div>
 
       <!-- Error message -->
       <div
         *ngIf="formError"
-        class="mb-4 p-3 rounded bg-red-50 text-red-700 text-sm"
+        class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md text-red-700 text-sm fade-in"
       >
-        {{ formError }}
+        <div class="flex">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 mr-2 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <span>{{ formError }}</span>
+        </div>
       </div>
 
       <!-- Saved Cards Section -->
-      <div *ngIf="!loading && savedCards.length > 0" class="mb-6">
-        <h4 class="font-medium text-gray-800 mb-3">Tarjetas guardadas</h4>
+      <div
+        *ngIf="!loading && savedCards.length > 0"
+        class="mb-6 fade-in-delay-1"
+      >
+        <h4 class="font-medium text-gray-800 mb-3 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-2 text-purple-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+          Tarjetas guardadas
+        </h4>
         <div class="space-y-3">
           <div
-            *ngFor="let card of savedCards"
-            class="border rounded-lg p-3 cursor-pointer transition-colors"
-            [class.bg-purple-50]="card.id === selectedCardId"
+            *ngFor="let card of savedCards; let i = index"
+            class="border rounded-lg p-4 cursor-pointer transition-all duration-300 payment-card"
+            [class.card-selected]="card.id === selectedCardId"
             [class.border-purple-300]="card.id === selectedCardId"
+            [class.bg-purple-50]="card.id === selectedCardId"
+            [style.animation-delay]="i * 0.1 + 's'"
             (click)="selectCard(card.id || 0)"
           >
             <div class="flex items-center">
-              <div class="mr-3">
+              <div
+                class="mr-4 flex-shrink-0 p-2 rounded-full"
+                [ngClass]="
+                  card.id === selectedCardId ? 'bg-purple-100' : 'bg-gray-100'
+                "
+              >
                 <i
-                  [class]="
-                    'fas ' +
-                    getCardIcon(card.tipo) +
-                    ' text-2xl ' +
-                    getCardIconColor(card.tipo)
-                  "
+                  class="fas fa-2x"
+                  [ngClass]="getCardIcon(card.tipo)"
+                  [class]="getCardIconColor(card.tipo)"
                 ></i>
               </div>
-              <div>
-                <div class="font-medium">
+              <div class="flex-grow">
+                <div class="font-medium text-gray-900">
                   {{ getMaskedCardNumber(card.pan) }}
                 </div>
-                <div class="text-sm text-gray-500">{{ card.titular }}</div>
+                <div class="text-sm text-gray-500 mt-1">{{ card.titular }}</div>
               </div>
-              <div class="ml-auto">
-                <div
-                  class="h-5 w-5 rounded-full border-2"
-                  [class.border-purple-500]="card.id === selectedCardId"
-                  [class.bg-purple-500]="card.id === selectedCardId"
-                ></div>
+              <div
+                class="ml-auto flex items-center justify-center w-6 h-6 rounded-full border"
+                [ngClass]="
+                  card.id === selectedCardId
+                    ? 'border-purple-500 bg-purple-500'
+                    : 'border-gray-300'
+                "
+              >
+                <svg
+                  *ngIf="card.id === selectedCardId"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-white"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </div>
             </div>
           </div>
@@ -82,9 +197,38 @@
       <div class="mb-6" *ngIf="!loading && savedCards.length > 0">
         <button
           (click)="toggleNewCardForm()"
-          class="text-purple-600 hover:text-purple-800 text-sm flex items-center"
+          class="text-purple-600 hover:text-purple-800 text-sm flex items-center transition-colors duration-200 px-3 py-2 rounded-md hover:bg-purple-50"
         >
-          <i class="fas fa-plus-circle mr-1"></i>
+          <svg
+            *ngIf="!showNewCardForm"
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          <svg
+            *ngIf="showNewCardForm"
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
           <span>{{
             showNewCardForm
               ? "Usar una tarjeta guardada"
@@ -94,25 +238,59 @@
       </div>
 
       <!-- New Card Form -->
-      <div *ngIf="!loading && showNewCardForm" class="border-t pt-4">
-        <h4 class="font-medium text-gray-800 mb-4">Nueva tarjeta</h4>
+      <div *ngIf="!loading && showNewCardForm" class="border-t pt-5 fade-in">
+        <h4 class="font-medium text-gray-800 mb-4 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-2 text-purple-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+          Nueva tarjeta
+        </h4>
 
         <!-- Card Form -->
         <form [formGroup]="cardForm" class="space-y-4">
           <!-- Card Owner -->
-          <div>
+          <div class="fade-in-delay-1">
             <label
               for="cardOwner"
-              class="block text-sm font-medium text-gray-700"
+              class="block text-sm font-medium text-gray-700 mb-1"
               >Titular</label
             >
-            <div class="mt-1">
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
               <input
                 type="text"
                 id="cardOwner"
                 formControlName="cardOwner"
                 placeholder="Juan Pérez"
-                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                class="pl-10 shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
               />
             </div>
             <div
@@ -127,20 +305,48 @@
           </div>
 
           <!-- Card Number -->
-          <div>
+          <div class="fade-in-delay-1">
             <label
               for="cardNumber"
-              class="block text-sm font-medium text-gray-700"
+              class="block text-sm font-medium text-gray-700 mb-1"
               >Número de tarjeta</label
             >
-            <div class="mt-1">
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                  />
+                </svg>
+              </div>
               <input
                 type="text"
                 id="cardNumber"
                 formControlName="cardNumber"
                 placeholder="1234 5678 9012 3456"
-                class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                class="pl-10 shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
               />
+              <div
+                *ngIf="isCardTypeDetected"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+              >
+                <i
+                  class="fas"
+                  [ngClass]="getCardIcon(cardForm.get('cardType')?.value)"
+                  [class]="getCardIconColor(cardForm.get('cardType')?.value)"
+                ></i>
+              </div>
             </div>
             <div
               *ngIf="
@@ -174,85 +380,183 @@
           </div>
 
           <!-- Expiry Date & CVC -->
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-3 gap-4 fade-in-delay-2">
             <div>
               <label
                 for="expMonth"
-                class="block text-sm font-medium text-gray-700"
+                class="block text-sm font-medium text-gray-700 mb-1"
                 >Mes</label
               >
-              <div class="mt-1">
+              <div class="relative">
                 <select
                   id="expMonth"
                   formControlName="expMonth"
-                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2 appearance-none"
                 >
-                  <option value="" disabled selected>MM</option>
+                  <option value="">MM</option>
                   <option *ngFor="let month of months" [value]="month">
                     {{ month }}
                   </option>
                 </select>
+                <div
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                *ngIf="
+                  cardForm.get('expMonth')?.invalid &&
+                  cardForm.get('expMonth')?.touched
+                "
+                class="text-red-500 text-xs mt-1"
+              >
+                Requerido
               </div>
             </div>
 
             <div>
               <label
                 for="expYear"
-                class="block text-sm font-medium text-gray-700"
+                class="block text-sm font-medium text-gray-700 mb-1"
                 >Año</label
               >
-              <div class="mt-1">
+              <div class="relative">
                 <select
                   id="expYear"
                   formControlName="expYear"
-                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2 appearance-none"
                 >
-                  <option value="" disabled selected>AA</option>
+                  <option value="">AA</option>
                   <option *ngFor="let year of years" [value]="year">
                     {{ year }}
                   </option>
                 </select>
+                <div
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                *ngIf="
+                  cardForm.get('expYear')?.invalid &&
+                  cardForm.get('expYear')?.touched
+                "
+                class="text-red-500 text-xs mt-1"
+              >
+                Requerido
               </div>
             </div>
 
             <div>
-              <label for="cvc" class="block text-sm font-medium text-gray-700"
+              <label
+                for="cvc"
+                class="block text-sm font-medium text-gray-700 mb-1"
                 >CVC</label
               >
-              <div class="mt-1">
+              <div class="relative">
                 <input
                   type="text"
                   id="cvc"
                   formControlName="cvc"
                   placeholder="123"
+                  maxlength="3"
                   class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
                 />
+                <div
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                *ngIf="
+                  cardForm.get('cvc')?.invalid && cardForm.get('cvc')?.touched
+                "
+                class="text-red-500 text-xs mt-1"
+              >
+                CVC inválido
               </div>
             </div>
           </div>
 
-          <!-- Card Type -->
-          <div class="grid grid-cols-2 gap-4">
+          <!-- Card Type & Currency -->
+          <div class="grid grid-cols-2 gap-4 fade-in-delay-2">
             <div>
               <label
                 for="cardType"
-                class="block text-sm font-medium text-gray-700"
+                class="block text-sm font-medium text-gray-700 mb-1"
                 >Tipo de tarjeta</label
               >
-              <div class="mt-1">
+              <div class="relative">
                 <select
                   id="cardType"
                   formControlName="cardType"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2 appearance-none"
                   [attr.disabled]="isCardTypeDetected ? true : null"
-                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
-                  [ngClass]="{
-                    'bg-gray-100 cursor-not-allowed': isCardTypeDetected
-                  }"
                 >
-                  <option value="" disabled selected>Seleccione tipo</option>
+                  <option value="">Seleccionar tipo</option>
                   <option value="VISA">VISA</option>
                   <option value="MASTERCARD">MASTERCARD</option>
                 </select>
+                <div
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
               </div>
               <div
                 *ngIf="
@@ -265,23 +569,37 @@
               </div>
               <div
                 *ngIf="isCardTypeDetected"
-                class="text-xs text-gray-500 mt-1"
+                class="text-xs text-purple-600 mt-1 flex items-center"
               >
-                Tipo detectado automáticamente
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Detectado automáticamente
               </div>
             </div>
 
             <div>
               <label
                 for="currency"
-                class="block text-sm font-medium text-gray-700"
+                class="block text-sm font-medium text-gray-700 mb-1"
                 >Moneda</label
               >
-              <div class="mt-1">
+              <div class="relative">
                 <select
                   id="currency"
                   formControlName="currency"
-                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2"
+                  class="shadow-sm focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border border-gray-300 rounded-md px-4 py-2 appearance-none"
                 >
                   <option
                     *ngFor="let currency of currencies"
@@ -290,6 +608,24 @@
                     {{ currency.label }}
                   </option>
                 </select>
+                <div
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -298,20 +634,36 @@
     </div>
 
     <!-- Modal Footer -->
-    <div class="px-6 py-4 border-t flex justify-end space-x-3">
+    <div class="px-6 py-4 border-t flex justify-end space-x-3 bg-gray-50">
       <button
         (click)="closeModal()"
-        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors duration-200 action-button"
         [disabled]="isProcessing"
       >
         Cancelar
       </button>
       <button
         (click)="confirmPayment()"
-        class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center justify-center"
+        class="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-md hover:from-purple-700 hover:to-indigo-700 flex items-center justify-center shadow-md transition-all duration-200 action-button"
         [disabled]="isProcessing"
       >
-        <span *ngIf="!isProcessing">Confirmar pago</span>
+        <span *ngIf="!isProcessing" class="flex items-center">
+          Confirmar pago
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 ml-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </span>
         <div *ngIf="isProcessing" class="flex items-center">
           <svg
             class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"

@@ -29,7 +29,7 @@
   <div class="container mx-auto px-4 py-8 relative z-10">
     <!-- Encabezado de la página con efecto de gradiente -->
     <div
-      class="bg-gradient-to-r from-purple-700 to-indigo-900 rounded-xl shadow-lg p-6 mb-8 text-white relative overflow-hidden"
+      class="bg-gradient-to-r from-purple-700 to-indigo-900 rounded-xl shadow-lg p-6 mb-8 text-white relative overflow-hidden parallax-header"
     >
       <div
         class="absolute -right-10 top-0 w-40 h-40 bg-pink-500 bg-opacity-20 rounded-full blur-xl"
@@ -332,108 +332,152 @@
       [@staggerAnimation]="events.length"
     >
       <div
-        *ngFor="let event of events"
-        class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full animate-item"
+        *ngFor="let event of events; let i = index"
+        class="event-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full border border-gray-100"
+        [style.--card-index]="i"
       >
-        <div class="relative pb-[56.25%]">
+        <!-- Cabecera de la tarjeta con imagen -->
+        <div
+          class="relative pb-[56.25%] bg-gradient-to-br from-purple-100 to-indigo-100"
+        >
           <img
             [src]="getImageUrl(event)"
             [alt]="event.name"
-            class="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+            class="absolute inset-0 h-full w-full object-center object-cover transition-opacity duration-300"
             loading="lazy"
             [ngClass]="{ 'opacity-0': !imageLoaded }"
             (load)="imageLoaded = true"
           />
+          <!-- Overlay con degradado -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"
+          ></div>
+
           <!-- Placeholder mientras carga la imagen -->
           <div
             *ngIf="!imageLoaded"
             class="absolute inset-0 bg-gray-200 animate-pulse"
           ></div>
 
-          <!-- Botón de favoritos -->
+          <!-- Botón de favoritos mejorado -->
           <button
-            class="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white transition-colors duration-200"
+            class="absolute top-4 right-4 p-2.5 bg-white/90 rounded-full hover:bg-white transition-colors duration-200 shadow-md transform hover:scale-110 z-10"
             (click)="toggleFavorite(event)"
+            [class.heart-beat]="isFavorite(event)"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              [class.text-red-500]="isFavorite(event)"
-              class="h-6 w-6"
-              fill="none"
+              [class]="
+                isFavorite(event)
+                  ? 'h-6 w-6 text-red-500 fill-current'
+                  : 'h-6 w-6 text-gray-500'
+              "
               viewBox="0 0 24 24"
               stroke="currentColor"
+              [attr.fill]="isFavorite(event) ? 'currentColor' : 'none'"
+              stroke-width="2"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
               />
             </svg>
           </button>
         </div>
 
-        <div class="p-4 flex flex-col flex-grow">
-          <!-- Título del evento -->
-          <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+        <!-- Contenido de la tarjeta -->
+        <div class="p-5 flex flex-col flex-grow">
+          <h3
+            class="text-lg font-bold text-gray-800 mb-3 line-clamp-2 hover:text-purple-700 transition-colors duration-200"
+          >
             {{ event.name }}
           </h3>
 
-          <!-- Fecha -->
-          <div class="flex items-center space-x-2 mb-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-gray-500 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <p class="text-sm text-gray-600">
-              {{ getEventDate(event) }}
-            </p>
+          <!-- Información del evento -->
+          <div class="space-y-3 mb-4">
+            <!-- Fecha del evento -->
+            <div class="flex items-center">
+              <div
+                class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-purple-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">Fecha</p>
+                <p class="font-semibold text-purple-700">
+                  {{ getEventDate(event) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Ubicación del evento -->
+            <div class="flex items-center">
+              <div
+                class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mr-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-indigo-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">Ubicación</p>
+                <p class="font-semibold text-indigo-700 line-clamp-1">
+                  {{ getEventLocation(event) }}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <!-- Ubicación -->
-          <div class="flex items-start space-x-2 mb-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <p class="text-sm text-gray-600 line-clamp-2">
-              {{ getEventLocation(event) }}
-            </p>
-          </div>
-
-          <!-- Botón de detalles -->
-          <div class="mt-auto flex justify-end items-center">
+          <!-- Enlace a detalles -->
+          <div class="mt-auto pt-4 border-t border-gray-100">
             <a
               [routerLink]="['/evento', event.id]"
-              class="text-sm font-medium text-purple-600 hover:text-purple-800 transition duration-200"
+              class="inline-flex items-center text-sm font-semibold text-purple-600 hover:text-purple-800 transition duration-200"
             >
               Ver detalles
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 ml-1"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
             </a>
           </div>
         </div>

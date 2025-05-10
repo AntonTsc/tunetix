@@ -1,3 +1,4 @@
+import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
@@ -29,7 +30,20 @@ interface PaginationInfo {
 @Component({
   selector: 'app-artistas',
   templateUrl: './artistas.component.html',
-  styleUrls: ['./artistas.component.css']
+  styleUrls: ['./artistas.component.css'],
+  animations: [
+    trigger('staggerAnimation', [
+      transition('* => *', [
+        query(':enter', [
+          style({ opacity: 0, transform: 'translateY(15px)' }),
+          stagger(50, [
+            animate('300ms cubic-bezier(0.35, 0, 0.25, 1)',
+              style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
+      ])
+    ])
+  ]
 })
 export class ArtistasComponent implements OnInit {
   artists: Artist[] = [];
@@ -37,10 +51,10 @@ export class ArtistasComponent implements OnInit {
   error: string | null = null;
   searchForm: FormGroup;
   currentPage: number = 1;
-  pageSize: number = 24;
-  totalPages: number = 0;
+  pageSize: number = 24;  totalPages: number = 0;
   totalArtists: number = 0;
   favorites: Set<string> = new Set();
+  imageLoaded: boolean = false;
 
   private formSubscription: Subscription | undefined;
 

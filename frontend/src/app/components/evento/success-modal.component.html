@@ -1,0 +1,47 @@
+<!-- Modal de éxito con el estilo del componente artista -->
+<div
+  *ngIf="showSuccessModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in"
+>
+  <div
+    class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all scale-in"
+  >
+    <div class="text-center">
+      <div
+        class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-10 w-10 text-green-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">
+        ¡Compra realizada con éxito!
+      </h2>
+      <p class="text-gray-600 mb-6">
+        Has comprado {{ ticketQuantity }} entrada{{
+          ticketQuantity > 1 ? "s" : ""
+        }}
+        para {{ event.name }}. Revisa tu correo electrónico para los detalles.
+      </p>
+      <div class="flex justify-center">
+        <button
+          class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          (click)="closeSuccessModal()"
+        >
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

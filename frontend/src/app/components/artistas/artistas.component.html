@@ -29,7 +29,7 @@
   <div class="container mx-auto px-4 py-8 relative z-10">
     <!-- Encabezado de la página con efecto de gradiente -->
     <div
-      class="bg-gradient-to-r from-purple-700 to-indigo-900 rounded-xl shadow-lg p-6 mb-8 text-white relative overflow-hidden"
+      class="bg-gradient-to-r from-purple-700 to-indigo-900 rounded-xl shadow-lg p-6 mb-8 text-white relative overflow-hidden parallax-header"
     >
       <div
         class="absolute -right-10 top-0 w-40 h-40 bg-pink-500 bg-opacity-20 rounded-full blur-xl"
@@ -288,11 +288,11 @@
         Restablecer filtros
       </button>
     </div>
-
     <!-- Lista de artistas mejorada -->
     <div
       *ngIf="!isLoading && !error && artists.length > 0"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      [@staggerAnimation]="artists.length"
     >
       <div
         *ngFor="let artist of artists; let i = index"
@@ -311,6 +311,8 @@
             [alt]="artist.name"
             class="absolute inset-0 h-full w-full object-center object-cover transition-opacity duration-300"
             loading="lazy"
+            [ngClass]="{ 'opacity-0': !imageLoaded }"
+            (load)="imageLoaded = true"
           />
           <!-- Overlay con degradado -->
           <div
