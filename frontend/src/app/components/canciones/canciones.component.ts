@@ -1,3 +1,4 @@
+import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
@@ -28,18 +29,31 @@ interface PaginationInfo {
 @Component({
   selector: 'app-canciones',
   templateUrl: './canciones.component.html',
-  styleUrls: ['./canciones.component.css']
+  styleUrls: ['./canciones.component.css'],
+  animations: [
+    trigger('staggerAnimation', [
+      transition('* => *', [
+        query(':enter', [
+          style({ opacity: 0, transform: 'translateY(15px)' }),
+          stagger(50, [
+            animate('300ms cubic-bezier(0.35, 0, 0.25, 1)',
+              style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
+      ])
+    ])
+  ]
 })
 export class CancionesComponent implements OnInit {
   tracks: Track[] = [];
   isLoading = true;
   error: string | null = null;
-  searchForm: FormGroup;
-  currentPage: number = 1;
+  searchForm: FormGroup;  currentPage: number = 1;
   pageSize: number = 24;
   totalPages: number = 0;
   totalTracks: number = 0;
   favorites: Set<string> = new Set();
+  imageLoaded: boolean = false;
 
   private formSubscription: Subscription | undefined;
 
@@ -154,13 +168,13 @@ export class CancionesComponent implements OnInit {
     this.resetPagination();
     this.loadTracks();
   }
-
   toggleFavorite(track: Track): void {
     const trackId = `${track.name}-${track.artist.name}`;
     if (this.favorites.has(trackId)) {
       this.favorites.delete(trackId);
     } else {
       this.favorites.add(trackId);
+      // Animación de latido del corazón manejada por CSS
     }
   }
 
