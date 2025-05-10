@@ -61,4 +61,13 @@ export class LastfmService {
 
     return this.http.get(`${this.baseUrl}/api/artists/getArtistById.php`, { params });
   }
+
+  getTrackInfo(track: string, artist: string): Observable<any>{
+    let params = new HttpParams();
+
+    params = params.set('track', track);
+    params = params.set('artist', artist);
+
+    return this.http.get(`${this.baseUrl}/api/tracks/getTrackInfo.php`, { params });
+  }
 }

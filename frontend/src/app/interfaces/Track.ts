@@ -1,7 +1,7 @@
 export default interface Track {
     id: string;
     name: string; 
-    artists: { id: string; name: string }[];
+    artist: { id: string; name: string };
     album: {
         id: string;
         name: string;

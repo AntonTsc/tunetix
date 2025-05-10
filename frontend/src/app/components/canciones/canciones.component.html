@@ -89,8 +89,8 @@
     >
       <div
         *ngFor="let track of tracks"
-        class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full"
-      >
+        [routerLink]="['/cancion', track.artist.name, track.name]"
+        class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full">
         <div class="relative pb-[56.25%]">
           <img
             [src]="track.image[3]['#text']"

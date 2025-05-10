@@ -272,6 +272,7 @@
         >
           <ng-container *ngFor="let item of tracks; let i = index">
             <app-card
+              [routerLink]="['/cancion', item.artist.name, item.name]"
               [data]="item"
               [loading]="isLoadingTracks"
               class="transition-all duration-300"

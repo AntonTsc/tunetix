@@ -20,6 +20,7 @@ import { LoginComponent } from './components/login/login.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
+import { CancionComponent } from './components/cancion/cancion.component';
 
 const routes: Routes = [
   // Rutas públicas
@@ -27,6 +28,7 @@ const routes: Routes = [
   {path: 'artistas', component: ArtistasComponent},
   {path: 'artista/:id', component: ArtistaComponent},
   {path: 'canciones', component: CancionesComponent},
+  { path: 'cancion/:artist/:track', component: CancionComponent },
   {path: 'evento/:id', component: EventoComponent},
   {path: 'eventos', component: EventosComponent},
   {path: 'login', component: LoginComponent},

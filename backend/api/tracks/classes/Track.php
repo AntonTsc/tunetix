@@ -147,9 +147,7 @@ class Track
             if (!$data) {
                 throw new Exception("Failed to fetch or parse data from API");
             }
-
-            $data['url'] = $url;
-
+            
             Cache::set($cacheKey, $data, 'track');
             ServerResponse::success("Track info fetched successfully", $data);
         } catch (Exception $e) {

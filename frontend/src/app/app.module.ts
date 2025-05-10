@@ -36,6 +36,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { TicketService } from './services/ticket.service';
 import { TokenService } from './services/token.service';
 import { FormattedTextPipe } from './pipes/formatted-text.pipe';
+import { CancionComponent } from './components/cancion/cancion.component';
 
 @NgModule({
   declarations: [
@@ -67,7 +68,8 @@ import { FormattedTextPipe } from './pipes/formatted-text.pipe';
     CardComponent,
     MapModalComponent,
     PaymentModalComponent,
-    FormattedTextPipe
+    FormattedTextPipe,
+    CancionComponent
   ],
   imports: [
     BrowserModule,

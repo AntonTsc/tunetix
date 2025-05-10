@@ -50,6 +50,7 @@ export class InicioComponent implements OnInit {
     // Cargar tracks top
     this._lastfm.getTopTracks(6, 1, "popularity_desc", "").subscribe({
       next: (response: any) => {
+        console.log(response)
         this.tracks = response.data?.tracks || [];
         this.isLoadingTracks = false;
       },
