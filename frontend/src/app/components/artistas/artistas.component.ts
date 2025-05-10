@@ -1,3 +1,4 @@
+import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
@@ -29,7 +30,20 @@ interface PaginationInfo {
 @Component({
   selector: 'app-artistas',
   templateUrl: './artistas.component.html',
-  styleUrls: ['./artistas.component.css']
+  styleUrls: ['./artistas.component.css'],
+  animations: [
+    trigger('staggerAnimation', [
+      transition('* => *', [
+        query(':enter', [
+          style({ opacity: 0, transform: 'translateY(15px)' }),
+          stagger(50, [
+            animate('300ms cubic-bezier(0.35, 0, 0.25, 1)',
+              style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
+      ])
+    ])
+  ]
 })
 export class ArtistasComponent implements OnInit {
   artists: Artist[] = [];
@@ -37,10 +51,10 @@ export class ArtistasComponent implements OnInit {
   error: string | null = null;
   searchForm: FormGroup;
   currentPage: number = 1;
-  pageSize: number = 24;
-  totalPages: number = 0;
+  pageSize: number = 24;  totalPages: number = 0;
   totalArtists: number = 0;
   favorites: Set<string> = new Set();
+  imageLoaded: boolean = false;
 
   private formSubscription: Subscription | undefined;
 
@@ -60,8 +74,18 @@ export class ArtistasComponent implements OnInit {
       sortBy: ['popularity_desc']
     });
   }
-
   ngOnInit(): void {
+    // Cargar favoritos desde localStorage
+    const savedFavorites = localStorage.getItem('favoriteArtists');
+    if (savedFavorites) {
+      try {
+        const favoritesArray = JSON.parse(savedFavorites);
+        this.favorites = new Set(favoritesArray);
+      } catch (error) {
+        console.error('Error al cargar favoritos:', error);
+      }
+    }
+
     // Suscribirse a los cambios en el formulario para aplicar filtros automáticamente
     this.formSubscription = this.searchForm.valueChanges.pipe(
       debounceTime(300),
@@ -120,17 +144,49 @@ export class ArtistasComponent implements OnInit {
       }
     });
   }
-
   private handleError(message: string): void {
     this.error = message;
-    this.artists = [];
-    this.totalPages = 0;
-    this.totalArtists = 0;
     this.isLoading = false;
+    console.error('Error en ArtistasComponent:', message);
 
-    // Limpiar sessionStorage en caso de error
-    sessionStorage.removeItem('artists');
-    sessionStorage.removeItem('pagination');
+    // Intenta recuperar datos en caché si hay un error de red
+    if (message.includes('network') || message.includes('conexión')) {
+      const cachedArtists = sessionStorage.getItem('artists');
+      const cachedPagination = sessionStorage.getItem('pagination');
+
+      if (cachedArtists && cachedPagination) {
+        try {
+          this.artists = JSON.parse(cachedArtists);
+          const pagination = JSON.parse(cachedPagination);
+          this.currentPage = pagination.currentPage || 1;
+          this.totalPages = pagination.totalPages || 0;
+          this.totalArtists = pagination.totalItems || 0;
+
+          // Actualizar mensaje de error para indicar que se están usando datos en caché
+          this.error = 'Problema de conexión. Mostrando datos en caché.';
+        } catch (e) {
+          console.error('Error al recuperar datos en caché:', e);
+          // Si hay error al leer caché, limpiamos todo
+          this.artists = [];
+          this.totalPages = 0;
+          this.totalArtists = 0;
+          sessionStorage.removeItem('artists');
+          sessionStorage.removeItem('pagination');
+        }
+      } else {
+        // Si no hay caché, limpiamos todo
+        this.artists = [];
+        this.totalPages = 0;
+        this.totalArtists = 0;
+      }
+    } else {
+      // Para errores que no son de conexión, limpiamos todo
+      this.artists = [];
+      this.totalPages = 0;
+      this.totalArtists = 0;
+      sessionStorage.removeItem('artists');
+      sessionStorage.removeItem('pagination');
+    }
   }
 
   goToNextPage(): void {
@@ -154,25 +210,36 @@ export class ArtistasComponent implements OnInit {
   hasNextPage(): boolean {
     return this.currentPage < this.totalPages; // Verifica que no hayas alcanzado la última página
   }
-
   clearSearch(): void {
-    this.searchForm.patchValue({
-      keyword: ''
-    });
-    this.resetPagination();
-    this.loadEvents();
+    this.searchForm.get('keyword')?.setValue('');
   }
 
+  resetFilters(): void {
+    this.searchForm.reset();
+    // Establecer valor por defecto para ordenación
+    this.searchForm.get('sortBy')?.setValue(this.sortOptions[0].value);
+    this.loadEvents();
+  }
   toggleFavorite(artist: Artist): void {
-    const artistId = artist.name; // Usa un identificador único, como el nombre del artista
-    if (this.favorites.has(artistId)) {
-      this.favorites.delete(artistId);
+    if (this.isFavorite(artist)) {
+      this.favorites.delete(artist.name);
     } else {
-      this.favorites.add(artistId);
+      this.favorites.add(artist.name);
+      // Aquí podrías añadir animación de corazón
+      const heartElement = document.querySelector('.heart-beat');
+      if (heartElement) {
+        heartElement.classList.remove('heart-beat');
+        // Truco para reiniciar la animación
+        setTimeout(() => {
+          heartElement.classList.add('heart-beat');
+        }, 10);
+      }
     }
+    // Guardar favoritos en localStorage
+    localStorage.setItem('favoriteArtists', JSON.stringify(Array.from(this.favorites)));
   }
 
   isFavorite(artist: Artist): boolean {
-    return this.favorites.has(artist.name); // Verifica si el artista está en favoritos
+    return this.favorites.has(artist.name);
   }
 }

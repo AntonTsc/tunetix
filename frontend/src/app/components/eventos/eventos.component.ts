@@ -35,16 +35,13 @@ export class EventosComponent implements OnInit, OnDestroy {
     { code: 'DE', name: 'Alemania' },
     { code: 'IT', name: 'Italia' },
     { code: '', name: 'Todos los países' }
-  ];
-
-  // Pagination properties
+  ];  // Pagination properties
   currentPage: number = 0;
   pageSize: number = 24;
   totalPages: number = 0;
   totalEvents: number = 0;
 
   private formSubscription: Subscription | undefined;
-
   sortOptions = [
     { value: 'name_asc', label: 'Nombre (A-Z)' },
     { value: 'name_desc', label: 'Nombre (Z-A)' },
@@ -52,7 +49,7 @@ export class EventosComponent implements OnInit, OnDestroy {
     { value: 'date_desc', label: 'Fecha (más antiguo)' }
   ];
 
-  imageLoaded = false;
+  imageLoaded: boolean = false;
   favorites: Set<string> = new Set();
 
   constructor(
@@ -167,14 +164,14 @@ export class EventosComponent implements OnInit, OnDestroy {
       behavior: 'smooth'
     });
   }
-
   getImageUrl(event: any): string {
     if (event.images && event.images.length > 0) {
       // Intentar encontrar una imagen de mejor calidad
       const betterImage = event.images.find((img: any) => img.ratio === '16_9' && img.width > 500);
       return betterImage ? betterImage.url : event.images[0].url;
     }
-    return 'assets/imgs/placeholder-event.jpg'; // Imagen por defecto
+    // Usar la imagen predeterminada de Last.fm como respaldo
+    return 'https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png';
   }
 
   getEventDate(event: any): string {
@@ -201,12 +198,21 @@ export class EventosComponent implements OnInit, OnDestroy {
     }
     return 'Ubicación no disponible';
   }
-
   clearSearch(): void {
     this.searchForm.patchValue({
       keyword: ''
     });
     // Cargar eventos al limpiar la búsqueda
+    this.resetPagination();
+    this.loadEvents();
+  }
+
+  resetFilters(): void {
+    this.searchForm.reset({
+      keyword: '',
+      country: 'ES',
+      sortBy: 'date_asc'
+    });
     this.resetPagination();
     this.loadEvents();
   }

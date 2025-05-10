@@ -1,0 +1,219 @@
+/* Animaciones para elementos */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.fade-in-delay-1 {
+  animation: fadeIn 0.5s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+.fade-in-delay-2 {
+  animation: fadeIn 0.5s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+.fade-in-delay-3 {
+  animation: fadeIn 0.5s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+/* Efecto de elevación en hover para tarjetas */
+.card-hover-effect {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Hover effects for artist cards */
+.artist-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.artist-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-15px) rotate(-5deg); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-10px) rotate(3deg); }
+}
+
+.animate-float-slow {
+  animation: float-slow 8s infinite ease-in-out;
+}
+
+.animate-float-medium {
+  animation: float-medium 6s infinite ease-in-out;
+}
+
+.animate-float-fast {
+  animation: float-fast 4s infinite ease-in-out;
+}
+
+/* Estilos para la biografía */
+.bio-content {
+  transition: max-height 0.5s ease-out, opacity 0.3s ease-out;
+  overflow: hidden;
+  position: relative;
+}
+
+.bio-expanded {
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.bio-collapsed {
+  max-height: 80px;
+  opacity: 0.9;
+}
+
+.bio-collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(249, 250, 251, 0) 0%, rgba(249, 250, 251, 1) 100%);
+  pointer-events: none;
+}
+
+/* Pulsación suave para el botón de expandir biografía */
+@keyframes gentlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.expand-bio-button {
+  animation: gentlePulse 2s infinite ease-in-out;
+}
+
+/* Efecto de parallax para el encabezado */
+.parallax-header {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.parallax-header:hover {
+  transform: scale(1.05);
+}
+
+/* Hover effects para el botón con icono */
+button svg.ml-2 {
+  transition: transform 0.3s ease;
+}
+
+button:hover svg.ml-2 {
+  transform: translateX(5px);
+}
+
+/* Botones con efecto de pulso */
+button.inline-flex,
+button.w-full {
+  position: relative;
+  overflow: hidden;
+}
+
+button.inline-flex::after,
+button.w-full::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+button.inline-flex:focus:not(:active)::after,
+button.w-full:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+/* Estilos para las tarjetas de artistas similares */
+.similar-artist-card {
+  transition: all 0.3s ease;
+}
+
+.similar-artist-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para las etiquetas/tags */
+.tag {
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  transform: scale(1.05);
+}
+
+/* Animación para el botón de volver arriba */
+@keyframes pulseButton {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.scroll-top-button {
+  animation: pulseButton 2s infinite ease-in-out;
+}
+
+/* Animación para el botón de volver */
+.back-button-hover {
+  transition: all 0.3s ease;
+}
+
+.back-button-hover:hover {
+  transform: translateX(-5px);
+}
