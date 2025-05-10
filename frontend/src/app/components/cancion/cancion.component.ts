@@ -26,14 +26,12 @@ export class CancionComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.artistName = params['artist'];
       this.trackName = params['track'];
-      console.log(this.artistName, this.trackName);
-    });
 
-    this._lastfm.getTrackInfo(this.trackName, this.artistName).subscribe((response: ServerResponse) => {
+      this._lastfm.getTrackInfo(this.trackName, this.artistName).subscribe((response: ServerResponse) => {
       this.track = response.data.track;
       this.loading = false;
-      console.log(this.track);
     })
+    });
   }
 
   goBack(): void {
@@ -41,9 +39,9 @@ export class CancionComponent implements OnInit {
   }
 
   getMainImage(item: any): string {
-    if (this.track.album.image && this.track.album.image.length > 0) {
-      const mediumImage = this.track.album.image.find((img: any) => img.size === 'medium');
-      return mediumImage ? mediumImage['#text'] : this.track.album.image[0]['#text'];
+    if (item.image && item.image.length > 0) {
+      const mediumImage = item.image.find((img: any) => img.size === 'extralarge');
+      return mediumImage ? mediumImage['#text'] : item.image[0]['#text'];
     }
     return 'assets/images/default-artist.jpg';
   }

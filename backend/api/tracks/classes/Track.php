@@ -175,6 +175,10 @@ class Track
         // Decodificar las respuestas JSON
         $data = json_decode($trackResponse, true);
         $data['track']['similar'] = array_slice(json_decode($similarResponse, true)['similartracks']['track'], 0, 5);
+        $data['track']['image'] = isset($data['track']['album']) ? $data['track']['album']['image'] : null;
+        if($data['track']['image'] == null) {
+            unset($data['track']['image']);
+        }
 
         // Comprobar si ambas respuestas son válidas
         if (!$data) {

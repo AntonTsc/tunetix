@@ -11,8 +11,8 @@ export default interface Cancion {
   listeners: string;
   playcount: string;
   artist: Artist;
-  album: Album;
-  image: Image[];
+  album?: Album;
+  image?: Image[];
   attr: {
     position: string;
   };

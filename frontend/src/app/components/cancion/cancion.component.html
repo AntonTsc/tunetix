@@ -37,7 +37,7 @@
     <div *ngIf="track && !loading" class="space-y-6">
       <!-- Artist header/banner -->
       <div class="relative rounded-xl overflow-hidden shadow-lg h-80">
-        <div class="absolute inset-0 bg-cover bg-no-repeat bg-center" [style.background]="this.track.album.image.length ? 'url(' + getMainImage(this.track) + ')' : 'indigo'"></div>
+        <div class="absolute inset-0 bg-cover bg-no-repeat bg-center" [style.background-image]="'url(' + getMainImage(this.track) + ')'"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-black/30"></div>
         <div class="absolute bottom-0 w-full p-6 text-white">
           <h1 class="text-3xl md:text-4xl font-bold mb-2">{{ track.name }}</h1>
@@ -73,7 +73,7 @@
                     </svg>
                   </div>
                   <div>
-                    <strong class="text-gray-700 block">Géneros</strong>
+                    <strong class="text-gray-700 block">Etiquetas</strong>
                     <div class="flex flex-wrap gap-2 mt-2">
                       <span *ngFor="let tag of track.toptags.tag" class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
                         {{ tag.name }}
@@ -149,7 +149,7 @@
                 <!-- Sustituir (click) por  -->
                 <div *ngFor="let similarTrack of track.similar" 
                      class="flex items-center p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                     [routerLink]="['canciones', this.track.artist, this.track.name]"
+                     [routerLink]="['/cancion', similarTrack.artist.name, similarTrack.name]"
                      [class.opacity-50]="loading">
                   <img [src]="getMainImage(similarTrack)" 
                        [alt]="similarTrack.name"
