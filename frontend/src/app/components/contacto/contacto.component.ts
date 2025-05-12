@@ -1,3 +1,4 @@
+import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,7 +11,18 @@ import { UserService } from 'src/app/services/user.service';
 @Component({
   selector: 'app-contacto',
   templateUrl: './contacto.component.html',
-  styleUrls: ['./contacto.component.css']
+  styleUrls: ['./contacto.component.css'],
+  animations: [
+    trigger('fadeIn', [
+      state('void', style({
+        opacity: 0,
+        transform: 'translateY(20px)'
+      })),
+      transition('void => *', [
+        animate('0.5s ease-out')
+      ])
+    ])
+  ]
 })
 export class ContactoComponent implements OnInit, OnDestroy {
   contactForm!: FormGroup;
