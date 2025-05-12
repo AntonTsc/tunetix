@@ -24,24 +24,47 @@ export class ContactoComponent implements OnInit, OnDestroy {
   // Suscripciones para manejar eventos
   private authSubscription: Subscription | null = null;
   private userSubscription: Subscription | null = null;
-
   constructor(
     private formBuilder: FormBuilder,
     private contactService: ContactService,
     private authService: AuthService,
     private userService: UserService,
     private router: Router
-  ) { }
-
+  ) {
+    // Initialize the form with default empty values in the constructor
+    // to ensure it always exists before the template tries to use it
+    this.contactForm = this.formBuilder.group({
+      name: [{value: '', disabled: true}, Validators.required],
+      email: [{value: '', disabled: true}, [Validators.required, Validators.email]],
+      subject: ['', Validators.required],
+      message: ['', Validators.required]
+    });
+  }
   ngOnInit(): void {
-    // Verificar si el usuario está autenticado
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/login'], {
-        queryParams: { returnUrl: '/contacto' }
-      });
-      return;
-    }
+    // Verificar si el usuario está autenticado usando getCookies() en vez de isAuthenticated()
+    this.authService.getCookies().subscribe({
+      next: (data: any) => {
+        if (!data.data.access_token || !data.data.refresh_token) {
+          this.router.navigate(['/login'], {
+            queryParams: { returnUrl: '/contacto' }
+          });
+          return;
+        }
 
+        // Usuario autenticado, seguir con la inicialización
+        this.initializePage();
+      },
+      error: () => {
+        // Error al verificar autenticación, redirigir a login
+        this.router.navigate(['/login'], {
+          queryParams: { returnUrl: '/contacto' }
+        });
+      }
+    });
+  }
+
+  // Método para inicializar la página una vez se ha verificado la autenticación
+  private initializePage(): void {
     // Suscribirse a datos de usuario del AuthService
     this.authService.userData$.subscribe(userData => {
       if (userData) {
@@ -93,19 +116,23 @@ export class ContactoComponent implements OnInit, OnDestroy {
       this.userSubscription.unsubscribe();
     }
   }
-
   // Cargar datos actualizados del usuario
   loadUserData(): void {
-    if (this.authService.isAuthenticated()) {
-      this.userService.getUserProfile().subscribe({
-        next: () => {
-          // Los datos se actualizan automáticamente a través de la suscripción
-        },
-        error: (error) => {
-          console.error('Error al cargar datos del usuario:', error);
+    // Verificar autenticación usando getCookies en lugar de isAuthenticated
+    this.authService.getCookies().subscribe({
+      next: (data: any) => {
+        if (data.data.access_token || data.data.refresh_token) {
+          this.userService.getUserProfile().subscribe({
+            next: () => {
+              // Los datos se actualizan automáticamente a través de la suscripción
+            },
+            error: (error) => {
+              console.error('Error al cargar datos del usuario:', error);
+            }
+          });
         }
-      });
-    }
+      }
+    });
   }
 
   initForm(): void {
