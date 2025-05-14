@@ -82,12 +82,8 @@
         </div>
       </div>
     </div>
-
-    <!-- Pestañas de filtrado con mejor espaciado en móvil y animación -->
-    <div
-      class="mt-4 mb-6 mx-4 sm:mx-2 animate-item"
-      style="animation-delay: 0.1s"
-    >
+    <!-- Pestañas de filtrado niveladas sin separador -->
+    <div class="mx-4 sm:mx-2 animate-item" style="animation-delay: 0.1s">
       <div class="sm:hidden">
         <!-- Selector de pestañas para móvil con ícono de flecha personalizado -->
         <div class="relative mt-1">
@@ -122,83 +118,74 @@
           </div>
         </div>
       </div>
-      <div class="hidden sm:block">
-        <div class="border-b border-gray-200">
-          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <button
-              (click)="clearFilter()"
-              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200"
-              [ngClass]="
-                !statusFilter
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              "
+      <div class="hidden sm:block overflow-visible">
+        <nav class="flex space-x-8 overflow-visible" aria-label="Tabs">
+          <button
+            (click)="clearFilter()"
+            class="whitespace-nowrap py-2 px-4 font-medium text-sm transition-all duration-200 rounded-t-lg filter-button"
+            [ngClass]="
+              !statusFilter
+                ? 'bg-gray-50 text-indigo-600 active-filter'
+                : 'text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100'
+            "
+          >
+            Todos
+          </button>
+          <button
+            (click)="statusFilter = 'nuevo'; applyFilter()"
+            class="whitespace-nowrap py-2 px-4 pr-5 font-medium text-sm relative transition-all duration-200 rounded-t-lg filter-button"
+            [ngClass]="
+              statusFilter === 'nuevo'
+                ? 'bg-gray-50 text-indigo-600 active-filter'
+                : 'text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100'
+            "
+          >
+            Nuevos
+            <!-- Indicador visual de nuevos mensajes (bolita) - Ajustado para no ser cortado -->
+            <span
+              *ngIf="newMessagesCount > 0 && statusFilter !== 'nuevo'"
+              class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3 overflow-visible"
             >
-              Todos
-            </button>
-            <button
-              (click)="statusFilter = 'nuevo'; applyFilter()"
-              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm relative transition-all duration-200"
-              [ngClass]="
-                statusFilter === 'nuevo'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              "
-            >
-              Nuevos
               <span
-                *ngIf="newMessagesCount > 0"
-                class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
-              >
-                {{ newMessagesCount }}
-              </span>
-              <!-- Indicador visual de nuevos mensajes -->
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+              ></span>
               <span
-                *ngIf="newMessagesCount > 0 && statusFilter !== 'nuevo'"
-                class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3"
-              >
-                <span
-                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
-                ></span>
-                <span
-                  class="relative inline-flex rounded-full h-3 w-3 bg-red-500"
-                ></span>
-              </span>
-            </button>
-            <button
-              (click)="statusFilter = 'leído'; applyFilter()"
-              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200"
-              [ngClass]="
-                statusFilter === 'leído'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              "
-            >
-              Leídos
-            </button>
-            <button
-              (click)="statusFilter = 'archivado'; applyFilter()"
-              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200"
-              [ngClass]="
-                statusFilter === 'archivado'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              "
-            >
-              Archivados
-            </button>
-          </nav>
-        </div>
+                class="relative inline-flex rounded-full h-3 w-3 bg-red-500"
+              ></span>
+            </span>
+          </button>
+          <button
+            (click)="statusFilter = 'leído'; applyFilter()"
+            class="whitespace-nowrap py-2 px-4 font-medium text-sm transition-all duration-200 rounded-t-lg filter-button"
+            [ngClass]="
+              statusFilter === 'leído'
+                ? 'bg-gray-50 text-indigo-600 active-filter'
+                : 'text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100'
+            "
+          >
+            Leídos
+          </button>
+          <button
+            (click)="statusFilter = 'archivado'; applyFilter()"
+            class="whitespace-nowrap py-2 px-4 font-medium text-sm transition-all duration-200 rounded-t-lg filter-button"
+            [ngClass]="
+              statusFilter === 'archivado'
+                ? 'bg-gray-50 text-indigo-600 active-filter'
+                : 'text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100'
+            "
+          >
+            Archivados
+          </button>
+        </nav>
       </div>
     </div>
-
     <!-- Tabla de mensajes con responsive mejorado y animaciones -->
-    <div class="mt-8 flex flex-col message-table-container">
-      <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-          <!-- Quitar border-b en móvil -->
+    <div class="flex flex-col message-table-container">
+      <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="align-middle inline-block min-w-full sm:px-6 lg:px-8">
+          <!-- Contenedor unificado con los filtros -->
           <div
-            class="shadow overflow-hidden sm:border-b border-gray-200 sm:rounded-lg bg-white"
+            class="shadow overflow-hidden sm:rounded-b-lg bg-white no-rounded-top"
           >
             <!-- Loader -->
             <div *ngIf="loading" class="p-6 text-center">

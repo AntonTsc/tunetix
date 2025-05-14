@@ -28,10 +28,28 @@ export class AdminDashboardComponent implements OnInit {
     appVersion: '1.0.0'
   };
 
+  // Nuevas propiedades para las estadísticas por sección
+  artistStats: any = {
+    total: 0,
+    popular: []
+  };
+
+  eventStats: any = {
+    total: 0,
+    upcoming: 0,
+    sold: 0
+  };
+
+  trackStats: any = {
+    total: 0,
+    popular: []
+  };
+
   constructor(private messageService: MessageService) { }
 
   ngOnInit(): void {
     this.loadMessageStats();
+    this.loadSystemInfo();
   }
 
   loadMessageStats(): void {
@@ -55,6 +73,34 @@ export class AdminDashboardComponent implements OnInit {
         console.error('Error cargando estadísticas:', err);
       }
     });
+  }
+
+  loadSystemInfo(): void {
+    // Aquí se podría implementar una llamada a un servicio para obtener información del sistema
+    // Por ahora, simplemente usaremos datos simulados
+    this.systemInfo = {
+      serverTime: new Date(),
+      appVersion: '1.0.0',
+      lastBackup: new Date(Date.now() - 86400000), // Ayer
+      status: 'Operativo'
+    };
+
+    // Datos simulados para estadísticas
+    this.artistStats = {
+      total: 120,
+      popular: ['Taylor Swift', 'Bad Bunny', 'Coldplay']
+    };
+
+    this.eventStats = {
+      total: 45,
+      upcoming: 12,
+      sold: 840
+    };
+
+    this.trackStats = {
+      total: 350,
+      popular: ['Cruel Summer', 'As It Was', 'Flowers']
+    };
   }
 
   updateSystemInfo(): void {
@@ -83,5 +129,6 @@ export class AdminDashboardComponent implements OnInit {
   // Método para refrescar los datos
   refreshData(): void {
     this.loadMessageStats();
+    this.loadSystemInfo();
   }
 }

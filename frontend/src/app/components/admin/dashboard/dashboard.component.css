@@ -1,0 +1,63 @@
+/* filepath: c:\xampp\htdocs\tunetix\frontend\src\app\components\admin\dashboard\dashboard.component.css */
+
+/* Estilos para tarjetas con hover effect */
+.bg-white.shadow.rounded-lg {
+  transition: all 0.3s ease;
+}
+
+.bg-white.shadow.rounded-lg:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Mejora de estilos para secciones */
+h3.text-lg.font-medium.text-gray-900.mb-4 {
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+h3.text-lg.font-medium.text-gray-900.mb-4::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background-color: #4f46e5; /* Indigo color */
+  border-radius: 3px;
+}
+
+/* Estilos para los iconos */
+.flex-shrink-0.rounded-md {
+  transition: all 0.3s ease;
+}
+
+.bg-white.shadow.rounded-lg:hover .flex-shrink-0.rounded-md {
+  transform: scale(1.1);
+}
+
+/* Mejoras para dispositivos móviles */
+@media (max-width: 640px) {
+  .py-8.px-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  h2.text-xl.font-bold.text-gray-900.mb-6 {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Animación para la carga de datos */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
