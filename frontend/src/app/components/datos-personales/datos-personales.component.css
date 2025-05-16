@@ -86,3 +86,44 @@ img.profile-image-error {
   transform: scale(1.05);
   transition: transform 0.3s ease-in-out;
 }
+
+/* Estilos específicos para el nombre completo en el perfil */
+h1.text-4xl {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  -ms-word-break: break-all;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  white-space: normal;
+  font-size: 2.25rem; /* 36px por defecto */
+}
+
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  word-wrap: break-word;
+  -ms-word-break: break-all;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+@media (max-width: 640px) {
+  .text-wrap-container {
+    max-width: 100%;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+}
+
+/* Ajuste responsive para dispositivos muy pequeños */
+@media (max-width: 360px) {
+  h1.text-4xl {
+    font-size: 1.875rem; /* 30px para pantallas muy pequeñas */
+  }
+}

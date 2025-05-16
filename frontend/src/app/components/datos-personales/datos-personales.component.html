@@ -1,4 +1,4 @@
-<div class="space-y-8">
+<div class="space-y-8 max-w-full overflow-hidden">
   <!-- Alerta para mensajes (añadir en la parte superior) -->
   <ng-container *ngIf="serverResponse">
     <app-alert
@@ -6,7 +6,6 @@
       [serverResponse]="serverResponse"
     ></app-alert>
   </ng-container>
-
   <!-- Profile Header with Photo and Name -->
   <div
     class="flex flex-col sm:flex-row items-center sm:items-start gap-8 bg-gradient-to-r from-purple-50 to-indigo-50 p-8 rounded-xl mb-8 border border-purple-100 shadow-sm"
@@ -210,12 +209,19 @@
         </button>
       </div>
     </div>
-
     <!-- Rest of your profile content -->
-    <div class="text-center sm:text-left">
+    <div
+      class="text-center sm:text-left w-full overflow-hidden"
+      style="
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+      "
+    >
       <!-- Modificado para mostrar nombre y apellido -->
       <h1
-        class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-900 sm:truncate max-w-xl"
+        class="text-4xl md:text-4xl sm:text-3xl xs:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-900 break-words overflow-wrap-anywhere max-w-full sm:max-w-xl"
         [appTooltip]="userData.name + ' ' + userData.lastName"
       >
         {{ userData.name }} {{ userData.lastName }}
