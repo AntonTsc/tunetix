@@ -8,6 +8,23 @@ Tunetix es una plataforma que integra información de música y eventos, permiti
 [![Angular Version](https://img.shields.io/badge/Angular-16.x-DD0031.svg)](https://angular.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-10.4+-00758F.svg)](https://www.mysql.com/)
 
+## 📑 Índice
+
+- [📋 Requisitos previos](#-requisitos-previos)
+- [🗂️ Estructura del proyecto](#️-estructura-del-proyecto)
+- [🐳 Despliegue con Docker](#-despliegue-con-docker)
+- [💻 Instalación y configuración](#-instalación-y-configuración)
+  - [1. Clonar el repositorio](#1-clonar-el-repositorio)
+  - [2. Configurar la base de datos](#2-configurar-la-base-de-datos)
+  - [3. Configurar el backend](#3-configurar-el-backend)
+  - [4. Configurar el frontend](#4-configurar-el-frontend)
+  - [5. Obtener API keys](#5-obtener-api-keys)
+- [🚀 Ejecución del proyecto](#-ejecución-del-proyecto)
+- [✨ Funcionalidades principales](#-funcionalidades-principales)
+- [🛠️ Resolución de problemas comunes](#️-resolución-de-problemas-comunes)
+- [🔄 Sistema de caché](#-sistema-de-caché)
+- [📊 Tecnologías principales](#-tecnologías-principales)
+
 ## 📋 Requisitos previos
 
 - **Backend:**
@@ -62,6 +79,20 @@ frontend/
 ├── angular.json             # Configuración del proyecto Angular
 └── package.json             # Dependencias npm
 ```
+
+## 🐳 Despliegue con Docker
+
+> **Nota**: Esta sección está en desarrollo y será completada próximamente.
+
+Pronto agregaremos instrucciones detalladas para desplegar Tunetix utilizando Docker, lo que facilitará la instalación y ejecución del proyecto en cualquier entorno con un mínimo de configuración.
+
+La implementación con Docker incluirá:
+
+- Contenedor para el backend PHP
+- Contenedor para la base de datos MySQL
+- Contenedor para el frontend Angular
+- Docker Compose para orquestar los servicios
+- Volúmenes para persistencia de datos
 
 ## 💻 Instalación y configuración
 
