@@ -1,6 +1,6 @@
 # 🎵 Tunetix - Plataforma de Música y Eventos
 
-![Tunetix Logo](frontend/src/assets/logo.png)
+![Tunetix Logo](frontend/src/assets/imgs/logo.webp)
 
 Tunetix es una plataforma que integra información de música y eventos, permitiendo a los usuarios descubrir artistas, buscar conciertos y comprar entradas.
 
