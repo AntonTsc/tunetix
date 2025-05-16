@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-05-2025 a las 09:03:36
+-- Tiempo de generación: 16-05-2025 a las 09:57:52
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -99,7 +99,7 @@ CREATE TABLE `usuario` (
   `correo` varchar(255) NOT NULL,
   `rol` varchar(20) DEFAULT 'user',
   `contrasena` varchar(255) DEFAULT NULL,
-  `image_path` varchar(2000) NOT NULL,
+  `image_path` varchar(2000) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `google_id` varchar(255) DEFAULT NULL,
