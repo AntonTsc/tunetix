@@ -1,23 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TicketService } from '../../services/ticket.service';
-
-interface Purchase {
-  id: string;
-  eventId?: string;
-  eventName: string;
-  location: string;
-  purchaseDate: Date;
-  quantity: number;
-  unitPrice?: number;
-  totalPrice: number;
-  status: 'completed' | 'pending' | 'canceled';
-  paymentMethod?: {
-    id: number;
-    type: string;
-    owner: string;
-  };
-}
+import { Purchase } from './interfaces';
 
 @Component({
   selector: 'app-historial-compras',

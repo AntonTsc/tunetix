@@ -4,28 +4,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
 import ServerResponse from 'src/app/interfaces/ServerResponse';
 import { LastfmService } from 'src/app/services/lastfm.service';
-
-interface Artist {
-  mbid: string;
-  name: string;
-  playcount: string;
-  listeners: string;
-  url: string;
-  image: Array<{
-    '#text': string;
-    size: string;
-  }>;
-  stats?: {
-    listeners: string;
-    playcount: string;
-  };
-}
-
-interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-}
+import { Artist, PaginationInfo } from './interfaces';
 
 @Component({
   selector: 'app-artistas',

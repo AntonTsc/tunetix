@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: admin # Cambia esto por tu contraseña
+      MYSQL_DATABASE: tunetix_db # Nombre de la base de datos
+      MYSQL_USER: tt_user # Usuario de base de datos
+      MYSQL_PASSWORD: admin # Contraseña de usuario
+    volumes:
+      - ./backend/db/tunetix_db.sql:/docker-entrypoint-initdb.d/tunetix_db.sql:ro
+    networks:
+      - tunetix-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_USER: tt_user
+      PMA_PASSWORD: admin
+    ports:
+      - "8080:80" # Acceso a phpMyAdmin en localhost:8080
+    networks:
+      - tunetix-network
+
+  apache:
+    image: httpd:latest
+    container_name: apache
+    volumes:
+      - ./frontend/dist/tunetix:/usr/local/apache2/htdocs/ # Enlaza la carpeta 'html' a Apache
+    ports:
+      - "80:80" # Acceso a Apache en localhost:80
+    networks:
+      - tunetix-network
+
+networks:
+  tunetix-network:
+    driver: bridge
+
+volumes:
+  tunetix-db:
+    driver: local

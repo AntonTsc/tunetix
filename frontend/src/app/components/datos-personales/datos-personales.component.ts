@@ -92,7 +92,6 @@ export class DatosPersonalesComponent implements OnInit {
     public userService: UserService,
     private fb: FormBuilder,
     private authService: AuthService,
-    private tokenService: TokenService,
     private cdr: ChangeDetectorRef,
     private imageService: ImageService
   ) {

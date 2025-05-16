@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import Artist from 'src/app/interfaces/Artist';
 import Track from 'src/app/interfaces/Track';
-import { ArtistService } from 'src/app/services/artist.service';
-import { TrackService } from 'src/app/services/track.service';
 import { ConcertsService } from 'src/app/services/concerts.service';
 import { LastfmService } from 'src/app/services/lastfm.service';
 
@@ -21,9 +19,7 @@ export class InicioComponent implements OnInit {
   isLoadingConcerts = true;
 
   constructor(
-    private _artists: ArtistService,
     private _lastfm: LastfmService,
-    private _tracks: TrackService,
     private _concerts: ConcertsService
   ) {}
 
