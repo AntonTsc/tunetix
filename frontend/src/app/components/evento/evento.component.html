@@ -291,44 +291,6 @@
 
               <div
                 class="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-              >
-                <div class="bg-purple-100 p-3 rounded-full mr-4 shadow-sm">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 text-purple-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="text-lg font-medium text-gray-800">Lugar</h3>
-                  <p class="text-gray-600">
-                    {{ event._embedded?.venues[0]?.name }}
-                  </p>
-                  <p class="text-gray-500 text-sm">
-                    {{ event._embedded?.venues[0]?.address?.line1 }},
-                    {{ event._embedded?.venues[0]?.city?.name }},
-                    {{ event._embedded?.venues[0]?.country?.name }}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                class="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 *ngIf="
                   event.classifications && event.classifications.length > 0
                 "
@@ -410,8 +372,9 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div
-                class="bg-white rounded-lg shadow p-4 hover:shadow-lg transition duration-300 transform hover:scale-[1.02]"
+                class="bg-white rounded-lg shadow p-4 hover:shadow-lg transition duration-300 transform hover:scale-[1.02] cursor-pointer"
                 *ngFor="let artist of event._embedded.attractions"
+                [routerLink]="['/artista', artist.name]"
               >
                 <div class="text-center">
                   <div
@@ -428,9 +391,13 @@
                     />
                   </div>
                   <h3 class="font-semibold text-gray-800 mb-2">
-                    {{ artist.name }}
+                    <a
+                      [routerLink]="['/artista', artist.name]"
+                      class="hover:text-purple-600 transition-colors duration-200 cursor-pointer"
+                    >
+                      {{ artist.name }}
+                    </a>
                   </h3>
-
                   <div
                     class="flex justify-center space-x-3"
                     *ngIf="artist.externalLinks"
@@ -441,6 +408,7 @@
                       target="_blank"
                       class="text-green-500 hover:text-green-600 transition-colors duration-200"
                       title="Spotify"
+                      (click)="$event.stopPropagation()"
                     >
                       <i class="fab fa-spotify"></i>
                     </a>
@@ -450,6 +418,7 @@
                       target="_blank"
                       class="text-red-500 hover:text-red-600 transition-colors duration-200"
                       title="YouTube"
+                      (click)="$event.stopPropagation()"
                     >
                       <i class="fab fa-youtube"></i>
                     </a>
@@ -459,6 +428,7 @@
                       target="_blank"
                       class="text-pink-500 hover:text-pink-600 transition-colors duration-200"
                       title="Instagram"
+                      (click)="$event.stopPropagation()"
                     >
                       <i class="fab fa-instagram"></i>
                     </a>
@@ -468,6 +438,7 @@
                       target="_blank"
                       class="text-blue-400 hover:text-blue-500 transition-colors duration-200"
                       title="Twitter"
+                      (click)="$event.stopPropagation()"
                     >
                       <i class="fab fa-twitter"></i>
                     </a>
@@ -477,6 +448,7 @@
                       target="_blank"
                       class="text-blue-600 hover:text-blue-700 transition-colors duration-200"
                       title="Facebook"
+                      (click)="$event.stopPropagation()"
                     >
                       <i class="fab fa-facebook"></i>
                     </a>
