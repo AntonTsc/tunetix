@@ -1,6 +1,6 @@
 <?php
 include_once '../db.php';
-include_once '../auth/global_headers.php';
+include_once 'global_headers.php';
 include_once 'token.php';
 include_once '../utils/formValidations.php';
 

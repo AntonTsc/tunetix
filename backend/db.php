@@ -1,5 +1,5 @@
 <?php
-include_once 'dotenv.php';
+include_once __DIR__ . '/dotenv.php';
 
 $host = $_ENV['DB_HOST'];
 $db_name = $_ENV['DB_NAME'];
@@ -15,5 +15,5 @@ try {
 
     return $conn;
 } catch (Exception $e) {
-    die(json_encode(["message" => $e->getMessage()]));
+    die(json_encode(["message" => $e->getMessage() . $e->getCode()]));
 }

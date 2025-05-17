@@ -1,6 +1,6 @@
 <?php
 // Permitir solicitudes desde localhost:4200 (Angular)
-header('Access-Control-Allow-Origin: http://localhost:4200');
+header('Access-Control-Allow-Origin: http://localhost');
 // Permitir cookies en solicitudes cross-origin
 header('Access-Control-Allow-Credentials: true');
 // Permitir métodos HTTP
