@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import Artist from 'src/app/interfaces/Artist';
 import Track from 'src/app/interfaces/Track';
+import { ServerResponse } from 'src/app/interfaces/User';
 import { ConcertsService } from 'src/app/services/concerts.service';
 import { LastfmService } from 'src/app/services/lastfm.service';
+import { TicketmasterService } from 'src/app/services/ticketmaster.service';
 
 @Component({
   selector: 'app-inicio',
@@ -20,7 +22,8 @@ export class InicioComponent implements OnInit {
 
   constructor(
     private _lastfm: LastfmService,
-    private _concerts: ConcertsService
+    private _concerts: ConcertsService,
+    private _ticketmaster: TicketmasterService
   ) {}
 
   ngOnInit(): void {
@@ -46,7 +49,6 @@ export class InicioComponent implements OnInit {
     // Cargar tracks top
     this._lastfm.getTopTracks(6, 1, "popularity_desc", "").subscribe({
       next: (response: any) => {
-        console.log(response)
         this.tracks = response.data?.tracks || [];
         this.isLoadingTracks = false;
       },
@@ -57,11 +59,22 @@ export class InicioComponent implements OnInit {
     });
 
     // Cargar conciertos
-    this._concerts.concerts.subscribe(concerts => {
-      if (concerts.length > 0) {
-        this.concerts = concerts;
+    this._ticketmaster.getConcerts(6, "", "ES").subscribe({
+      next: (response: ServerResponse) => {
+        if(response.status === "OK"){
+          this.concerts = response.data || [];
+          this.isLoadingConcerts = false;
+          console.log(this.concerts)
+        }else{
+          console.error(response.message);
+          this.isLoadingTracks = false;
+        }
+      },
+      error: (error: any) => {
+        console.error(error);
+        this.isLoadingTracks = false;
       }
-    });
+    })
 
     this._concerts.loading.subscribe(loading => {
       this.isLoadingConcerts = loading;
