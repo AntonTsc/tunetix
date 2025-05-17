@@ -329,7 +329,10 @@ export class AdminMessagesComponent implements OnInit {
 
   // Método mejorado de cambio de página con animación
   changePage(page: number): void {
-    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    // Validar que la página solicitada sea un número y esté dentro del rango válido
+    if (typeof page !== 'number' || isNaN(page) || page < 1 || page > this.totalPages || page === this.currentPage) {
+      return;
+    }
 
     this.isChangingPage = true;
     this.currentPage = page;
@@ -356,15 +359,28 @@ export class AdminMessagesComponent implements OnInit {
     }, 600);
   }
 
+  // Método mejorado para aplicar filtros con animación
   applyFilter(): void {
     // Eliminar espacios al principio y al final del término de búsqueda
     if (this.searchTerm) {
       this.searchTerm = this.searchTerm.trim();
     }
 
+    // Indicar que se está cambiando de página para mostrar animación
+    this.isChangingPage = true;
+
     // Reiniciar a la primera página al aplicar un filtro
     this.currentPage = 1;
-    this.loadMessages();
+
+    // Pequeño retraso para la animación
+    setTimeout(() => {
+      this.loadMessages();
+    }, 300);
+
+    // Restaurar estado después de cargar
+    setTimeout(() => {
+      this.isChangingPage = false;
+    }, 600);
   }
 
   clearFilter(): void {
@@ -373,18 +389,19 @@ export class AdminMessagesComponent implements OnInit {
     this.loadMessages();
   }
 
+  // Método para obtener las clases CSS según el estado del mensaje con efectos visuales mejorados
   getStatusClass(status: string): string {
     switch (status) {
       case 'nuevo':
-        return 'bg-red-100 text-red-800';
+        return 'bg-gradient-to-r from-red-100 to-red-50 text-red-800 border border-red-200';
       case 'leído':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-200';
       case 'respondido':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-800 border border-purple-200';
       case 'archivado':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border border-gray-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border border-gray-200';
     }
   }
 
@@ -416,15 +433,20 @@ export class AdminMessagesComponent implements OnInit {
     });
   }
 
-  // Añadir este método al componente
+  // Método mejorado para formatear texto del mensaje
   formatMessageText(text: string): string {
     if (!text) return '';
 
     // Normalizar diferentes tipos de saltos de línea
-    return text
+    const normalized = text
       .replace(/\\n/g, '\n')  // Convertir la cadena literal "\n" a un salto de línea real
       .replace(/\r\n/g, '\n') // Normalizar saltos de línea Windows a Unix
       .replace(/\n{3,}/g, '\n\n'); // Reducir múltiples saltos de línea a máximo dos
+
+    // Detectar y formatear URLs como enlaces clicables - podría ser habilitado en futuras versiones
+    // return normalized.replace(/https?:\/\/[^\s]+/g, url => `<a href="${url}" target="_blank" class="text-indigo-600 hover:underline">${url}</a>`);
+
+    return normalized;
   }
 
   // Método para obtener la URL completa de la imagen de perfil
@@ -438,5 +460,50 @@ export class AdminMessagesComponent implements OnInit {
 
     // Si es una ruta relativa, añadir la URL base del backend
     return `${this.apiUrl}/${imagePath}`;
+  }
+
+  // Método para obtener el rango de paginación
+  getPaginationRange(): (number | string)[] {
+    const visiblePages = 5; // Número de páginas visibles en la paginación
+    const range: (number | string)[] = [];
+
+    if (this.totalPages <= visiblePages) {
+      // Si hay menos páginas que el número visible, mostrar todas
+      for (let i = 1; i <= this.totalPages; i++) {
+        range.push(i);
+      }
+    } else {
+      // Siempre mostrar la primera página
+      range.push(1);
+
+      // Determinar el rango de páginas alrededor de la página actual
+      let start = Math.max(2, this.currentPage - Math.floor(visiblePages / 2));
+      let end = Math.min(this.totalPages - 1, start + visiblePages - 3);
+
+      // Ajustar el inicio si estamos cerca del final
+      if (end === this.totalPages - 1) {
+        start = Math.max(2, end - (visiblePages - 3));
+      }
+
+      // Añadir puntos suspensivos si hay un salto desde la primera página
+      if (start > 2) {
+        range.push('...');
+      }
+
+      // Añadir las páginas intermedias
+      for (let i = start; i <= end; i++) {
+        range.push(i);
+      }
+
+      // Añadir puntos suspensivos si hay un salto hasta la última página
+      if (end < this.totalPages - 1) {
+        range.push('...');
+      }
+
+      // Siempre mostrar la última página
+      range.push(this.totalPages);
+    }
+
+    return range;
   }
 }

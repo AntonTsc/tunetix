@@ -87,9 +87,36 @@
   white-space: nowrap;
 }
 
-/* Ajuste para evitar que los nombres largos rompan el layout */
+/* Ajuste para evitar que los nombres largos rompan el layout manteniendo visible la etiqueta "Tú" */
 .max-w-name {
-  max-width: 120px;
+  max-width: 160px;
+}
+
+@media (max-width: 640px) {
+  .max-w-name {
+    max-width: 100px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .max-w-name {
+    max-width: 120px;
+  }
+}
+
+@media (min-width: 769px) {
+  .max-w-name {
+    max-width: 160px;
+  }
+}
+
+/* Asegurar que la etiqueta "Tú" siempre se muestre correctamente */
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
 }
 
 .max-w-email {
@@ -106,20 +133,12 @@
 
 /* Media queries para ajustar anchos en diferentes tamaños de pantalla */
 @media (min-width: 640px) {
-  .max-w-name {
-    max-width: 160px;
-  }
-
   .max-w-email {
     max-width: 180px;
   }
 }
 
 @media (min-width: 768px) {
-  .max-w-name {
-    max-width: 200px;
-  }
-
   .max-w-email {
     max-width: 220px;
   }

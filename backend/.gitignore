@@ -1,4 +1,14 @@
+# Ignore vendor directory (dependencies)
 vendor
+
+# Ignore environment variables file
 .env
+.env.production
+.env.development
+.env.local
+
+# Ignore cache
 cache/*
+
+# Ignore assets directory
 assets

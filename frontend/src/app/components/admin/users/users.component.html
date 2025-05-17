@@ -219,17 +219,17 @@
                   <div class="flex-1 min-w-0">
                     <!-- Nombre del usuario con iconos de cuenta propia y Google -->
                     <div
-                      class="text-sm font-medium text-gray-900 flex items-center"
+                      class="text-sm font-medium text-gray-900 flex items-center flex-wrap"
                     >
                       <span
-                        class="truncate max-w-[120px]"
+                        class="truncate max-w-[120px] inline-block"
                         [appTooltip]="user.first_name + ' ' + user.last_name"
                       >
                         {{ user.first_name }} {{ user.last_name }}
                       </span>
                       <span
                         *ngIf="isSelf(user.id)"
-                        class="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
+                        class="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full whitespace-nowrap flex-shrink-0"
                       >
                         Tú
                       </span>
@@ -411,13 +411,15 @@
                       </div>
                       <div class="ml-4">
                         <div
-                          class="text-sm font-medium text-gray-900 truncate max-w-name flex items-center"
+                          class="text-sm font-medium text-gray-900 flex items-center flex-wrap"
                           [appTooltip]="user.first_name + ' ' + user.last_name"
                         >
-                          {{ user.first_name }} {{ user.last_name }}
+                          <span class="truncate max-w-name inline-block">
+                            {{ user.first_name }} {{ user.last_name }}
+                          </span>
                           <span
                             *ngIf="isSelf(user.id)"
-                            class="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
+                            class="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full whitespace-nowrap flex-shrink-0"
                           >
                             Tú
                           </span>

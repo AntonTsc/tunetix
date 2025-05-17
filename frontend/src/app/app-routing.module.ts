@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminGuard } from './guards/admin.guard';
 import { AuthGuard } from './guards/auth.guard';
+import { LoggedInGuard } from './guards/logged-in.guard';
 
 // Importar componentes
 import { AdminDashboardComponent } from './components/admin/dashboard/dashboard.component';
@@ -9,6 +10,7 @@ import { AdminMessagesComponent } from './components/admin/messages/messages.com
 import { AdminUsersComponent } from './components/admin/users/users.component';
 import { ArtistaComponent } from './components/artista/artista.component';
 import { ArtistasComponent } from './components/artistas/artistas.component';
+import { CancionComponent } from './components/cancion/cancion.component';
 import { CancionesComponent } from './components/canciones/canciones.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { DatosPersonalesComponent } from './components/datos-personales/datos-personales.component';
@@ -20,7 +22,6 @@ import { LoginComponent } from './components/login/login.component';
 import { MetodosPagoComponent } from './components/metodos-pago/metodos-pago.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 import { RegisterComponent } from './components/register/register.component';
-import { CancionComponent } from './components/cancion/cancion.component';
 
 const routes: Routes = [
   // Rutas públicas
@@ -28,11 +29,10 @@ const routes: Routes = [
   {path: 'artistas', component: ArtistasComponent},
   {path: 'artista/:id', component: ArtistaComponent},
   {path: 'canciones', component: CancionesComponent},
-  { path: 'cancion/:artist/:track', component: CancionComponent },
-  {path: 'evento/:id', component: EventoComponent},
+  { path: 'cancion/:artist/:track', component: CancionComponent },  {path: 'evento/:id', component: EventoComponent},
   {path: 'eventos', component: EventosComponent},
-  {path: 'login', component: LoginComponent},
-  {path: 'register', component: RegisterComponent},
+  {path: 'login', component: LoginComponent, canActivate: [LoggedInGuard]},
+  {path: 'register', component: RegisterComponent, canActivate: [LoggedInGuard]},
 
   // Rutas protegidas para usuarios autenticados
   {path: 'contacto', component: ContactoComponent, canActivate: [AuthGuard]},

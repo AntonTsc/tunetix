@@ -1,4 +1,4 @@
-<div class="space-y-8">
+<div class="space-y-8 max-w-full overflow-hidden">
   <!-- Alerta para mensajes (añadir en la parte superior) -->
   <ng-container *ngIf="serverResponse">
     <app-alert
@@ -6,7 +6,6 @@
       [serverResponse]="serverResponse"
     ></app-alert>
   </ng-container>
-
   <!-- Profile Header with Photo and Name -->
   <div
     class="flex flex-col sm:flex-row items-center sm:items-start gap-8 bg-gradient-to-r from-purple-50 to-indigo-50 p-8 rounded-xl mb-8 border border-purple-100 shadow-sm"
@@ -210,12 +209,19 @@
         </button>
       </div>
     </div>
-
     <!-- Rest of your profile content -->
-    <div class="text-center sm:text-left">
+    <div
+      class="text-center sm:text-left w-full overflow-hidden"
+      style="
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+      "
+    >
       <!-- Modificado para mostrar nombre y apellido -->
       <h1
-        class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-900 sm:truncate max-w-xl"
+        class="text-4xl md:text-4xl sm:text-3xl xs:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-900 break-words overflow-wrap-anywhere max-w-full sm:max-w-xl"
         [appTooltip]="userData.name + ' ' + userData.lastName"
       >
         {{ userData.name }} {{ userData.lastName }}
@@ -390,7 +396,6 @@
           </svg>
         </button>
       </div>
-
       <!-- Mostrar nombre y apellido - Estilizado similar a la contraseña -->
       <div
         *ngIf="!editingField.name"
@@ -398,151 +403,140 @@
       >
         {{ userData.name }} {{ userData.lastName }}
       </div>
-
       <!-- Form para edición del nombre -->
-      <form
-        *ngIf="editingField.name"
-        [formGroup]="nameForm"
-        class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2"
-      >
-        <!-- Modificación para el campo de nombre -->
-        <div class="flex-grow">
-          <!-- Contenedor con posición relativa para posicionar el contador -->
-          <div class="relative">
-            <input
-              type="text"
-              formControlName="name"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16"
-              placeholder="Nombre"
-            />
-            <!-- Contador en posición absoluta con mayor contraste -->
-            <div
-              class="absolute right-2 bottom-2 text-xs text-gray-600 bg-white px-1 rounded"
-            >
-              {{ nameForm.get("name")?.value?.length || 0 }}/50
-            </div>
-          </div>
-
-          <!-- Modificación para los mensajes de error del campo nombre -->
+      <form *ngIf="editingField.name" [formGroup]="nameForm" class="space-y-3">
+        <div class="w-full relative">
+          <input
+            type="text"
+            formControlName="name"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16"
+            placeholder="Nombre"
+          />
+          <!-- Contador en posición absoluta con mayor contraste -->
           <div
-            *ngIf="
-              nameForm.get('name')?.touched && nameForm.get('name')?.errors
-            "
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
+            class="absolute right-2 bottom-2 text-xs text-gray-600 bg-white px-1 rounded"
           >
-            <div
-              *ngIf="nameForm.get('name')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El nombre es obligatorio.
-            </div>
-            <div
-              *ngIf="nameForm.get('name')?.errors?.['minlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El nombre debe tener al menos 2 caracteres.
-            </div>
-            <div
-              *ngIf="nameForm.get('name')?.errors?.['maxlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El nombre no puede tener más de 50 caracteres.
-            </div>
-            <div
-              *ngIf="nameForm.get('name')?.errors?.['invalidCharacters']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El nombre solo puede contener letras y espacios.
-            </div>
+            {{ nameForm.get("name")?.value?.length || 0 }}/50
           </div>
         </div>
 
-        <!-- Modificación para el campo de apellido -->
-        <div class="flex-grow">
-          <div class="relative">
-            <input
-              type="text"
-              formControlName="lastName"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16"
-              placeholder="Apellido"
-            />
-            <!-- Contador en posición absoluta con mayor contraste -->
-            <div
-              class="absolute right-2 bottom-2 text-xs text-gray-600 bg-white px-1 rounded"
-            >
-              {{ nameForm.get("lastName")?.value?.length || 0 }}/50
-            </div>
-          </div>
-
-          <!-- Modificación para los mensajes de error del campo apellido -->
+        <div class="w-full relative">
+          <input
+            type="text"
+            formControlName="lastName"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16"
+            placeholder="Apellido"
+          />
+          <!-- Contador en posición absoluta con mayor contraste -->
           <div
-            *ngIf="
-              nameForm.get('lastName')?.touched &&
-              nameForm.get('lastName')?.errors
-            "
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
+            class="absolute right-2 bottom-2 text-xs text-gray-600 bg-white px-1 rounded"
           >
-            <div
-              *ngIf="nameForm.get('lastName')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El apellido es obligatorio.
-            </div>
-            <div
-              *ngIf="nameForm.get('lastName')?.errors?.['minlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El apellido debe tener al menos 2 caracteres.
-            </div>
-            <div
-              *ngIf="nameForm.get('lastName')?.errors?.['maxlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El apellido no puede tener más de 50 caracteres.
-            </div>
-            <div
-              *ngIf="nameForm.get('lastName')?.errors?.['invalidCharacters']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El apellido solo puede contener letras y espacios.
-            </div>
+            {{ nameForm.get("lastName")?.value?.length || 0 }}/50
           </div>
         </div>
 
-        <div class="space-x-2 mt-2 sm:mt-0">
-          <!-- Botón de guardar para nombre/apellido -->
-          <button
-            type="submit"
-            [disabled]="updateLoading || nameForm.invalid"
-            [ngClass]="{
-              'bg-purple-600 hover:bg-purple-700':
-                !nameForm.invalid && !updateLoading,
-              'bg-purple-400 cursor-not-allowed':
-                nameForm.invalid || updateLoading
-            }"
-            class="text-white px-4 py-2 rounded-md transition-all duration-200"
-            (click)="saveProfile('name')"
-          >
-            {{ updateLoading ? "Guardando..." : "Guardar" }}
-          </button>
+        <div class="flex items-start justify-between mt-3">
+          <!-- Mensajes de error para nombre y apellido -->
+          <div class="flex-1">
+            <div
+              class="text-red-500 text-sm space-y-1 pl-5"
+              *ngIf="
+                nameForm.get('name')?.touched && nameForm.get('name')?.errors
+              "
+            >
+              <div
+                *ngIf="nameForm.get('name')?.errors?.['required']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El nombre es obligatorio.
+              </div>
+              <div
+                *ngIf="nameForm.get('name')?.errors?.['minlength']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El nombre debe tener al menos 2 caracteres.
+              </div>
+              <div
+                *ngIf="nameForm.get('name')?.errors?.['maxlength']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El nombre no puede tener más de 50 caracteres.
+              </div>
+              <div
+                *ngIf="nameForm.get('name')?.errors?.['invalidCharacters']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El nombre solo puede contener letras y espacios.
+              </div>
+            </div>
 
-          <!-- Botón de cancelar (mantener estilo igual) -->
-          <button
-            type="button"
-            class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-            [disabled]="updateLoading"
-            (click)="toggleEdit('name')"
-          >
-            Cancelar
-          </button>
+            <div
+              class="text-red-500 text-sm space-y-1 pl-5 mt-1"
+              *ngIf="
+                nameForm.get('lastName')?.touched &&
+                nameForm.get('lastName')?.errors
+              "
+            >
+              <div
+                *ngIf="nameForm.get('lastName')?.errors?.['required']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El apellido es obligatorio.
+              </div>
+              <div
+                *ngIf="nameForm.get('lastName')?.errors?.['minlength']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El apellido debe tener al menos 2 caracteres.
+              </div>
+              <div
+                *ngIf="nameForm.get('lastName')?.errors?.['maxlength']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El apellido no puede tener más de 50 caracteres.
+              </div>
+              <div
+                *ngIf="nameForm.get('lastName')?.errors?.['invalidCharacters']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El apellido solo puede contener letras y espacios.
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones a la derecha -->
+          <div class="flex space-x-2 shrink-0">
+            <button
+              type="submit"
+              [disabled]="updateLoading || nameForm.invalid"
+              [ngClass]="{
+                'bg-purple-600 hover:bg-purple-700':
+                  !nameForm.invalid && !updateLoading,
+                'bg-purple-400 cursor-not-allowed':
+                  nameForm.invalid || updateLoading
+              }"
+              class="text-white px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap"
+              (click)="saveProfile('name')"
+            >
+              {{ updateLoading ? "Guardando..." : "Guardar" }}
+            </button>
+            <button
+              type="button"
+              class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 whitespace-nowrap"
+              [disabled]="updateLoading"
+              (click)="toggleEdit('name')"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -576,88 +570,90 @@
       >
         {{ userData.email }}
       </div>
-
       <!-- Form para edición del email -->
       <form
         *ngIf="editingField.email"
         [formGroup]="emailForm"
-        class="flex space-x-2"
+        class="space-y-3"
       >
-        <!-- Modificación para el campo de email de forma similar -->
-        <div class="flex-grow">
-          <div class="relative">
-            <input
-              type="email"
-              formControlName="email"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16"
-              placeholder="Correo electrónico"
-            />
-            <!-- Contador en posición absoluta con mayor contraste -->
-            <div
-              class="absolute right-2 bottom-2 text-xs text-gray-600 bg-white px-1 rounded"
-            >
-              {{ emailForm.get("email")?.value?.length || 0 }}/100
-            </div>
-          </div>
-
-          <!-- Modificación para los mensajes de error del campo email -->
+        <div class="w-full relative">
+          <input
+            type="email"
+            formControlName="email"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600 pr-16"
+            placeholder="Correo electrónico"
+          />
+          <!-- Contador en posición absoluta con mayor contraste -->
           <div
-            *ngIf="
-              emailForm.get('email')?.touched && emailForm.get('email')?.errors
-            "
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
+            class="absolute right-2 bottom-2 text-xs text-gray-600 bg-white px-1 rounded"
           >
-            <div
-              *ngIf="emailForm.get('email')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El correo electrónico es obligatorio.
-            </div>
-            <div
-              *ngIf="
-                emailForm.get('email')?.errors?.['email'] ||
-                emailForm.get('email')?.errors?.['pattern']
-              "
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              Introduce un correo electrónico válido.
-            </div>
-            <div
-              *ngIf="emailForm.get('email')?.errors?.['maxlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              El correo electrónico no puede tener más de 100 caracteres.
-            </div>
+            {{ emailForm.get("email")?.value?.length || 0 }}/100
           </div>
         </div>
 
-        <div>
-          <!-- Botón de guardar para email -->
-          <button
-            type="submit"
-            [disabled]="updateLoading || emailForm.invalid"
-            [ngClass]="{
-              'bg-purple-600 hover:bg-purple-700':
-                !emailForm.invalid && !updateLoading,
-              'bg-purple-400 cursor-not-allowed':
-                emailForm.invalid || updateLoading
-            }"
-            class="text-white px-4 py-2 rounded-md transition-all duration-200"
-            (click)="saveProfile('email')"
-          >
-            {{ updateLoading ? "Guardando..." : "Guardar" }}
-          </button>
-          <button
-            type="button"
-            class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 ml-2"
-            [disabled]="updateLoading"
-            (click)="toggleEdit('email')"
-          >
-            Cancelar
-          </button>
+        <div class="flex items-start justify-between mt-3">
+          <!-- Mensajes de error para email -->
+          <div class="flex-1">
+            <div
+              *ngIf="
+                emailForm.get('email')?.touched &&
+                emailForm.get('email')?.errors
+              "
+              class="text-red-500 text-sm space-y-1 pl-5"
+            >
+              <div
+                *ngIf="emailForm.get('email')?.errors?.['required']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El correo electrónico es obligatorio.
+              </div>
+              <div
+                *ngIf="
+                  emailForm.get('email')?.errors?.['email'] ||
+                  emailForm.get('email')?.errors?.['pattern']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                Introduce un correo electrónico válido.
+              </div>
+              <div
+                *ngIf="emailForm.get('email')?.errors?.['maxlength']"
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                El correo electrónico no puede tener más de 100 caracteres.
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones a la derecha -->
+          <div class="flex space-x-2 shrink-0">
+            <!-- Botón de guardar para email -->
+            <button
+              type="submit"
+              [disabled]="updateLoading || emailForm.invalid"
+              [ngClass]="{
+                'bg-purple-600 hover:bg-purple-700':
+                  !emailForm.invalid && !updateLoading,
+                'bg-purple-400 cursor-not-allowed':
+                  emailForm.invalid || updateLoading
+              }"
+              class="text-white px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap"
+              (click)="saveProfile('email')"
+            >
+              {{ updateLoading ? "Guardando..." : "Guardar" }}
+            </button>
+            <button
+              type="button"
+              class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 whitespace-nowrap"
+              [disabled]="updateLoading"
+              (click)="toggleEdit('email')"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -706,29 +702,6 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Contraseña actual"
           />
-          <!-- Modificación para los mensajes de error de la contraseña actual -->
-          <div
-            *ngIf="
-              passwordForm.get('currentPassword')?.touched &&
-              passwordForm.get('currentPassword')?.errors
-            "
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
-          >
-            <div
-              *ngIf="passwordForm.get('currentPassword')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La contraseña actual es obligatoria.
-            </div>
-            <div
-              *ngIf="passwordForm.get('currentPassword')?.errors?.['minlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La contraseña debe tener al menos 6 caracteres.
-            </div>
-          </div>
         </div>
 
         <!-- Nueva contraseña -->
@@ -739,29 +712,6 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Nueva contraseña"
           />
-          <!-- Modificación para los mensajes de error de la nueva contraseña -->
-          <div
-            *ngIf="
-              passwordForm.get('newPassword')?.touched &&
-              passwordForm.get('newPassword')?.errors
-            "
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
-          >
-            <div
-              *ngIf="passwordForm.get('newPassword')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La contraseña es obligatoria.
-            </div>
-            <div
-              *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La contraseña debe tener al menos 6 caracteres.
-            </div>
-          </div>
         </div>
 
         <!-- Confirmar contraseña -->
@@ -772,49 +722,85 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Confirmar nueva contraseña"
           />
-          <!-- Modificación para los mensajes de error de confirmación de contraseña -->
-          <div
-            *ngIf="passwordForm.get('confirmPassword')?.touched && (passwordForm.get('confirmPassword')?.errors || passwordForm.errors?.['notSame'])"
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
-          >
-            <div
-              *ngIf="passwordForm.get('confirmPassword')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La confirmación es obligatoria.
-            </div>
-            <div *ngIf="passwordForm.errors?.['notSame']" class="relative">
-              <span class="absolute -left-5">-</span>
-              Las contraseñas no coinciden.
-            </div>
-          </div>
         </div>
 
-        <div class="flex space-x-2">
-          <!-- Botón actualizar contraseña -->
-          <button
-            type="submit"
-            [disabled]="updateLoading || passwordForm.invalid"
-            [ngClass]="{
-              'bg-purple-600 hover:bg-purple-700':
-                !passwordForm.invalid && !updateLoading,
-              'bg-purple-400 cursor-not-allowed':
-                passwordForm.invalid || updateLoading
-            }"
-            class="text-white px-4 py-2 rounded-md transition-all duration-200"
-            (click)="updatePassword()"
-          >
-            {{ updateLoading ? "Actualizando..." : "Actualizar contraseña" }}
-          </button>
-          <button
-            type="button"
-            class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-            [disabled]="updateLoading"
-            (click)="toggleEdit('password')"
-          >
-            Cancelar
-          </button>
+        <div class="flex items-start justify-between mt-3">
+          <!-- Mensajes de error combinados para contraseñas -->
+          <div class="flex-1">
+            <div class="text-red-500 text-sm space-y-1 pl-5">
+              <!-- Error de contraseña actual -->
+              <div
+                *ngIf="
+                  passwordForm.get('currentPassword')?.touched &&
+                  passwordForm.get('currentPassword')?.errors?.['required']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                La contraseña actual es obligatoria.
+              </div>
+              <!-- Error de nueva contraseña -->
+              <div
+                *ngIf="
+                  passwordForm.get('newPassword')?.touched &&
+                  passwordForm.get('newPassword')?.errors?.['required']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                La contraseña nueva es obligatoria.
+              </div>
+              <div
+                *ngIf="
+                  passwordForm.get('newPassword')?.touched &&
+                  passwordForm.get('newPassword')?.errors?.['minlength']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                La contraseña debe tener al menos 6 caracteres.
+              </div>
+
+              <!-- Error de contraseñas no coinciden -->
+              <div
+                *ngIf="
+                  passwordForm.get('confirmPassword')?.touched &&
+                  passwordForm.errors?.['notSame']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                Las contraseñas no coinciden.
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones a la derecha -->
+          <div class="flex space-x-2 shrink-0">
+            <!-- Botón actualizar contraseña -->
+            <button
+              type="submit"
+              [disabled]="updateLoading || passwordForm.invalid"
+              [ngClass]="{
+                'bg-purple-600 hover:bg-purple-700':
+                  !passwordForm.invalid && !updateLoading,
+                'bg-purple-400 cursor-not-allowed':
+                  passwordForm.invalid || updateLoading
+              }"
+              class="text-white px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap"
+              (click)="updatePassword()"
+            >
+              {{ updateLoading ? "Actualizando..." : "Actualizar contraseña" }}
+            </button>
+            <button
+              type="button"
+              class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 whitespace-nowrap"
+              [disabled]="updateLoading"
+              (click)="toggleEdit('password')"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -882,29 +868,6 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Nueva contraseña"
           />
-          <!-- Mensajes de error con guiones -->
-          <div
-            *ngIf="
-              googlePasswordForm.get('newPassword')?.touched &&
-              googlePasswordForm.get('newPassword')?.errors
-            "
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
-          >
-            <div
-              *ngIf="googlePasswordForm.get('newPassword')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La contraseña es obligatoria.
-            </div>
-            <div
-              *ngIf="googlePasswordForm.get('newPassword')?.errors?.['minlength']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La contraseña debe tener al menos 6 caracteres.
-            </div>
-          </div>
         </div>
 
         <!-- Confirmar contraseña -->
@@ -915,54 +878,76 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder="Confirmar nueva contraseña"
           />
-          <!-- Mensajes de error con guiones -->
-          <div
-            *ngIf="googlePasswordForm.get('confirmPassword')?.touched && (googlePasswordForm.get('confirmPassword')?.errors || googlePasswordForm.errors?.['notSame'])"
-            class="text-red-500 text-sm mt-1 space-y-1 pl-5"
-          >
-            <div
-              *ngIf="googlePasswordForm.get('confirmPassword')?.errors?.['required']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              La confirmación es obligatoria.
-            </div>
-            <div
-              *ngIf="googlePasswordForm.errors?.['notSame']"
-              class="relative"
-            >
-              <span class="absolute -left-5">-</span>
-              Las contraseñas no coinciden.
-            </div>
-          </div>
         </div>
 
-        <div class="flex space-x-3 pt-2">
-          <!-- Botón para guardar -->
-          <button
-            type="button"
-            [disabled]="updateLoading || googlePasswordForm.invalid"
-            [ngClass]="{
-              'bg-purple-600 hover:bg-purple-700':
-                !googlePasswordForm.invalid && !updateLoading,
-              'bg-purple-400 cursor-not-allowed':
-                googlePasswordForm.invalid || updateLoading
-            }"
-            class="text-white px-4 py-2 rounded-md transition-all duration-200"
-            (click)="addGooglePassword()"
-          >
-            {{ updateLoading ? "Guardando..." : "Añadir contraseña" }}
-          </button>
+        <div class="flex items-start justify-between mt-3">
+          <!-- Mensajes de error combinados para Google Password -->
+          <div class="flex-1">
+            <div class="text-red-500 text-sm space-y-1 pl-5">
+              <!-- Error de contraseña requerida -->
+              <div
+                *ngIf="
+                  googlePasswordForm.get('newPassword')?.touched &&
+                  googlePasswordForm.get('newPassword')?.errors?.['required']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                La contraseña es obligatoria.
+              </div>
+              <div
+                *ngIf="
+                  googlePasswordForm.get('newPassword')?.touched &&
+                  googlePasswordForm.get('newPassword')?.errors?.['minlength']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                La contraseña debe tener al menos 6 caracteres.
+              </div>
 
-          <!-- Botón para cancelar -->
-          <button
-            type="button"
-            class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-            [disabled]="updateLoading"
-            (click)="toggleGooglePasswordEdit()"
-          >
-            Cancelar
-          </button>
+              <!-- Error de contraseñas no coinciden -->
+              <div
+                *ngIf="
+                  googlePasswordForm.get('confirmPassword')?.touched &&
+                  googlePasswordForm.errors?.['notSame']
+                "
+                class="relative"
+              >
+                <span class="absolute -left-5">-</span>
+                Las contraseñas no coinciden.
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones a la derecha -->
+          <div class="flex space-x-2 shrink-0">
+            <!-- Botón para guardar -->
+            <button
+              type="button"
+              [disabled]="updateLoading || googlePasswordForm.invalid"
+              [ngClass]="{
+                'bg-purple-600 hover:bg-purple-700':
+                  !googlePasswordForm.invalid && !updateLoading,
+                'bg-purple-400 cursor-not-allowed':
+                  googlePasswordForm.invalid || updateLoading
+              }"
+              class="text-white px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap"
+              (click)="addGooglePassword()"
+            >
+              {{ updateLoading ? "Guardando..." : "Añadir contraseña" }}
+            </button>
+
+            <!-- Botón para cancelar -->
+            <button
+              type="button"
+              class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 whitespace-nowrap"
+              [disabled]="updateLoading"
+              (click)="toggleGooglePasswordEdit()"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </form>
     </div>
