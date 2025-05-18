@@ -115,7 +115,7 @@ cp .env.example .env
 ```
 ```bash
 # Clave secreta para JWT
-SECRET = tu_token_key (cuantos mas caracteres mejor)
+SECRET = tu_token_key (cuantos mas caracteres, mejor)
 
 # Credenciales BBDD
 DB_HOST = 'mariadb'
@@ -133,7 +133,7 @@ TICKETMASTER_API_KEY = tu_api_key
 # Google OAuth
 GOOGLE_CLIENT_ID = tu_client_id
 GOOGLE_CLIENT_SECRET = tu_secret
-GOOGLE_REDIRECT_URI = 'http://localhost/inicio
+GOOGLE_REDIRECT_URI = 'http://localhost/inicio'
 ```
 
 ### 🐳 Despliegue con Docker
@@ -153,7 +153,7 @@ dentro de `docker/scripts` se encuentran los siguientes ejecutables:
 
 #### 2. Iniciar proyecto
 
-Desde la ruta raiz del proyecto, situate en el directorio `docker/scripts` y ejecuta `start.sh`/`win_start.bat` dependiendo de tu sistema operativo
+Desde la ruta raíz del proyecto, sitúate en el directorio `docker/scripts` y ejecuta `start.sh`/`win_start.bat` dependiendo de tu sistema operativo
 
 ```bash
 cd docker/scripts
