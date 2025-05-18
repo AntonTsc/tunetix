@@ -1,5 +1,6 @@
 <?php
 require_once '../../auth/global_headers.php';
+require_once '../../utils/classes/ServerResponse.php';
 require_once '../../db.php';
 
 // En un entorno de producción, debes descomentar la siguiente línea
@@ -17,21 +18,22 @@ function isAdminTemp()
 
 if (!isAdminTemp()) {
     http_response_code(403);
-    echo json_encode(array("status" => "ERROR", "message" => "Acceso denegado. Se requieren permisos de administrador."));
+    ServerResponse::error(403, "Acceso denegado. Se requieren permisos de administrador.");
+
     exit();
 }
 
 // Verificar que sea una solicitud GET
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
-    echo json_encode(array("status" => "ERROR", "message" => "Method not allowed"));
+    ServerResponse::error(405, "Method not allowed");
     exit();
 }
 
 // Verificar que se proporcione un ID
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     http_response_code(400);
-    echo json_encode(array("status" => "ERROR", "message" => "Se requiere un ID de mensaje"));
+    ServerResponse::error(400, "Se requiere un ID de mensaje");
     exit();
 }
 
@@ -73,26 +75,16 @@ try {
         ];
 
         http_response_code(200);
-        echo json_encode(array(
-            "status" => "OK",
-            "message" => "Mensaje recuperado con éxito",
-            "data" => $messageData
-        ));
+        ServerResponse::success("Mensaje recuperado con éxito", $messageData);
     } else {
         http_response_code(404);
-        echo json_encode(array(
-            "status" => "ERROR",
-            "message" => "Mensaje no encontrado"
-        ));
+        ServerResponse::error(404, "Mensaje no encontrado");
     }
 
     $stmt->close();
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(array(
-        "status" => "ERROR",
-        "message" => "Error en el servidor: " . $e->getMessage()
-    ));
+    ServerResponse::error(500, "Error en el servidor: " . $e->getMessage());
 }
 
 $conn->close();

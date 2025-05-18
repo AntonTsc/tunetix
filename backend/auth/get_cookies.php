@@ -1,5 +1,6 @@
 <?php
     include_once '../auth/global_headers.php';
+    include_once '../utils/classes/ServerResponse.php';
     include_once 'validate_token.php';
     
     header('Content-Type: application/json');
@@ -13,8 +14,8 @@
             "access_token_valido" => $is_valid
         ];
         
-        echo json_encode(["status" => "OK", "message" => "cookies sent", "data" => $cookies]);
+        ServerResponse::success("Cookies sent", $cookies);
     }else{
-        echo json_encode(["status" => "ERROR", "message" => "Error when attempting to send cookies"]);
+        ServerResponse::error(0, "Error when attempting to send cookies");
     }
 ?>

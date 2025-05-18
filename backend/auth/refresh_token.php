@@ -3,6 +3,7 @@ include_once '../vendor/autoload.php';
 include_once 'global_headers.php';
 include_once 'token.php';
 include_once '../dotenv.php';
+include_once '../utils/classes/ServerResponse.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -12,7 +13,7 @@ $secret_key = $_ENV['SECRET'];
 
 // Verificar que el refresh_token está presente en las cookies
 if (!isset($_COOKIE['refresh_token'])) {
-    echo json_encode(["status" => "ERROR", "message" => "No hay refresh token"]);
+    ServerResponse::error(400, "No hay refresh token");
     http_response_code(400);  // Código de error 400: Bad Request
     exit;
 }
@@ -27,7 +28,7 @@ try {
 
     // Verificar que la fecha de expiración del refresh_token no haya pasado
     if ($decoded->exp < time()) {
-        echo json_encode(["status" => "ERROR", "message" => "Refresh token expirado"]);
+        ServerResponse::error(401, "Refresh token expirado");
         http_response_code(401);
         exit;
     }
@@ -37,10 +38,10 @@ try {
     // Configurar la cookie de access_token con Secure y HttpOnly
     setcookie("access_token", $new_access_token, time() + 60 * 30, "/", "", false, true);  // Expira en 30 min
 
-    echo json_encode(["status" => "OK", "message" => "Token renovado", "access_token" => $new_access_token]);
+    ServerResponse::success("Token renovado", ["access_token" => $new_access_token]);
 
 } catch (Exception $e) {
-    echo json_encode(["status" => "ERROR", "message" => "Refresh token inválido", "error" => $e->getMessage()]);
+    ServerResponse::error(401, "Refresh token inválido: " . $e->getMessage());
     http_response_code(401);
 }
 ?>

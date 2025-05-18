@@ -43,19 +43,12 @@ class Concert
                         'currency' => 'EUR'
                     ]];
                 } catch (Exception $e) {
-                    error_log($e->getMessage());
+                    ServerResponse::error($e->getCode(), "Error al obtener el precio del evento: " . $e->getMessage());
                     $concert['precio'] = null;
                     $concert['priceRanges'] = [];
                 }
             }
-
-            header("Content-Type: application/json");
-            echo json_encode([
-                "status" => "OK",
-                "message" => "Información de conciertos obtenida (desde caché).",
-                "data" => $concerts,
-                "page" => $cachedData['page_info']
-            ]);
+            ServerResponse::success("Información de conciertos obtenida (desde caché).", $concerts, $cachedData['page_info']);
             return;
         }
 
@@ -144,7 +137,7 @@ class Concert
                                 'currency' => 'EUR'
                             ]];
                         } catch (Exception $e) {
-                            error_log($e->getMessage());
+                            ServerResponse::error($e->getCode(), "Error al obtener el precio del evento: " . $e->getMessage());
                             $concert['precio'] = null;
                             $concert['priceRanges'] = [];
                         }
@@ -163,77 +156,51 @@ class Concert
                         'page_info' => $page_info
                     ], 'concert'); // Especificar 'concert' como tipo de caché
 
-                    header("Content-Type: application/json");
-                    echo json_encode([
-                        "status" => "OK",
-                        "message" => "Información de conciertos obtenida.",
-                        "data" => $concerts,
-                        "page" => $page_info
-                    ]);
+                    ServerResponse::success("Información de conciertos obtenida.", $concerts, $page_info);
                     return;
                 } else {
-                    // No se encontraron eventos, pero el estado HTTP es 200
-                    header("Content-Type: application/json");
-                    echo json_encode([
-                        "status" => "ERROR",
-                        "message" => "No se encontraron conciertos.",
-                        "data" => [],
-                        "page" => [
-                            'number' => $page,
-                            'totalElements' => 0,
-                            'totalPages' => 0,
-                            'size' => $limit
-                        ]
-                    ]);
+                    $page_info = [
+                        'number' => $page,
+                        'totalElements' => 0,
+                        'totalPages' => 0,
+                        'size' => $limit
+                    ];
+
+                    // No se encontraron eventos
+                    ServerResponse::error(404, "No se encontraron conciertos.", null, $page_info);
                     return;
                 }
             }
 
             if ($httpCode === 404) {
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "ERROR",
-                    "message" => "No se encontraron conciertos.",
-                    "data" => [],
-                    "page" => [
-                        'number' => $page,
-                        'totalElements' => 0,
-                        'totalPages' => 0,
-                        'size' => $limit
-                    ]
-                ]);
-                return;
-            }
-
-            if ($httpCode !== 200) {
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "ERROR",
-                    "message" => "Error al obtener los datos de los conciertos.",
-                    "data" => [],
-                    "page" => [
-                        'number' => $page,
-                        'totalElements' => 0,
-                        'totalPages' => 0,
-                        'size' => $limit
-                    ]
-                ]);
-                return;
-            }
-        } catch (Exception $e) {
-            header("Content-Type: application/json");
-            echo json_encode([
-                "status" => "ERROR",
-                "message" => "Error al obtener los conciertos.",
-                "data" => [],
-                "page" => [
+                $page_info = [
                     'number' => $page,
                     'totalElements' => 0,
                     'totalPages' => 0,
                     'size' => $limit
-                ],
-                "error" => $e->getMessage(),
-            ]);
+                ];
+                ServerResponse::error(404, "No se encontraron conciertos.", null, $page_info);
+                return;
+            }
+
+            if ($httpCode !== 200) {
+                $page_info = [
+                    'number' => $page,
+                    'totalElements' => 0,
+                    'totalPages' => 0,
+                    'size' => $limit
+                ];
+                ServerResponse::error(0, "Error al obtener los datos de los conciertos.", null, $page_info);
+                return;
+            }
+        } catch (Exception $e) {
+            $page_info = [
+                'number' => $page,
+                'totalElements' => 0,
+                'totalPages' => 0,
+                'size' => $limit
+            ];
+            ServerResponse::error($e->getCode(), "Error al obtener los los conciertos: " . $e->getMessage(), null, $page_info);
         }
     }
 
@@ -261,16 +228,10 @@ class Concert
                 // Actualizar el caché con los datos modificados
                 Cache::set($cacheKey, $cachedData, 'concert');
             } catch (Exception $e) {
-                error_log($e->getMessage());
+                ServerResponse::error($e->getCode(), "Error al obtener el precio del evento: " . $e->getMessage());
                 $cachedData['priceRanges'] = [];
             }
-
-            header("Content-Type: application/json");
-            echo json_encode([
-                "status" => "OK",
-                "message" => "Información del evento obtenida (desde caché).",
-                "data" => $cachedData
-            ]);
+            ServerResponse::success("Información del evento obtenida (desde caché).", $cachedData);
             return;
         }
 
@@ -313,46 +274,27 @@ class Concert
                         'currency' => 'EUR'
                     ]];
                 } catch (Exception $e) {
-                    error_log($e->getMessage());
+                    ServerResponse::error($e->getCode(), "Error al obtener el precio del evento: " . $e->getMessage());
                     $data['priceRanges'] = [];
                 }
 
                 // Guardar en caché con los precios
                 Cache::set($cacheKey, $data, 'concert');
-
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "OK",
-                    "message" => "Información del evento obtenida.",
-                    "data" => $data
-                ]);
+                ServerResponse::success("Información del evento obtenida.", $data);
                 return;
             }
 
             if ($httpCode === 404) {
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "ERROR",
-                    "message" => "Evento no encontrado."
-                ]);
+                ServerResponse::error(404, "Evento no encontrado.");
                 return;
             }
 
             if ($httpCode !== 200) {
-                header("Content-Type: application/json");
-                echo json_encode([
-                    "status" => "ERROR",
-                    "message" => "Error al obtener los datos del evento."
-                ]);
+                ServerResponse::error(0, "Error al obtener los datos del evento.");
                 return;
             }
         } catch (Exception $e) {
-            header("Content-Type: application/json");
-            echo json_encode([
-                "status" => "ERROR",
-                "message" => "Error al obtener el evento.",
-                "error" => $e->getMessage()
-            ]);
+            ServerResponse::error($e->getCode(), $e->getMessage());
         }
     }
 
@@ -399,7 +341,7 @@ class Concert
 
             return null;
         } catch (Exception $e) {
-            error_log("Error in getAttractionIdByName: " . $e->getMessage());
+            ServerResponse::error($e->getCode(), "Error al obtener el ID de la atracción: " . $e->getMessage());
             return null;
         }
     }
@@ -452,7 +394,7 @@ class Concert
 
             return [];
         } catch (Exception $e) {
-            error_log("Error in getByArtistName: " . $e->getMessage());
+            ServerResponse::error($e->getCode(), "Error al obtener eventos por nombre de artista: " . $e->getMessage());
             return [];
         }
     }

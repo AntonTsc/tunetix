@@ -143,8 +143,8 @@ dentro de `docker/scripts` se encuentran los siguientes ejecutables:
 
 | Script                                        | Descripción                                               |
 |-----------------------------------------------|-----------------------------------------------------------|
-| ``start.sh``                                  | Instala dependencias y inicia los contenedores            |
-| ``win_start.bat``                             | Instala dependencias y inicia los contenedores (Windows)  |
+| ``start.sh``                                  | Instala dependencias e inicia los contenedores            |
+| ``win_start.bat``                             | Instala dependencias e inicia los contenedores (Windows)  |
 | ``stop.sh``                                   | Detiene los contenedores                                  |
 | ``win_stop.bat``                              | Detiene los contenedores (Windows)                        |
 | ``restart.sh``                                | Reinicia los contenedores                                 |

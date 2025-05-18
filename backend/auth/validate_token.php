@@ -1,6 +1,7 @@
 <?php
 include_once dirname(__DIR__) . '/vendor/autoload.php';
 include_once dirname(__DIR__) . '/dotenv.php';
+include_once dirname(__DIR__) . '/utils/classes/ServerResponse.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -23,10 +24,10 @@ function verifyToken($token)
         $decoded = JWT::decode($token, new Key($hardcoded_key, 'HS256'));
         return $decoded;
     } catch (ExpiredException $e) {
-        error_log('JWT Error: Token expirado');
+        ServerResponse::error($e->getCode(), "Token expirado");
         return false;
     } catch (Exception $e) {
-        error_log('JWT Error: ' . $e->getMessage());
+        ServerResponse::error($e->getCode(), 'JWT Error: ' . $e->getMessage());
         return false;
     }
 }
@@ -36,7 +37,7 @@ if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
     header('Content-Type: application/json');
 
     if (!isset($_COOKIE['access_token'])) {
-        echo json_encode(["status" => "ERROR", "message" => "Token no proporcionado"]);
+        ServerResponse::error(0, "Token no proporcionado");
         exit;
     }
 
@@ -44,8 +45,8 @@ if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
 
     try {
         $decoded = JWT::decode($jwt, new Key($secret_key, 'HS256'));
-        echo json_encode(["status" => "OK", "message" => "Token valido"]);
+        ServerResponse::success("Token valido");
     } catch (Exception $e) {
-        echo json_encode(["status" => "ERROR", "message" => $e->getMessage()]);
+        ServerResponse::error($e->getCode(), "Token no valido: " . $e->getMessage());
     }
 }

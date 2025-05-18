@@ -1,7 +1,7 @@
 <?php
 class ServerResponse
 {
-    public static function send($statusCode, $message, $data = null)
+    public static function send($statusCode,$message,$data=null,$page=null)
     {
         // Si los headers no se han enviado aún, establecer el código de estado HTTP
         if (!headers_sent()) {
@@ -12,24 +12,29 @@ class ServerResponse
         $payload = [
             'status' => $statusCode === 200 ? 'OK' : 'ERROR',
             'message' => $message,
-            'data' => $data
+            'data' => $data,
+            'page' => $page
         ];
 
         if($payload['data'] === null){
             unset($payload['data']);
         }
 
+        if($payload['page'] === null){
+            unset($payload['page']);
+        }
+
         echo json_encode($payload);
         exit;
     }
 
-    public static function success($message, $data = null)
+    public static function success($message,$data=null,$page=null)
     {
-        self::send(200, $message, $data);
+        self::send(200,$message,$data,$page);
     }
 
-    public static function error($statusCode, $message, $data = null)
+    public static function error($statusCode,$message,$data=null,$page=null)
     {
-        self::send($statusCode, $message, $data);
+        self::send($statusCode,$message,$data,$page);
     }
 }

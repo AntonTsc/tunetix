@@ -3,6 +3,7 @@ include_once '../db.php';
 include_once 'global_headers.php';
 include_once 'token.php';
 include_once '../utils/formValidations.php';
+include_once '../utils/classes/ServerResponse.php';
 
 header('Content-Type: application/json');
 
@@ -10,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
 
     if (!isset($data['email'], $data['password'])) {
-        echo json_encode(["status" => "ERROR", "message" => "Datos incompletos"]);
+        ServerResponse::error(0, "Datos incompletos");
         exit;
     }
 
@@ -26,19 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Verificar si el usuario existe
     if (!$user) {
-        echo json_encode([
-            'status' => 'ERROR',
-            'message' => 'Credenciales inválidas.'
-        ]);
+        ServerResponse::error(0, "Credenciales inválidas");
         exit;
     }
 
     // Comprobar si es cuenta de Google sin contraseña
     if ($user['auth_provider'] === 'google' && empty($user['contrasena'])) {
-        echo json_encode([
-            'status' => 'ERROR',
-            'message' => 'Esta cuenta está vinculada a Google. Por favor, inicia sesión con Google o añade una contraseña desde tu perfil.'
-        ]);
+        ServerResponse::error(0, "Esta cuenta está vinculada a Google. Por favor, inicia sesión con Google o añade una contraseña desde tu perfil.");
         exit;
     }
 
@@ -46,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         validateEmail($user['correo']);
     } catch (Exception $e) {
-        echo json_encode(["status" => "ERROR", "message" => $e->getMessage()]);
+        ServerResponse::error($e->getCode(), $e->getMessage());
         exit;
     }
 
@@ -69,21 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "role" => $user['rol'] ?: 'user' // Si es NULL, poner 'user' por defecto
         ];
 
-        echo json_encode([
-            "status" => "OK",
-            "message" => "Login exitoso",
-            "data" => $userData
-        ]);
+        ServerResponse::success("Login exitoso", $userData);
     } else {
         // Contraseña incorrecta
-        echo json_encode([
-            'status' => 'ERROR',
-            'message' => 'Credenciales inválidas.'
-        ]);
+        ServerResponse::error(0, "Credenciales inválidas");
         exit;
     }
 
     $stmt->close();
 } else {
-    echo json_encode(["status" => "ERROR", "message" => "Método no permitido"]);
+    ServerResponse::error(0, "Método no permitido");
 }
