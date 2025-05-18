@@ -10,6 +10,7 @@ services:
       MYSQL_USER: tt_user # Usuario de base de datos
       MYSQL_PASSWORD: admin # Contraseña de usuario
     volumes:
+      - tunetix-db:/var/lib/mysql
       - ../backend/db/tunetix_db.sql:/docker-entrypoint-initdb.d/tunetix_db.sql:ro
     networks:
       - tunetix-network

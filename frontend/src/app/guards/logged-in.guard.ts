@@ -16,8 +16,7 @@ export const LoggedInGuard: CanActivateFn = (route, state): Observable<boolean> 
     switchMap((data: any) => {
       // If access token is valid, user is already logged in
       if (data.data.access_token_valido) {
-        console.log('LoggedInGuard: Usuario ya autenticado, redirigiendo a inicio');
-        router.navigate(['/inicio']);
+                router.navigate(['/inicio']);
         return of(false);
       }
 
@@ -27,8 +26,7 @@ export const LoggedInGuard: CanActivateFn = (route, state): Observable<boolean> 
           map((res) => {
             if (res.status === 'OK') {
               // Successfully refreshed, so user is authenticated
-              console.log('LoggedInGuard: Token refrescado exitosamente, redirigiendo a inicio');
-              router.navigate(['/inicio']);
+                            router.navigate(['/inicio']);
               return false;
             }
             // Failed to refresh, user can proceed to login/register

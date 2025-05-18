@@ -244,7 +244,6 @@ export class UserService {
       // Usar setTimeout para no bloquear la UI y ejecutar de forma asíncrona
       setTimeout(() => {
         this.downloadGoogleProfileImage().subscribe({
-          next: () => console.log('Imagen de Google descargada con éxito'),
           error: (err) => {
             console.error('Error al descargar imagen de Google:', err);
             // Resetear la bandera en caso de error para permitir reintentos

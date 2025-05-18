@@ -174,8 +174,7 @@ export class EventoComponent implements OnInit {
           });
         });
 
-        console.log('Respuesta de creación de tarjeta:', result);
-
+        
         if (result.status === 'OK') {
           // Verificar la estructura de la respuesta
           if (result.data && result.data.id) {
@@ -211,8 +210,7 @@ export class EventoComponent implements OnInit {
         return;
       }
 
-      console.log('Usando método de pago con ID:', paymentMethodId);
-
+      
       // Añadir un delay adicional para simular el procesamiento del pago
       await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -236,8 +234,7 @@ export class EventoComponent implements OnInit {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       if (response.status === 'OK') {
-        console.log('Compra realizada:', response);
-
+        
         this.showPaymentModal = false;
         this.isProcessingPayment = false;
 

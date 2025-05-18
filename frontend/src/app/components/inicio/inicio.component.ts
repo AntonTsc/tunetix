@@ -64,7 +64,6 @@ export class InicioComponent implements OnInit {
         if(response.status === "OK"){
           this.concerts = response.data || [];
           this.isLoadingConcerts = false;
-          console.log(this.concerts)
         }else{
           console.error(response.message);
           this.isLoadingTracks = false;

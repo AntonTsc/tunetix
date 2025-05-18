@@ -574,8 +574,7 @@ export class DatosPersonalesComponent implements OnInit {
 
     if (input.files && input.files.length) {
       this.selectedFile = input.files[0];
-      console.log('Archivo seleccionado:', this.selectedFile.name, this.selectedFile.type);
-
+      
       // Crear una vista previa de la imagen seleccionada
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -610,12 +609,10 @@ export class DatosPersonalesComponent implements OnInit {
     const formData = new FormData();
     formData.append('image', this.selectedFile);
 
-    console.log('FormData creado:', this.selectedFile.name, this.selectedFile.type, this.selectedFile.size);
-
+    
     this.userService.updateProfileImage(formData).subscribe({
       next: (response) => {
-        console.log('Respuesta del servidor:', response);
-
+        
         if (response.status === 'OK') {
           // Actualizar el perfil con la nueva imagen
           this.userData.profileImage = response.data.image_path;

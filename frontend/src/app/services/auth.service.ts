@@ -373,8 +373,7 @@ export class AuthService {
     urlParams.forEach((value, key) => {
       params[key] = value;
     });
-    console.log('checkGoogleRedirect - Todos los parámetros URL:', params);
-
+    
     // Parámetros específicos que buscamos
     const loginStatus = urlParams.get('login');
     const errorParam = urlParams.get('error');
@@ -383,13 +382,11 @@ export class AuthService {
 
     // Si tenemos código y estado de Google OAuth, procesarlo
     if (code && state) {
-      console.log('Detectados parámetros de OAuth de Google: code y state');
-
+      
       // Procesar el código de autorización directamente en el backend
       this.processGoogleOAuthCode(code, state).subscribe({
         next: (response) => {
-          console.log('Respuesta del procesamiento de OAuth:', response);
-
+          
           if (response.status === 'OK') {
             // Resetear cookies y actualizar estado de autenticación
             this.cookies = null;
@@ -398,8 +395,7 @@ export class AuthService {
             // Obtener datos del usuario
             this.fetchCurrentUserData().subscribe({
               next: (userData) => {
-                console.log('Datos de usuario después de procesar OAuth:', userData);
-
+                
                 if (userData.status === 'OK' && userData.data) {
                   // Guardar los datos del usuario incluyendo la foto de perfil de Google
                   const userDataWithImage = {
@@ -411,9 +407,7 @@ export class AuthService {
                   // Actualizar el BehaviorSubject con todos los datos del usuario
                   this.userDataSubject.next(userDataWithImage);
 
-                  console.log('🎉 Autenticación con Google exitosa');
-                  console.log('📋 Datos completos del usuario:', userDataWithImage);
-
+                                    
                   // Comprobar estado de administrador
                   this.checkAndUpdateAdminStatus().subscribe();
 
@@ -446,22 +440,18 @@ export class AuthService {
 
       // Si el login fue exitoso, actualizar estado de autenticación y obtener datos de usuario
       if (loginStatus === 'success' || loginStatus === 'linked' || loginStatus === 'registered') {
-        console.log('Google login successful, status:', loginStatus);
-        this.cookies = null; // Resetear cookies en memoria
+                this.cookies = null; // Resetear cookies en memoria
         this.updateAuthState(true); // Actualizar estado de autenticación
 
         // Obtener datos del usuario actual después del login
         this.fetchCurrentUserData().subscribe({
           next: (response) => {
-            console.log('fetchCurrentUserData response:', response);
-
+            
             if (response.status === 'OK' && response.data) {
               this.userDataSubject.next(response.data);
 
               // Mostrar información del usuario en consola después de iniciar sesión con Google
-              console.log('🎉 Autenticación con Google exitosa');
-              console.log('📋 Datos del usuario:', response.data);
-
+                            
               // También registrar en la consola las cookies actuales
               console.log('🍪 Cookies actuales:', {
                 access_token: this.getCookie('access_token') ? '(presente)' : '(no presente)',
@@ -469,7 +459,6 @@ export class AuthService {
               });
 
               this.checkAndUpdateAdminStatus().subscribe({
-                next: (isAdmin) => console.log('Admin status:', isAdmin),
                 error: (err) => console.error('Error checking admin status:', err)
               });
             } else {
@@ -505,8 +494,7 @@ export class AuthService {
     }).pipe(
       tap((response) => {
         if (response.status === 'OK') {
-          console.log('Código OAuth procesado correctamente');
-
+          
           // Si la respuesta incluye datos de usuario, actualizamos el subject
           if (response.user_data) {
             const userData = {

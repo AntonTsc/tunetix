@@ -266,8 +266,7 @@ export class MetodosPagoComponent implements OnInit {
     this._card.create(json).subscribe({
       next: (response: ServerResponse) => {
         this.serverResponse = response;
-        console.log(response);
-
+        
         // Solo si la operación fue exitosa
         if (response.status === 'OK') {
           // Reset the form
