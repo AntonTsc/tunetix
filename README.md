@@ -118,14 +118,13 @@ cp .env.example .env
 SECRET = tu_token_key (cuantos mas caracteres, mejor)
 
 # Credenciales BBDD
-DB_HOST = 'mariadb'
+DB_HOST = 'localhost'  # Si vas a usar Docker, debes poner 'mariadb'
 DB_NAME = 'tunetix_db'
 DB_USER = 'tt_user'
 DB_PASS = 'admin'
 
 # LASTFM API
 LASTFM_API_KEY = tu_api_key
-LASTFM_SHARED_SECRET = tu_secret
 
 # Ticketmaster API
 TICKETMASTER_API_KEY = tu_api_key
