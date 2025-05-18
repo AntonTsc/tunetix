@@ -16,17 +16,18 @@ Tunetix es una plataforma que integra información de música y eventos, permiti
   - [📑 Índice](#-índice)
   - [📋 Requisitos previos](#-requisitos-previos)
   - [🗂️ Estructura del proyecto](#️-estructura-del-proyecto)
-  - [🐳 Despliegue con Docker](#-despliegue-con-docker)
-    - [1. Variables de entorno](#1-variables-de-entorno)
-    - [2. Clonar el repositorio](#2-clonar-el-repositorio)
-    - [3. Construir y levantar los contenedores](#3-construir-y-levantar-los-contenedores)
-    - [4. Acceder al proyecto](#4-acceder-al-proyecto)
-    - [5. Scripts útiles](#5-scripts-útiles)
-  - [💻 Instalación y configuración (sin Docker)](#-instalación-y-configuración-sin-docker)
-    - [1. Clonar el repositorio](#1-clonar-el-repositorio)
-    - [2. Configurar la base de datos](#2-configurar-la-base-de-datos)
-    - [3. Configurar el backend](#3-configurar-el-backend)
-    - [4. Configurar el frontend](#4-configurar-el-frontend)
+  - [Despliegue](#despliegue)
+    - [Pasos pre-despliegue](#pasos-pre-despliegue)
+      - [1. Clona el repositorio](#1-clona-el-repositorio)
+      - [2. Variables de entorno](#2-variables-de-entorno)
+    - [🐳 Despliegue con Docker](#-despliegue-con-docker)
+      - [1. Tabla de scripts](#1-tabla-de-scripts)
+      - [2. Iniciar proyecto](#2-iniciar-proyecto)
+      - [3. Acceder al proyecto](#3-acceder-al-proyecto)
+    - [💻 Instalación y configuración (sin Docker)](#-instalación-y-configuración-sin-docker)
+      - [1. Configurar la base de datos](#1-configurar-la-base-de-datos)
+      - [2. Configurar el backend](#2-configurar-el-backend)
+      - [3. Configurar el frontend](#3-configurar-el-frontend)
   - [🚀 Ejecución del proyecto](#-ejecución-del-proyecto)
   - [✨ Funcionalidades principales](#-funcionalidades-principales)
   - [🛠️ Resolución de problemas comunes](#️-resolución-de-problemas-comunes)
@@ -95,78 +96,92 @@ tunetix/
 ```
 
 ---
+## Despliegue
 
-## 🐳 Despliegue con Docker
+### Pasos pre-despliegue
 
-### 1. Variables de entorno
+#### 1. Clona el repositorio
 
-Asegúrate de tener un archivo `.env` en la raíz del directorio `backend/` con el siguiente contenido:
-
-```env
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=tunetix_db
-MYSQL_USER=tt_user
-MYSQL_PASSWORD=admin
-
-JWT_SECRET=clave_supersecreta
-
-LASTFM_API_KEY=tu_api_key
-TICKETMASTER_API_KEY=tu_api_key
-GOOGLE_CLIENT_ID=tu_client_id
-GOOGLE_CLIENT_SECRET=tu_secret
+```bash
+git clone https://github.com/AntonTsc/tunetix.git
+cd tunetix
 ```
 
-Puedes duplicar el archivo `.env.example` y modificarlo:
+#### 2. Variables de entorno
+dentro de `backend/`, crea un archivo `.env` a partir de `.env.example`
 
 ```bash
 cp .env.example .env
 ```
-
-### 2. Clonar el repositorio
-
 ```bash
-git clone https://github.com/tu_usuario/tunetix.git
-cd tunetix
+# Clave secreta para JWT
+SECRET = tu_token_key (cuantos mas caracteres mejor)
+
+# Credenciales BBDD
+DB_HOST = 'mariadb'
+DB_NAME = 'tunetix_db'
+DB_USER = 'tt_user'
+DB_PASS = 'admin'
+
+# LASTFM API
+LASTFM_API_KEY = tu_api_key
+LASTFM_SHARED_SECRET = tu_secret
+
+# Ticketmaster API
+TICKETMASTER_API_KEY = tu_api_key
+
+# Google OAuth
+GOOGLE_CLIENT_ID = tu_client_id
+GOOGLE_CLIENT_SECRET = tu_secret
+GOOGLE_REDIRECT_URI = 'http://localhost/inicio
 ```
 
-### 3. Construir y levantar los contenedores
+### 🐳 Despliegue con Docker
+
+#### 1. Tabla de scripts
+dentro de `docker/scripts` se encuentran los siguientes ejecutables:
+
+| Script                                        | Descripción                                               |
+|-----------------------------------------------|-----------------------------------------------------------|
+| ``start.sh``                                  | Instala dependencias y inicia los contenedores            |
+| ``win_start.bat``                             | Instala dependencias y inicia los contenedores (Windows)  |
+| ``stop.sh``                                   | Detiene los contenedores                                  |
+| ``win_stop.bat``                              | Detiene los contenedores (Windows)                        |
+| ``restart.sh``                                | Reinicia los contenedores                                 |
+| ``win_restart.bat``                           | Reinicia los contenedores (Windows)                       |
+
+
+#### 2. Iniciar proyecto
+
+Desde la ruta raiz del proyecto, situate en el directorio `docker/scripts` y ejecuta `start.sh`/`win_start.bat` dependiendo de tu sistema operativo
 
 ```bash
-docker-compose up -d --build
+cd docker/scripts
+
+.\win_start.bat   # Windows
+./start.sh        # Linux
 ```
 
-Esto iniciará:
+Esto hará lo siguiente:
 
-- PHP + Apache (sirve frontend y backend)
-- MySQL
-- phpMyAdmin
+- Instalará las dependencias de las carpetas `backend/` y `frontend/`
+- Generará la versión de producción del proyecto Angular
+- Creará e iniciará los contenedores de Docker:
+  - PHP + Apache (sirve frontend y backend)
+  - MySQL
+  - phpMyAdmin
 
-### 4. Acceder al proyecto
+#### 3. Acceder al proyecto
 
 - Frontend: [http://localhost](http://localhost)
 - Backend API: [http://localhost/tunetix/backend/api/](http://localhost/tunetix/backend/api/)
 - phpMyAdmin (opcional): [http://localhost:8080](http://localhost:8080)
 
-### 5. Scripts útiles
-
-```bash
-docker-compose down                                 # Detener contenedores
-docker-compose logs -f                              # Ver logs
-docker exec -it tunetix-db-1 mysql -u tt_user -p    # Acceder a MySQL
-```
-
 ---
 
-## 💻 Instalación y configuración (sin Docker)
+### 💻 Instalación y configuración (sin Docker)
 
-### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/tu_usuario/tunetix.git
-cd tunetix
-```
-
-### 2. Configurar la base de datos
+#### 1. Configurar la base de datos
 
 ```sql
 CREATE DATABASE tunetix_db;
@@ -175,7 +190,7 @@ GRANT ALL PRIVILEGES ON tunetix_db.* TO 'tt_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-### 3. Configurar el backend
+#### 2. Configurar el backend
 
 ```bash
 cd backend
@@ -183,39 +198,12 @@ cp .env.example .env
 composer install
 ```
 
-Edita `.env`:
-
-```env
-DB_HOST=mariadb
-DB_PORT=3306
-DB_DATABASE=tunetix_db
-DB_USERNAME=tt_user
-DB_PASSWORD=admin
-
-JWT_SECRET=clave_supersecreta
-
-LASTFM_API_KEY=tu_api_key
-TICKETMASTER_API_KEY=tu_api_key
-GOOGLE_CLIENT_ID=tu_client_id
-GOOGLE_CLIENT_SECRET=tu_secret
-```
-
-### 4. Configurar el frontend
+#### 3. Configurar el frontend
 
 ```bash
 cd frontend
 npm install
 ```
-
-Edita `src/environments/environment.ts`:
-
-```ts
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost/tunetix/backend/api',
-};
-```
-
 ---
 
 ## 🚀 Ejecución del proyecto

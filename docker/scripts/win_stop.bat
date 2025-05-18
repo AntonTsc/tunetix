@@ -10,4 +10,4 @@ docker compose down
 popd
 
 endlocal
-exit /b
+
