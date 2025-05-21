@@ -19,11 +19,9 @@ Tunetix es una plataforma que integra información de música y eventos, permiti
   - [Despliegue](#despliegue)
     - [Pasos pre-despliegue](#pasos-pre-despliegue)
       - [1. Clona el repositorio](#1-clona-el-repositorio)
-      - [2. Variables de entorno](#2-variables-de-entorno)
-    - [🐳 Despliegue con Docker](#-despliegue-con-docker)
-      - [1. Tabla de scripts](#1-tabla-de-scripts)
-      - [2. Iniciar proyecto](#2-iniciar-proyecto)
-      - [3. Acceder al proyecto](#3-acceder-al-proyecto)
+      - [2. Variables de entorno](#2-variables-de-entorno) - [🐳 Despliegue con Docker](#-despliegue-con-docker)
+      - [1. Despliegue en producción](#1-despliegue-en-producción)
+      - [2. Acceder al proyecto](#2-acceder-al-proyecto)
     - [💻 Instalación y configuración (sin Docker)](#-instalación-y-configuración-sin-docker)
       - [1. Configurar la base de datos](#1-configurar-la-base-de-datos)
       - [2. Configurar el backend](#2-configurar-el-backend)
@@ -96,6 +94,7 @@ tunetix/
 ```
 
 ---
+
 ## Despliegue
 
 ### Pasos pre-despliegue
@@ -108,11 +107,13 @@ cd tunetix
 ```
 
 #### 2. Variables de entorno
+
 dentro de `backend/`, crea un archivo `.env` a partir de `.env.example`
 
 ```bash
 cp .env.example .env
 ```
+
 ```bash
 # Clave secreta para JWT
 SECRET = tu_token_key (cuantos mas caracteres, mejor)
@@ -137,44 +138,90 @@ GOOGLE_REDIRECT_URI = 'http://localhost/inicio'
 
 ### 🐳 Despliegue con Docker
 
-#### 1. Tabla de scripts
-dentro de `docker/scripts` se encuentran los siguientes ejecutables:
+#### 1. Despliegue en producción
 
-| Script                                        | Descripción                                               |
-|-----------------------------------------------|-----------------------------------------------------------|
-| ``start.sh``                                  | Instala dependencias e inicia los contenedores            |
-| ``win_start.bat``                             | Instala dependencias e inicia los contenedores (Windows)  |
-| ``stop.sh``                                   | Detiene los contenedores                                  |
-| ``win_stop.bat``                              | Detiene los contenedores (Windows)                        |
-| ``restart.sh``                                | Reinicia los contenedores                                 |
-| ``win_restart.bat``                           | Reinicia los contenedores (Windows)                       |
+Para desplegar la aplicación en un entorno de producción usando Docker:
 
+1. **Crear un archivo docker-compose.yml**:
 
-#### 2. Iniciar proyecto
+```yaml
+version: "3.8"
 
-Desde la ruta raíz del proyecto, sitúate en el directorio `docker/scripts` y ejecuta `start.sh`/`win_start.bat` dependiendo de tu sistema operativo
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: admin # Cambia esto por motivos de seguridad
+      MYSQL_DATABASE: tunetix_db
+      MYSQL_USER: tt_user
+      MYSQL_PASSWORD: admin # Cambia esto por motivos de seguridad
+    volumes:
+      - tunetix-db:/var/lib/mysql
+      - ./tunetix_db.sql:/docker-entrypoint-initdb.d/tunetix_db.sql:ro
+    networks:
+      - tunetix-network
 
-```bash
-cd docker/scripts
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_USER: tt_user
+      PMA_PASSWORD: admin
+    ports:
+      - "8080:80"
+    networks:
+      - tunetix-network
 
-.\win_start.bat   # Windows
-./start.sh        # Linux
+  apache:
+    image: anttsc/tunetix:latest # Imagen publicada en Docker Hub
+    container_name: apache
+    environment:
+      - DB_HOST=mariadb
+      - DB_NAME=tunetix_db
+      - DB_USER=tt_user
+      - DB_PASS=admin
+      - SECRET=your_jwt_secret_key # Cambia esto por tu clave JWT
+      - LASTFM_API_KEY=your_lastfm_api_key # Obtén una clave en last.fm
+      - TICKETMASTER_API_KEY=your_ticketmaster_api_key # Clave de Ticketmaster
+      - GOOGLE_CLIENT_ID=your_google_client_id # Desde Google Cloud Console
+      - GOOGLE_CLIENT_SECRET=your_google_client_secret # Desde Google Cloud Console
+      - GOOGLE_REDIRECT_URI=http://localhost/inicio
+    ports:
+      - "80:80"
+    depends_on:
+      - mariadb
+    networks:
+      - tunetix-network
+
+networks:
+  tunetix-network:
+    driver: bridge
+
+volumes:
+  tunetix-db:
+    driver: local
 ```
 
-Esto hará lo siguiente:
+2. **Descargar el archivo SQL de la base de datos**:
 
-- Instalará las dependencias de las carpetas `backend/` y `frontend/`
-- Generará la versión de producción del proyecto Angular
-- Creará e iniciará los contenedores de Docker:
-  - PHP + Apache (sirve frontend y backend)
-  - MySQL
-  - phpMyAdmin
+   Descarga el archivo `tunetix_db.sql` del repositorio y guárdalo en el mismo directorio que tu archivo docker-compose.yml.
 
-#### 3. Acceder al proyecto
+3. **Iniciar los contenedores**:
+
+```bash
+docker-compose up -d
+```
+
+Para más detalles sobre la configuración de Docker, consulta el archivo [DOCKER.md](DOCKER.md).
+
+#### 2. Acceder al proyecto
 
 - Frontend: [http://localhost](http://localhost)
 - Backend API: [http://localhost/tunetix/backend/api/](http://localhost/tunetix/backend/api/)
-- phpMyAdmin (opcional): [http://localhost:8080](http://localhost:8080)
+- phpMyAdmin: [http://localhost:8080](http://localhost:8080) (usuario: tt_user, contraseña: admin)
 
 ---
 
@@ -203,11 +250,12 @@ composer install
 cd frontend
 npm install
 ```
+
 ---
 
 ## 🚀 Ejecución del proyecto
 
-El frontend y el backend se sirven juntos a través de Apache. 
+El frontend y el backend se sirven juntos a través de Apache.
 
 - Accede a la aplicación: [http://localhost](http://localhost)
 - API REST: [http://localhost/tunetix/backend/api](http://localhost/tunetix/backend/api)
@@ -252,15 +300,14 @@ El backend guarda respuestas de Last.fm y Ticketmaster como archivos `.json` en 
 
 ## 📊 Tecnologías principales
 
-| Tecnología                            | Uso                        |
-|---------------------------------------|----------------------------|
-| [PHP](https://www.php.net/)           | Backend                    |
-| [Laravel](https://laravel.com/)       | Framework PHP              |
-| [Angular](https://angular.io/)        | Frontend SPA               |
-| [MySQL](https://www.mysql.com/)       | Base de datos              |
-| [Composer](https://getcomposer.org/)  | Dependencias PHP           |
-| [Node.js](https://nodejs.org/)        | Herramientas frontend      |
-| [Docker](https://www.docker.com/)     | Contenedores               |
-| [Last.fm API](https://www.last.fm/api)| Información de artistas    |
-| [Ticketmaster API](https://developer.ticketmaster.com/) | Información de eventos |
-
+| Tecnología                                              | Uso                     |
+| ------------------------------------------------------- | ----------------------- |
+| [PHP](https://www.php.net/)                             | Backend                 |
+| [Laravel](https://laravel.com/)                         | Framework PHP           |
+| [Angular](https://angular.io/)                          | Frontend SPA            |
+| [MySQL](https://www.mysql.com/)                         | Base de datos           |
+| [Composer](https://getcomposer.org/)                    | Dependencias PHP        |
+| [Node.js](https://nodejs.org/)                          | Herramientas frontend   |
+| [Docker](https://www.docker.com/)                       | Contenedores            |
+| [Last.fm API](https://www.last.fm/api)                  | Información de artistas |
+| [Ticketmaster API](https://developer.ticketmaster.com/) | Información de eventos  |

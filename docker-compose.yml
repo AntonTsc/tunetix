@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: tunetix_db
+      MYSQL_USER: tt_user
+      MYSQL_PASSWORD: admin
+    volumes:
+      - tunetix-db:/var/lib/mysql
+      - ./backend/db/tunetix_db.sql:/docker-entrypoint-initdb.d/tunetix_db.sql:ro
+    networks:
+      - tunetix-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_USER: tt_user
+      PMA_PASSWORD: admin
+    ports:
+      - "8080:80"
+    networks:
+      - tunetix-network
+  apache:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: apache
+    # En producción, eliminaremos estos volúmenes y utilizaremos el código copiado en la imagen
+    # volumes:
+    #   - ./frontend/dist/tunetix:/var/www/html/
+    #   - ./backend:/var/www/html/tunetix/backend
+    environment:
+      - DB_HOST=mariadb
+      - DB_NAME=tunetix_db
+      - DB_USER=tt_user
+      - DB_PASS=admin
+      - SECRET=your_jwt_secret_key
+      - LASTFM_API_KEY=your_lastfm_api_key
+      - TICKETMASTER_API_KEY=your_ticketmaster_api_key
+      - GOOGLE_CLIENT_ID=your_google_client_id
+      - GOOGLE_CLIENT_SECRET=your_google_client_secret
+      - GOOGLE_REDIRECT_URI=http://localhost/inicio
+    ports:
+      - "80:80"
+    depends_on:
+      - mariadb
+    networks:
+      - tunetix-network
+
+networks:
+  tunetix-network:
+    driver: bridge
+
+volumes:
+  tunetix-db:
+    driver: local
