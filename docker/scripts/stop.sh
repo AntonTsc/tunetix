@@ -6,7 +6,7 @@ echo "==============================="
 echo "Deteniendo contenedores Docker"
 echo "==============================="
 
-cd ../..
+cd ../
 docker compose down
 
 exit 0
