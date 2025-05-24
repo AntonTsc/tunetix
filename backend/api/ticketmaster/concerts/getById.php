@@ -1,7 +1,7 @@
 <?php
 include_once './classes/Concert.php';
 include_once '../../../auth/global_headers.php';
-include_once '../../../utils/classes/ServerRespponse.php';
+include_once '../../../utils/classes/ServerResponse.php';
 
 $eventId = isset($_GET['id']) ? $_GET['id'] : "";
 
