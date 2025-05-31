@@ -174,9 +174,17 @@ class Track
 
         // Decodificar las respuestas JSON
         $data = json_decode($trackResponse, true);
-        $data['track']['similar'] = array_slice(json_decode($similarResponse, true)['similartracks']['track'], 0, 5);
+        $similarData = json_decode($similarResponse, true);
+
+        // Verificar que existan los datos de similares
+        if (isset($similarData['similartracks']['track']) && is_array($similarData['similartracks']['track'])) {
+            $data['track']['similar'] = array_slice($similarData['similartracks']['track'], 0, 5);
+        } else {
+            $data['track']['similar'] = [];
+        }
+
         $data['track']['image'] = isset($data['track']['album']) ? $data['track']['album']['image'] : null;
-        if($data['track']['image'] == null) {
+        if ($data['track']['image'] == null) {
             unset($data['track']['image']);
         }
 

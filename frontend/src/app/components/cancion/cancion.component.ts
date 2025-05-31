@@ -19,7 +19,7 @@ export class CancionComponent implements OnInit {
   error: string | null = null;
   artistName!: string;
   trackName!: string;
-  isBioExpanded = true;
+  isBioExpanded = false;
   showScrollButton = false;
 
   ngOnInit(): void{
