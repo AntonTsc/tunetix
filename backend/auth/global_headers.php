@@ -1,6 +1,9 @@
 <?php
+// Remove any existing Access-Control-Allow-Origin headers first
+header_remove('Access-Control-Allow-Origin');
+
 // Permitir solicitudes desde localhost:4200 (Angular)
-header('Access-Control-Allow-Origin: http://localhost');
+header('Access-Control-Allow-Origin: http://localhost:4200');
 // Permitir cookies en solicitudes cross-origin
 header('Access-Control-Allow-Credentials: true');
 // Permitir métodos HTTP

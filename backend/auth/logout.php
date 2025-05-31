@@ -2,8 +2,22 @@
 include_once '../auth/global_headers.php';
 include_once '../utils/classes/ServerResponse.php';
 
-setcookie("access_token", "", time() - 3600, "/", "", false, false);
-setcookie("refresh_token", "", time() - 3600, "/", "", false, false);
+// Limpiar cookies con configuraciones cross-origin
+setcookie("access_token", "", [
+    'expires' => time() - 3600,
+    'path' => '/',
+    'domain' => '',
+    'secure' => false,
+    'httponly' => false,
+    'samesite' => 'Lax'
+]);
+setcookie("refresh_token", "", [
+    'expires' => time() - 3600,
+    'path' => '/',
+    'domain' => '',
+    'secure' => false,
+    'httponly' => false,
+    'samesite' => 'Lax'
+]);
 
 ServerResponse::success("Sesión cerrada");
-?>

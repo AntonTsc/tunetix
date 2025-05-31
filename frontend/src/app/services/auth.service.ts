@@ -373,7 +373,7 @@ export class AuthService {
     urlParams.forEach((value, key) => {
       params[key] = value;
     });
-    
+
     // Parámetros específicos que buscamos
     const loginStatus = urlParams.get('login');
     const errorParam = urlParams.get('error');
@@ -382,11 +382,11 @@ export class AuthService {
 
     // Si tenemos código y estado de Google OAuth, procesarlo
     if (code && state) {
-      
+
       // Procesar el código de autorización directamente en el backend
       this.processGoogleOAuthCode(code, state).subscribe({
         next: (response) => {
-          
+
           if (response.status === 'OK') {
             // Resetear cookies y actualizar estado de autenticación
             this.cookies = null;
@@ -395,7 +395,7 @@ export class AuthService {
             // Obtener datos del usuario
             this.fetchCurrentUserData().subscribe({
               next: (userData) => {
-                
+
                 if (userData.status === 'OK' && userData.data) {
                   // Guardar los datos del usuario incluyendo la foto de perfil de Google
                   const userDataWithImage = {
@@ -407,7 +407,7 @@ export class AuthService {
                   // Actualizar el BehaviorSubject con todos los datos del usuario
                   this.userDataSubject.next(userDataWithImage);
 
-                                    
+
                   // Comprobar estado de administrador
                   this.checkAndUpdateAdminStatus().subscribe();
 
@@ -446,12 +446,12 @@ export class AuthService {
         // Obtener datos del usuario actual después del login
         this.fetchCurrentUserData().subscribe({
           next: (response) => {
-            
+
             if (response.status === 'OK' && response.data) {
               this.userDataSubject.next(response.data);
 
               // Mostrar información del usuario en consola después de iniciar sesión con Google
-                            
+
               // También registrar en la consola las cookies actuales
               console.log('🍪 Cookies actuales:', {
                 access_token: this.getCookie('access_token') ? '(presente)' : '(no presente)',
@@ -494,7 +494,7 @@ export class AuthService {
     }).pipe(
       tap((response) => {
         if (response.status === 'OK') {
-          
+
           // Si la respuesta incluye datos de usuario, actualizamos el subject
           if (response.user_data) {
             const userData = {

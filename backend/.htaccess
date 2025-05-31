@@ -3,7 +3,8 @@
 </IfModule>
 
 <IfModule mod_headers.c>
-  Header set Access-Control-Allow-Origin "*"
-  Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
-  Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+  # NO establecer headers CORS aquí - se manejan en global_headers.php
+  # Header set Access-Control-Allow-Origin "*"
+  # Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+  # Header set Access-Control-Allow-Headers "Content-Type, Authorization"
 </IfModule>

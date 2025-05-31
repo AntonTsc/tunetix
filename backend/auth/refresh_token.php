@@ -9,7 +9,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 // Obtener la clave secreta del .env
-$secret_key = $_ENV['SECRET']; 
+$secret_key = $_ENV['SECRET'];
 
 // Verificar que el refresh_token está presente en las cookies
 if (!isset($_COOKIE['refresh_token'])) {
@@ -32,16 +32,20 @@ try {
         http_response_code(401);
         exit;
     }
-
     $new_access_token = generateToken($decoded->id, $decoded->email, 60 * 30); // 30 min
 
-    // Configurar la cookie de access_token con Secure y HttpOnly
-    setcookie("access_token", $new_access_token, time() + 60 * 30, "/", "", false, true);  // Expira en 30 min
+    // Configurar la cookie de access_token para cross-origin
+    setcookie("access_token", $new_access_token, [
+        'expires' => time() + (60 * 30),
+        'path' => '/',
+        'domain' => '',
+        'secure' => false,
+        'httponly' => false,
+        'samesite' => 'Lax'
+    ]);
 
     ServerResponse::success("Token renovado", ["access_token" => $new_access_token]);
-
 } catch (Exception $e) {
     ServerResponse::error(401, "Refresh token inválido: " . $e->getMessage());
     http_response_code(401);
 }
-?>

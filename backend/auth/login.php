@@ -47,13 +47,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Verificar la contraseña (para cuentas locales o cuentas de Google con contraseña)
     if (password_verify($password, $user['contrasena'])) {
-        // Generar tokens
         $access_token = generateToken($user['id'], $user['correo'], 60 * 30); // 30 min
         $refresh_token = generateToken($user['id'], $user['correo'], 259200); // 3 días
 
-        // Configurar cookies seguras
-        setcookie("access_token", $access_token, time() + 60 * 30, "/", "localhost", false, false);
-        setcookie("refresh_token", $refresh_token, time() + 259200, "/", "localhost", false, false);
+        // Configurar cookies para cross-origin (localhost:4200 -> localhost)
+        // CRÍTICO: httponly=false, secure=false, domain=null para desarrollo cross-origin
+        setcookie("access_token", $access_token, [
+            'expires' => time() + (60 * 30), // 30 minutos
+            'path' => '/',
+            'domain' => '', // NO especificar domain para permitir cross-origin
+            'secure' => false, // FALSE en desarrollo (HTTP)
+            'httponly' => false, // FALSE para permitir acceso desde JavaScript
+            'samesite' => 'Lax' // Permitir envío cross-origin
+        ]);
+
+        setcookie("refresh_token", $refresh_token, [
+            'expires' => time() + 259200, // 3 días
+            'path' => '/',
+            'domain' => '', // NO especificar domain para permitir cross-origin
+            'secure' => false, // FALSE en desarrollo (HTTP)
+            'httponly' => false, // FALSE para permitir acceso desde JavaScript
+            'samesite' => 'Lax' // Permitir envío cross-origin
+        ]);
 
         // Modificar la preparación de userData para incluir el rol
         $userData = [

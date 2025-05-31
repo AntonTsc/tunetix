@@ -172,7 +172,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['code'])) {
 
         $loginStatus = "";
         $userData = null;
-
         if ($result->num_rows > 0) {
             $user = $result->fetch_assoc();
             $userData = $user;
@@ -181,9 +180,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['code'])) {
             $access_token = generateToken($user['id'], $user['correo'], 1800); // 30 min
             $refresh_token = generateToken($user['id'], $user['correo'], 259200); // 3 días
 
-            // Configurar cookies
-            setcookie("access_token", $access_token, time() + 1800, "/", "", false, false);
-            setcookie("refresh_token", $refresh_token, time() + 259200, "/", "", false, false);
+            // Configurar cookies para cross-origin
+            setcookie("access_token", $access_token, [
+                'expires' => time() + 1800,
+                'path' => '/',
+                'domain' => '',
+                'secure' => false,
+                'httponly' => false,
+                'samesite' => 'Lax'
+            ]);
+            setcookie("refresh_token", $refresh_token, [
+                'expires' => time() + 259200,
+                'path' => '/',
+                'domain' => '',
+                'secure' => false,
+                'httponly' => false,
+                'samesite' => 'Lax'
+            ]);
 
             $loginStatus = "success";
         } else {
@@ -208,15 +221,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['code'])) {
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $user = $result->fetch_assoc();
-                $userData = $user;
-
-                // Generar tokens
+                $userData = $user;                // Generar tokens
                 $access_token = generateToken($user['id'], $user['correo'], 1800); // 30 min
                 $refresh_token = generateToken($user['id'], $user['correo'], 259200); // 3 días
 
-                // Configurar cookies
-                setcookie("access_token", $access_token, time() + 1800, "/", "", false, false);
-                setcookie("refresh_token", $refresh_token, time() + 259200, "/", "", false, false);
+                // Configurar cookies para cross-origin
+                setcookie("access_token", $access_token, [
+                    'expires' => time() + 1800,
+                    'path' => '/',
+                    'domain' => '',
+                    'secure' => false,
+                    'httponly' => false,
+                    'samesite' => 'Lax'
+                ]);
+                setcookie("refresh_token", $refresh_token, [
+                    'expires' => time() + 259200,
+                    'path' => '/',
+                    'domain' => '',
+                    'secure' => false,
+                    'httponly' => false,
+                    'samesite' => 'Lax'
+                ]);
 
                 $loginStatus = "linked";
             } else {
@@ -236,15 +261,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['code'])) {
                     $stmt->bind_param("i", $userId);
                     $stmt->execute();
                     $result = $stmt->get_result();
-                    $userData = $result->fetch_assoc();
-
-                    // Generar tokens
+                    $userData = $result->fetch_assoc();                    // Generar tokens
                     $access_token = generateToken($userId, $email, 1800); // 30 min
                     $refresh_token = generateToken($userId, $email, 259200); // 3 días
 
-                    // Configurar cookies
-                    setcookie("access_token", $access_token, time() + 1800, "/", "", false, false);
-                    setcookie("refresh_token", $refresh_token, time() + 259200, "/", "", false, false);
+                    // Configurar cookies para cross-origin
+                    setcookie("access_token", $access_token, [
+                        'expires' => time() + 1800,
+                        'path' => '/',
+                        'domain' => '',
+                        'secure' => false,
+                        'httponly' => false,
+                        'samesite' => 'Lax'
+                    ]);
+                    setcookie("refresh_token", $refresh_token, [
+                        'expires' => time() + 259200,
+                        'path' => '/',
+                        'domain' => '',
+                        'secure' => false,
+                        'httponly' => false,
+                        'samesite' => 'Lax'
+                    ]);
 
                     $loginStatus = "registered";
                 } else {
